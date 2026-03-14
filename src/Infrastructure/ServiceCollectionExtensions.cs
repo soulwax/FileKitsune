@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IFileScanner, LocalFileScanner>();
         services.AddSingleton<IFileContentReader, LocalFileContentReader>();
         services.AddSingleton<IFileOperations, LocalFileOperations>();
+        services.AddSingleton<IFileHashProvider, Sha256FileHashProvider>();
         services.AddSingleton<IGeminiSemanticClassifier, GeminiSemanticClassifier>();
         services.AddHttpClient("GeminiClassifier");
 

@@ -42,6 +42,12 @@ public sealed class LocalFileScanner : IFileScanner
 
             foreach (var directory in SafeEnumerateDirectories(currentDirectory))
             {
+                var directoryInfo = new DirectoryInfo(directory);
+                if (ShouldSkipDirectory(directoryInfo, settings))
+                {
+                    continue;
+                }
+
                 var relativeDirectory = Path.GetRelativePath(root, directory);
                 if (ShouldExclude(relativeDirectory, settings.ExcludePatterns))
                 {
@@ -62,6 +68,11 @@ public sealed class LocalFileScanner : IFileScanner
                 }
 
                 var info = new FileInfo(filePath);
+                if (ShouldSkipFile(info, settings))
+                {
+                    continue;
+                }
+
                 results.Add(new ScannedFile
                 {
                     FullPath = filePath,
@@ -71,7 +82,10 @@ public sealed class LocalFileScanner : IFileScanner
                     Extension = info.Extension,
                     SizeBytes = info.Exists ? info.Length : 0,
                     CreatedUtc = info.CreationTimeUtc,
-                    ModifiedUtc = info.LastWriteTimeUtc
+                    ModifiedUtc = info.LastWriteTimeUtc,
+                    IsHidden = info.Attributes.HasFlag(FileAttributes.Hidden),
+                    IsSystem = info.Attributes.HasFlag(FileAttributes.System),
+                    IsReparsePoint = info.Attributes.HasFlag(FileAttributes.ReparsePoint)
                 });
 
                 if (results.Count % 25 == 0)
@@ -138,5 +152,39 @@ public sealed class LocalFileScanner : IFileScanner
             !string.IsNullOrWhiteSpace(pattern) &&
             (FileSystemName.MatchesSimpleExpression(pattern, relativePath, ignoreCase: true) ||
              relativePath.Contains(pattern, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static bool ShouldSkipDirectory(DirectoryInfo directoryInfo, OrganizationSettings settings)
+    {
+        var attributes = directoryInfo.Attributes;
+        if (!settings.ProtectionPolicy.FollowSymlinksOrJunctions && attributes.HasFlag(FileAttributes.ReparsePoint))
+        {
+            return true;
+        }
+
+        if (settings.ProtectionPolicy.SkipHiddenOrSystemFiles &&
+            (attributes.HasFlag(FileAttributes.Hidden) || attributes.HasFlag(FileAttributes.System)))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool ShouldSkipFile(FileInfo fileInfo, OrganizationSettings settings)
+    {
+        var attributes = fileInfo.Attributes;
+        if (!settings.ProtectionPolicy.FollowSymlinksOrJunctions && attributes.HasFlag(FileAttributes.ReparsePoint))
+        {
+            return true;
+        }
+
+        if (settings.ProtectionPolicy.SkipHiddenOrSystemFiles &&
+            (attributes.HasFlag(FileAttributes.Hidden) || attributes.HasFlag(FileAttributes.System)))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

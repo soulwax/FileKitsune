@@ -12,26 +12,26 @@ public sealed partial class HeuristicSemanticClassifier
     private static readonly Dictionary<string, string[]> CategoryKeywords =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["invoices"] = ["rechnung", "rechnungen", "invoice", "billing", "iban", "mwst", "vat", "payment"],
-            ["research"] = ["research", "paper", "study", "literature", "forschung", "analyse", "report", "bericht"],
-            ["music-projects"] = ["track", "mix", "master", "stem", "session", "musik", "song", "ableton", "logic"],
-            ["medical-documents"] = ["befund", "arzt", "medical", "clinic", "patient", "diagnosis", "labor", "report"],
-            ["code"] = ["class", "namespace", "using", "function", "code", "projekt", "solution", "build", "api"],
-            ["photos"] = ["photo", "image", "jpg", "png", "urlaub", "kamera", "screenshot"],
-            ["admin"] = ["admin", "steuer", "tax", "bank", "versicherung", "insurance", "registration"],
-            ["contracts"] = ["vertrag", "verträge", "contract", "agreement", "nda", "terms", "lease", "signature"],
-            ["teaching"] = ["vorlesung", "lecture", "course", "seminar", "teaching", "exercise", "slides"],
-            ["personal-notes"] = ["notes", "note", "journal", "todo", "tagebuch", "memo", "ideas", "ideen"]
+            ["invoices"] = ["rechnung", "rechnungen", "invoice", "billing", "iban", "mwst", "vat", "payment", "zahlungsziel", "betrag"],
+            ["research"] = ["research", "paper", "study", "literature", "forschung", "analyse", "report", "bericht", "thesis", "journal", "abstract"],
+            ["music-projects"] = ["track", "mix", "master", "stem", "session", "musik", "song", "ableton", "logic", "arrangement", "produktion"],
+            ["medical-documents"] = ["befund", "arzt", "medical", "clinic", "patient", "diagnosis", "labor", "report", "klinik", "medizin", "arztbrief"],
+            ["code"] = ["class", "namespace", "using", "function", "code", "projekt", "solution", "build", "api", "repository", "source"],
+            ["photos"] = ["photo", "image", "jpg", "png", "urlaub", "kamera", "screenshot", "aufnahme", "bild"],
+            ["admin"] = ["admin", "steuer", "tax", "bank", "versicherung", "insurance", "registration", "abrechnung", "beleg"],
+            ["contracts"] = ["vertrag", "verträge", "contract", "agreement", "nda", "terms", "lease", "signature", "entwurf", "draft"],
+            ["teaching"] = ["vorlesung", "lecture", "course", "seminar", "teaching", "exercise", "slides", "semester", "skript"],
+            ["personal-notes"] = ["notes", "note", "journal", "todo", "tagebuch", "memo", "ideas", "ideen", "notizen", "meetingnotes"]
         };
 
     private static readonly HashSet<string> GermanMarkers =
     [
-        "und", "für", "mit", "rechnung", "vertrag", "vorlesung", "befund", "über", "größe", "lehre"
+        "und", "für", "mit", "rechnung", "vertrag", "vorlesung", "befund", "über", "größe", "lehre", "projekt", "steuer", "notizen", "entwurf", "klinik", "semester"
     ];
 
     private static readonly HashSet<string> EnglishMarkers =
     [
-        "and", "with", "invoice", "contract", "lecture", "report", "notes", "project", "release"
+        "and", "with", "invoice", "contract", "lecture", "report", "notes", "project", "release", "draft", "session", "research", "billing"
     ];
 
     private static readonly HashSet<string> GenericProjectTerms =
@@ -198,9 +198,14 @@ public sealed partial class HeuristicSemanticClassifier
             baseConfidence += 0.05d;
         }
 
-        if (languageContext == DetectedLanguageContext.Mixed)
+        if (languageContext == DetectedLanguageContext.Mixed && score <= 1)
         {
-            baseConfidence -= 0.08d;
+            baseConfidence -= 0.03d;
+        }
+
+        if (languageContext == DetectedLanguageContext.Mixed && score >= 3)
+        {
+            baseConfidence += 0.03d;
         }
 
         return Math.Clamp(baseConfidence, 0.1d, 0.98d);

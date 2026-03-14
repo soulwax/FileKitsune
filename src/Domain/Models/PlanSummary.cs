@@ -17,4 +17,10 @@ public sealed class PlanSummary
     public int RequiresReviewCount { get; init; }
 
     public int HighRiskCount { get; init; }
+
+    public int DuplicateCount { get; init; }
+
+    public int ProtectedCount { get; init; }
+
+    public int AutoApprovedCount { get; init; }
 }

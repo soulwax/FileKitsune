@@ -9,7 +9,7 @@ public sealed partial class PlanOperationItemViewModel : ObservableObject
     public PlanOperationItemViewModel(PlanOperation operation)
     {
         Operation = operation;
-        isSelected = CanSelect && operation.OperationType != PlanOperationType.Skip;
+        isSelected = CanSelect && operation.AutoApproved;
     }
 
     public PlanOperation Operation { get; }
@@ -44,4 +44,14 @@ public sealed partial class PlanOperationItemViewModel : ObservableObject
     public string Category => Operation.CategoryDisplayName;
 
     public string Project => string.IsNullOrWhiteSpace(Operation.ProjectOrTopic) ? "None" : Operation.ProjectOrTopic;
+
+    public string Strategy => Operation.StrategyPreset.ToString();
+
+    public string Review => Operation.ReviewReasons.Count == 0 ? "Auto-approved" : string.Join(" | ", Operation.ReviewReasons);
+
+    public string Duplicate => Operation.DuplicateDetected ? $"Duplicate of {Operation.DuplicateOfRelativePath}" : "No";
+
+    public string Protection => string.IsNullOrWhiteSpace(Operation.ProtectionReason) ? "None" : Operation.ProtectionReason;
+
+    public string Approval => Operation.AutoApproved ? "Auto" : Operation.RequiresReview ? "Review" : "Manual";
 }

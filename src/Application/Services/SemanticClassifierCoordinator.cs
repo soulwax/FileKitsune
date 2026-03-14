@@ -30,7 +30,10 @@ public sealed class SemanticClassifierCoordinator
     {
         var heuristic = await heuristicSemanticClassifier.ClassifyAsync(request, settings, cancellationToken);
 
-        if (!settings.UseGeminiWhenAvailable || !geminiOptions.Enabled || string.IsNullOrWhiteSpace(geminiOptions.ApiKey))
+        if (settings.ReviewPolicy.ExecutionMode == ExecutionMode.HeuristicsOnly ||
+            !settings.UseGeminiWhenAvailable ||
+            !geminiOptions.Enabled ||
+            string.IsNullOrWhiteSpace(geminiOptions.ApiKey))
         {
             return heuristic;
         }

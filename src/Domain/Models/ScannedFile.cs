@@ -17,4 +17,10 @@ public sealed class ScannedFile
     public DateTimeOffset CreatedUtc { get; init; }
 
     public DateTimeOffset ModifiedUtc { get; init; }
+
+    public bool IsHidden { get; init; }
+
+    public bool IsSystem { get; init; }
+
+    public bool IsReparsePoint { get; init; }
 }

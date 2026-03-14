@@ -76,16 +76,64 @@ public sealed partial class MainWindowViewModel : ObservableObject
             new(PlanFilterMode.GeminiOnly, "Gemini")
         ];
 
+        StrategyPresets =
+        [
+            new(OrganizationStrategyPreset.SemanticCategoryFirst, "Semantic category first"),
+            new(OrganizationStrategyPreset.ProjectFirst, "Project first"),
+            new(OrganizationStrategyPreset.DateFirst, "Date first"),
+            new(OrganizationStrategyPreset.HybridProjectDate, "Hybrid project/date"),
+            new(OrganizationStrategyPreset.ArchiveCleanup, "Archive cleanup"),
+            new(OrganizationStrategyPreset.WorkDocuments, "Work documents"),
+            new(OrganizationStrategyPreset.ResearchLibrary, "Research library"),
+            new(OrganizationStrategyPreset.ManualCustom, "Manual custom")
+        ];
+
+        DateSources =
+        [
+            new(DateSourceKind.ContentDerived, "Content-derived"),
+            new(DateSourceKind.FileName, "File name"),
+            new(DateSourceKind.ModifiedTime, "Modified time"),
+            new(DateSourceKind.CreatedTime, "Created time")
+        ];
+
+        ExecutionModes =
+        [
+            new(ExecutionMode.HeuristicsPlusGeminiReviewFirst, "Heuristics + Gemini review-first"),
+            new(ExecutionMode.FullyAssisted, "Fully assisted"),
+            new(ExecutionMode.HeuristicsOnly, "Heuristics only")
+        ];
+
+        DuplicateHandlingModes =
+        [
+            new(DuplicateHandlingMode.RequireReview, "Require review"),
+            new(DuplicateHandlingMode.RouteToDuplicatesFolder, "Route to duplicates folder"),
+            new(DuplicateHandlingMode.Skip, "Skip duplicate items")
+        ];
+
+        FilenameLanguagePolicies =
+        [
+            new(FilenameLanguagePolicy.PreserveSourceLanguage, "Preserve source language"),
+            new(FilenameLanguagePolicy.PreferGerman, "Prefer German tokens"),
+            new(FilenameLanguagePolicy.PreferEnglish, "Prefer English tokens"),
+            new(FilenameLanguagePolicy.FolderLanguageOnly, "Folder language only")
+        ];
+
         selectedRenameMode = RenameModes[1];
         selectedFolderLanguageMode = FolderLanguageModes[0];
         selectedConflictMode = ConflictModes[1];
         selectedPlanFilter = PlanFilters[0];
+        selectedStrategyPreset = StrategyPresets[0];
+        selectedPreferredDateSource = DateSources[2];
+        selectedExecutionMode = ExecutionModes[0];
+        selectedDuplicateHandlingMode = DuplicateHandlingModes[0];
+        selectedFilenameLanguagePolicy = FilenameLanguagePolicies[0];
 
         PlanOperations = [];
         PlanView = CollectionViewSource.GetDefaultView(PlanOperations);
         PlanView.Filter = ApplyPlanFilter;
         LogEntries = uiLogStore.Entries;
         StatusMessage = "Ready.";
+        StrategyDisplayName = selectedStrategyPreset.Label;
     }
 
     public IReadOnlyList<OptionItem<FileRenameMode>> RenameModes { get; }
@@ -95,6 +143,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public IReadOnlyList<OptionItem<ConflictHandlingMode>> ConflictModes { get; }
 
     public IReadOnlyList<OptionItem<PlanFilterMode>> PlanFilters { get; }
+
+    public IReadOnlyList<OptionItem<OrganizationStrategyPreset>> StrategyPresets { get; }
+
+    public IReadOnlyList<OptionItem<DateSourceKind>> DateSources { get; }
+
+    public IReadOnlyList<OptionItem<ExecutionMode>> ExecutionModes { get; }
+
+    public IReadOnlyList<OptionItem<DuplicateHandlingMode>> DuplicateHandlingModes { get; }
+
+    public IReadOnlyList<OptionItem<FilenameLanguagePolicy>> FilenameLanguagePolicies { get; }
 
     public ObservableCollection<PlanOperationItemViewModel> PlanOperations { get; }
 

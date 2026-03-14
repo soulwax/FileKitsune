@@ -1,107 +1,292 @@
 using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
+using FileTransformer.Application.Models;
 using FileTransformer.Domain.Enums;
 using FileTransformer.Domain.Models;
 using FileTransformer.Domain.Services;
 
 namespace FileTransformer.Application.Services;
 
-public sealed partial class DestinationPathBuilder
+public sealed class DestinationPathBuilder
 {
-    public PlanOperation Build(
-        ScannedFile file,
-        SemanticInsight insight,
-        OrganizationSettings settings,
-        PathSafetyService pathSafetyService)
+    private readonly NamingPolicyService namingPolicyService;
+    private readonly ReviewDecisionService reviewDecisionService;
+
+    public DestinationPathBuilder(
+        NamingPolicyService namingPolicyService,
+        ReviewDecisionService reviewDecisionService)
     {
-        var categoryLabel = SemanticCatalog.ResolveDisplayName(
-            insight.CategoryKey,
-            settings.FolderLanguageMode,
-            insight.OriginalCategoryLabel);
+        this.namingPolicyService = namingPolicyService;
+        this.reviewDecisionService = reviewDecisionService;
+    }
 
-        var segments = new List<string>();
+    public PlanOperation Build(
+        FileAnalysisContext context,
+        FileAnalysisContext groupLeader,
+        OrganizationSettings settings,
+        StrategyPresetDefinition strategyDefinition,
+        IReadOnlyDictionary<string, int> categoryCounts,
+        PathSafetyService pathSafetyService,
+        bool sharedFolderGroup)
+    {
+        var warnings = new List<string>();
+        var protectionPreventedTransformation = context.ProtectedByRule;
+        var duplicateDetected = context.DuplicateMatch.IsDuplicate;
+        var routedToReviewFolder = false;
 
-        if (settings.Dimensions.HasFlag(OrganizationDimension.SemanticCategory))
+        if (protectionPreventedTransformation)
         {
-            segments.Add(WindowsPathRules.SanitizePathSegment(categoryLabel));
+            warnings.Add(context.ProtectionReason);
+            return CreateBlockedOperation(
+                context,
+                groupLeader,
+                settings,
+                strategyDefinition,
+                warnings,
+                protectionPreventedTransformation: true);
         }
 
-        if (settings.Dimensions.HasFlag(OrganizationDimension.Project))
+        if (duplicateDetected && settings.DuplicatePolicy.HandlingMode == DuplicateHandlingMode.Skip)
         {
-            var projectSegment = BuildProjectSegment(insight, settings);
-            if (!string.IsNullOrWhiteSpace(projectSegment))
-            {
-                segments.Add(projectSegment);
-            }
+            warnings.Add($"Exact duplicate of '{context.DuplicateMatch.CanonicalRelativePath}'.");
+            return CreateBlockedOperation(
+                context,
+                groupLeader,
+                settings,
+                strategyDefinition,
+                warnings,
+                duplicateDetected: true);
         }
 
-        if (settings.Dimensions.HasFlag(OrganizationDimension.Year))
+        var folderSegments = BuildFolderSegments(context, groupLeader, settings, strategyDefinition, categoryCounts, sharedFolderGroup, warnings);
+
+        if (duplicateDetected && settings.DuplicatePolicy.HandlingMode == DuplicateHandlingMode.RouteToDuplicatesFolder)
         {
-            segments.Add(file.ModifiedUtc.ToLocalTime().ToString("yyyy", CultureInfo.InvariantCulture));
+            folderSegments =
+            [
+                WindowsPathRules.SanitizePathSegment(settings.DuplicatePolicy.DuplicatesFolderName),
+                context.DuplicateMatch.ContentHash[..Math.Min(8, context.DuplicateMatch.ContentHash.Length)]
+            ];
+
+            warnings.Add($"Exact duplicate routed away from the main structure. Canonical file: {context.DuplicateMatch.CanonicalRelativePath}.");
         }
 
-        if (settings.Dimensions.HasFlag(OrganizationDimension.Month))
+        if (ShouldRouteToReviewFolder(groupLeader, settings, strategyDefinition, duplicateDetected))
         {
-            segments.Add(file.ModifiedUtc.ToLocalTime().ToString("MM", CultureInfo.InvariantCulture));
+            folderSegments.Insert(0, WindowsPathRules.SanitizePathSegment(settings.ReviewPolicy.ReviewFolderName));
+            routedToReviewFolder = true;
+            warnings.Add("Routed to review folder because policy requires manual approval.");
         }
 
-        if (settings.UseFileTypeAsSecondaryCriterion && !string.IsNullOrWhiteSpace(file.Extension))
-        {
-            segments.Add($"{file.Extension.Trim('.').ToUpperInvariant()} Files");
-        }
+        folderSegments = ApplyMaximumDepth(folderSegments, settings.OrganizationPolicy.MaximumFolderDepth, warnings);
 
-        var fileName = BuildFileName(file, insight, settings);
-        var candidateRelativePath = Path.Combine(segments.Append(fileName).ToArray());
+        var forceConservativeRename =
+            strategyDefinition.ConservativeRenaming ||
+            groupLeader.Insight.LanguageContext == DetectedLanguageContext.Unclear ||
+            groupLeader.Insight.Confidence < settings.ReviewPolicy.AutoApproveConfidenceThreshold;
+
+        var fileName = namingPolicyService.BuildFileName(
+            context.File,
+            groupLeader.Insight,
+            groupLeader.DateResolution,
+            settings,
+            forceConservativeRename);
+
+        var candidateRelativePath = folderSegments.Count == 0
+            ? fileName
+            : Path.Combine(folderSegments.Append(fileName).ToArray());
+
         var validation = pathSafetyService.ValidateDestination(settings.RootDirectory, candidateRelativePath);
-        var warningFlags = new List<string>();
+        warnings.AddRange(validation.Errors);
 
-        if (insight.LanguageContext is DetectedLanguageContext.Mixed or DetectedLanguageContext.Unclear)
-        {
-            warningFlags.Add("Mixed or unclear language context");
-        }
+        var proposedRelativePath = validation.IsValid && !string.IsNullOrWhiteSpace(validation.NormalizedRelativePath)
+            ? validation.NormalizedRelativePath
+            : context.File.RelativePath;
 
-        if (insight.Confidence < settings.LowConfidenceThreshold)
-        {
-            warningFlags.Add("Low semantic confidence");
-        }
+        var operationType = DetermineOperationType(context.File.RelativePath, proposedRelativePath);
+        var reviewDecision = reviewDecisionService.Evaluate(
+            groupLeader.Insight,
+            operationType,
+            settings,
+            duplicateDetected,
+            routedToReviewFolder,
+            protectionPreventedTransformation: false,
+            warnings);
 
-        warningFlags.AddRange(validation.Errors);
-
-        var operationType = DetermineOperationType(file.RelativePath, validation.NormalizedRelativePath);
-        var requiresReview = warningFlags.Count > 0;
-        var allowedToExecute = validation.IsValid &&
-                               !(settings.SuggestOnlyOnLowConfidence && insight.Confidence < settings.LowConfidenceThreshold);
-        var riskLevel = DetermineRiskLevel(validation, warningFlags, allowedToExecute);
+        var reason = BuildReason(context, groupLeader, strategyDefinition, warnings, reviewDecision.Reasons);
+        var allowedToExecute = validation.IsValid && operationType != PlanOperationType.Skip;
 
         return new PlanOperation
         {
             OperationType = operationType,
-            CurrentRelativePath = file.RelativePath,
-            ProposedRelativePath = validation.NormalizedRelativePath,
-            Reason = BuildReason(insight, file, settings, warningFlags),
-            Confidence = insight.Confidence,
-            RiskLevel = riskLevel,
-            WarningFlags = warningFlags,
-            RequiresReview = requiresReview,
+            CurrentRelativePath = context.File.RelativePath,
+            ProposedRelativePath = proposedRelativePath,
+            Reason = reason,
+            Confidence = groupLeader.Insight.Confidence,
+            RiskLevel = reviewDecision.RiskLevel,
+            WarningFlags = warnings,
+            RequiresReview = reviewDecision.RequiresReview,
             AllowedToExecute = allowedToExecute,
-            GeminiUsed = insight.GeminiUsed,
-            LanguageContext = insight.LanguageContext,
-            CategoryKey = insight.CategoryKey,
-            CategoryDisplayName = categoryLabel,
-            ProjectOrTopic = insight.ProjectOrTopic,
-            FileName = file.FileName
+            AutoApproved = allowedToExecute && reviewDecision.AutoApproved,
+            GeminiUsed = groupLeader.Insight.GeminiUsed,
+            LanguageContext = groupLeader.Insight.LanguageContext,
+            CategoryKey = groupLeader.Insight.CategoryKey,
+            CategoryDisplayName = ResolveCategoryLabel(groupLeader.Insight, settings, categoryCounts),
+            ProjectOrTopic = groupLeader.Insight.ProjectOrTopic,
+            FileName = context.File.FileName,
+            StrategyPreset = strategyDefinition.Preset,
+            ReviewReasons = reviewDecision.Reasons,
+            DuplicateDetected = duplicateDetected,
+            DuplicateOfRelativePath = context.DuplicateMatch.CanonicalRelativePath,
+            ProtectionPreventedTransformation = false,
+            ProtectionReason = string.Empty,
+            RoutedToReviewFolder = routedToReviewFolder,
+            DateSource = groupLeader.DateResolution.Source
         };
     }
 
-    private static string BuildProjectSegment(SemanticInsight insight, OrganizationSettings settings)
+    private PlanOperation CreateBlockedOperation(
+        FileAnalysisContext context,
+        FileAnalysisContext groupLeader,
+        OrganizationSettings settings,
+        StrategyPresetDefinition strategyDefinition,
+        List<string> warnings,
+        bool protectionPreventedTransformation = false,
+        bool duplicateDetected = false)
+    {
+        var reviewDecision = reviewDecisionService.Evaluate(
+            groupLeader.Insight,
+            PlanOperationType.Skip,
+            settings,
+            duplicateDetected,
+            routedToReviewFolder: false,
+            protectionPreventedTransformation,
+            warnings);
+
+        return new PlanOperation
+        {
+            OperationType = PlanOperationType.Skip,
+            CurrentRelativePath = context.File.RelativePath,
+            ProposedRelativePath = context.File.RelativePath,
+            Reason = BuildReason(context, groupLeader, strategyDefinition, warnings, reviewDecision.Reasons),
+            Confidence = groupLeader.Insight.Confidence,
+            RiskLevel = protectionPreventedTransformation ? RiskLevel.High : reviewDecision.RiskLevel,
+            WarningFlags = warnings,
+            RequiresReview = reviewDecision.RequiresReview,
+            AllowedToExecute = false,
+            AutoApproved = false,
+            GeminiUsed = groupLeader.Insight.GeminiUsed,
+            LanguageContext = groupLeader.Insight.LanguageContext,
+            CategoryKey = groupLeader.Insight.CategoryKey,
+            CategoryDisplayName = groupLeader.Insight.OriginalCategoryLabel,
+            ProjectOrTopic = groupLeader.Insight.ProjectOrTopic,
+            FileName = context.File.FileName,
+            StrategyPreset = strategyDefinition.Preset,
+            ReviewReasons = reviewDecision.Reasons,
+            DuplicateDetected = duplicateDetected,
+            DuplicateOfRelativePath = context.DuplicateMatch.CanonicalRelativePath,
+            ProtectionPreventedTransformation = protectionPreventedTransformation,
+            ProtectionReason = context.ProtectionReason,
+            RoutedToReviewFolder = false,
+            DateSource = groupLeader.DateResolution.Source
+        };
+    }
+
+    private static List<string> BuildFolderSegments(
+        FileAnalysisContext context,
+        FileAnalysisContext groupLeader,
+        OrganizationSettings settings,
+        StrategyPresetDefinition strategyDefinition,
+        IReadOnlyDictionary<string, int> categoryCounts,
+        bool sharedFolderGroup,
+        List<string> warnings)
+    {
+        var segments = new List<string>();
+        var categoryLabel = ResolveCategoryLabel(groupLeader.Insight, settings, categoryCounts);
+        var projectSegment = ResolveProjectSegment(groupLeader.Insight, settings);
+        var dateResolution = groupLeader.DateResolution;
+
+        foreach (var segmentKind in strategyDefinition.SegmentOrder)
+        {
+            switch (segmentKind)
+            {
+                case PathSegmentKind.Category:
+                    if (!string.IsNullOrWhiteSpace(categoryLabel))
+                    {
+                        segments.Add(WindowsPathRules.SanitizePathSegment(categoryLabel));
+                    }
+                    break;
+
+                case PathSegmentKind.Project:
+                    if (!string.IsNullOrWhiteSpace(projectSegment))
+                    {
+                        segments.Add(projectSegment);
+                    }
+                    break;
+
+                case PathSegmentKind.Year:
+                    if (dateResolution.Value is not null)
+                    {
+                        segments.Add(dateResolution.Value.Value.ToLocalTime().ToString("yyyy", CultureInfo.InvariantCulture));
+                    }
+                    else
+                    {
+                        warnings.Add("No reliable year source was available.");
+                    }
+                    break;
+
+                case PathSegmentKind.Month:
+                    if (dateResolution.Value is not null)
+                    {
+                        segments.Add(dateResolution.Value.Value.ToLocalTime().ToString("MM", CultureInfo.InvariantCulture));
+                    }
+                    else
+                    {
+                        warnings.Add("No reliable month source was available.");
+                    }
+                    break;
+
+                case PathSegmentKind.FileType:
+                    if (!sharedFolderGroup && !string.IsNullOrWhiteSpace(context.File.Extension))
+                    {
+                        segments.Add($"{context.File.Extension.Trim('.').ToUpperInvariant()} Files");
+                    }
+                    break;
+            }
+        }
+
+        return segments;
+    }
+
+    private static string ResolveCategoryLabel(
+        SemanticInsight insight,
+        OrganizationSettings settings,
+        IReadOnlyDictionary<string, int> categoryCounts)
+    {
+        var categoryKey = insight.CategoryKey;
+        var organization = settings.OrganizationPolicy;
+
+        if (organization.MergeSparseCategories &&
+            categoryCounts.TryGetValue(categoryKey, out var count) &&
+            count < Math.Max(1, organization.SparseCategoryThreshold))
+        {
+            return organization.MiscellaneousBucketName;
+        }
+
+        return SemanticCatalog.ResolveDisplayName(
+            categoryKey,
+            settings.NamingPolicy.FolderLanguageMode,
+            insight.OriginalCategoryLabel);
+    }
+
+    private static string ResolveProjectSegment(SemanticInsight insight, OrganizationSettings settings)
     {
         if (!string.IsNullOrWhiteSpace(insight.ProjectOrTopic))
         {
             return WindowsPathRules.SanitizePathSegment(insight.ProjectOrTopic);
         }
 
-        if (!settings.PreferGeminiFolderSuggestion || string.IsNullOrWhiteSpace(insight.SuggestedFolderFragment))
+        if (!settings.OrganizationPolicy.PreferGeminiFolderSuggestion || string.IsNullOrWhiteSpace(insight.SuggestedFolderFragment))
         {
             return string.Empty;
         }
@@ -115,48 +300,43 @@ public sealed partial class DestinationPathBuilder
             : WindowsPathRules.SanitizePathSegment(firstSegment);
     }
 
-    private static string BuildFileName(ScannedFile file, SemanticInsight insight, OrganizationSettings settings)
+    private static List<string> ApplyMaximumDepth(List<string> segments, int maximumFolderDepth, List<string> warnings)
     {
-        if (!settings.AllowFileRename || settings.FileRenameMode == FileRenameMode.KeepOriginal)
+        if (maximumFolderDepth <= 0 || segments.Count <= maximumFolderDepth)
         {
-            return file.FileName;
+            return segments;
         }
 
-        var extension = Path.GetExtension(file.FileName);
-        var originalBaseName = Path.GetFileNameWithoutExtension(file.FileName);
-        var cleanedBaseName = NormalizeBaseName(originalBaseName);
-
-        if (settings.FileRenameMode == FileRenameMode.NormalizeWhitespaceAndPunctuation ||
-            insight.LanguageContext is DetectedLanguageContext.Mixed or DetectedLanguageContext.Unclear ||
-            insight.Confidence < settings.LowConfidenceThreshold)
-        {
-            return $"{cleanedBaseName}{extension}";
-        }
-
-        var tokenMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["{originalName}"] = cleanedBaseName,
-            ["{category}"] = WindowsPathRules.SanitizePathSegment(insight.OriginalCategoryLabel),
-            ["{project}"] = WindowsPathRules.SanitizePathSegment(insight.ProjectOrTopic),
-            ["{date}"] = file.ModifiedUtc.ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
-        };
-
-        var candidateBaseName = settings.NamingTemplate;
-        foreach (var (token, value) in tokenMap)
-        {
-            candidateBaseName = candidateBaseName.Replace(token, value, StringComparison.OrdinalIgnoreCase);
-        }
-
-        candidateBaseName = NormalizeBaseName(candidateBaseName);
-        return string.IsNullOrWhiteSpace(candidateBaseName)
-            ? $"{cleanedBaseName}{extension}"
-            : $"{candidateBaseName}{extension}";
+        var kept = segments.Take(Math.Max(1, maximumFolderDepth - 1)).ToList();
+        var overflow = string.Join(" - ", segments.Skip(kept.Count));
+        kept.Add(WindowsPathRules.SanitizePathSegment(overflow));
+        warnings.Add($"Folder depth limited to {maximumFolderDepth} level(s).");
+        return kept;
     }
 
-    private static string NormalizeBaseName(string value)
+    private static bool ShouldRouteToReviewFolder(
+        FileAnalysisContext groupLeader,
+        OrganizationSettings settings,
+        StrategyPresetDefinition strategyDefinition,
+        bool duplicateDetected)
     {
-        var collapsed = MultiSeparatorRegex().Replace(value.Normalize(NormalizationForm.FormC), " ");
-        return WindowsPathRules.SanitizePathSegment(collapsed);
+        var insight = groupLeader.Insight;
+        var review = settings.ReviewPolicy;
+
+        if (duplicateDetected && settings.DuplicatePolicy.HandlingMode == DuplicateHandlingMode.RequireReview)
+        {
+            return true;
+        }
+
+        if (!review.RouteLowConfidenceToReviewFolder)
+        {
+            return false;
+        }
+
+        return insight.Confidence < review.LowConfidenceThreshold ||
+               insight.LanguageContext == DetectedLanguageContext.Unclear ||
+               (strategyDefinition.ReviewLowConfidenceByDefault &&
+                insight.Confidence < review.AutoApproveConfidenceThreshold);
     }
 
     private static PlanOperationType DetermineOperationType(string currentRelativePath, string proposedRelativePath)
@@ -190,49 +370,49 @@ public sealed partial class DestinationPathBuilder
         return PlanOperationType.Skip;
     }
 
-    private static RiskLevel DetermineRiskLevel(PathValidationResult validation, IEnumerable<string> warningFlags, bool allowedToExecute)
-    {
-        if (!validation.IsValid)
-        {
-            return RiskLevel.High;
-        }
-
-        if (!allowedToExecute || warningFlags.Contains("Low semantic confidence", StringComparer.OrdinalIgnoreCase))
-        {
-            return RiskLevel.Medium;
-        }
-
-        return warningFlags.Any() ? RiskLevel.Low : RiskLevel.None;
-    }
-
     private static string BuildReason(
-        SemanticInsight insight,
-        ScannedFile file,
-        OrganizationSettings settings,
-        IReadOnlyCollection<string> warningFlags)
+        FileAnalysisContext context,
+        FileAnalysisContext groupLeader,
+        StrategyPresetDefinition strategyDefinition,
+        IReadOnlyCollection<string> warnings,
+        IReadOnlyCollection<string> reviewReasons)
     {
         var builder = new StringBuilder();
-        builder.Append(insight.Explanation);
-        builder.Append(" Based on '");
-        builder.Append(file.FileName);
-        builder.Append('\'');
+        builder.Append(groupLeader.Insight.Explanation);
+        builder.Append(" Strategy: ");
+        builder.Append(strategyDefinition.DisplayName);
+        builder.Append(". File: '");
+        builder.Append(context.File.FileName);
+        builder.Append("'.");
 
-        if (settings.Dimensions.HasFlag(OrganizationDimension.Year))
+        if (groupLeader.DateResolution.Value is not null)
         {
-            builder.Append(", dated ");
-            builder.Append(file.ModifiedUtc.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            builder.Append(" Date source: ");
+            builder.Append(groupLeader.DateResolution.Source);
+            builder.Append('.');
         }
 
-        if (warningFlags.Count > 0)
+        if (context.DuplicateMatch.IsDuplicate)
         {
-            builder.Append(". Review flags: ");
-            builder.Append(string.Join("; ", warningFlags));
+            builder.Append(" Duplicate of '");
+            builder.Append(context.DuplicateMatch.CanonicalRelativePath);
+            builder.Append("'.");
+        }
+
+        if (warnings.Count > 0)
+        {
+            builder.Append(" Warnings: ");
+            builder.Append(string.Join("; ", warnings));
+            builder.Append('.');
+        }
+
+        if (reviewReasons.Count > 0)
+        {
+            builder.Append(" Review: ");
+            builder.Append(string.Join("; ", reviewReasons));
             builder.Append('.');
         }
 
         return builder.ToString();
     }
-
-    [GeneratedRegex(@"[\s\-_]+")]
-    private static partial Regex MultiSeparatorRegex();
 }

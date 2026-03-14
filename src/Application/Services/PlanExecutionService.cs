@@ -69,7 +69,7 @@ public sealed class PlanExecutionService
             {
                 if (fileOperations.FileExists(destinationFullPath))
                 {
-                    if (plan.Settings.ConflictHandlingMode == ConflictHandlingMode.Skip)
+                    if (plan.Settings.NamingPolicy.ConflictHandlingMode == ConflictHandlingMode.Skip)
                     {
                         skippedCount++;
                         messages.Add($"Skipped '{operation.CurrentRelativePath}' because '{operation.ProposedRelativePath}' already exists.");

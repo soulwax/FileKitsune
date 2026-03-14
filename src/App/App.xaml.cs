@@ -34,6 +34,11 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton(uiLogStore);
         builder.Services.AddFileTransformerInfrastructure();
         builder.Services.AddSingleton<PathSafetyService>();
+        builder.Services.AddSingleton<DateResolutionService>();
+        builder.Services.AddSingleton<DuplicateDetectionService>();
+        builder.Services.AddSingleton<ProtectionPolicyService>();
+        builder.Services.AddSingleton<NamingPolicyService>();
+        builder.Services.AddSingleton<ReviewDecisionService>();
         builder.Services.AddSingleton<DestinationPathBuilder>();
         builder.Services.AddSingleton<HeuristicSemanticClassifier>();
         builder.Services.AddSingleton<SemanticClassifierCoordinator>();

@@ -2,15 +2,29 @@ using FileTransformer.Application.Abstractions;
 using FileTransformer.Application.Models;
 using FileTransformer.Domain.Enums;
 using FileTransformer.Domain.Models;
+using FileTransformer.Domain.Services;
 using Microsoft.Extensions.Logging;
 
 namespace FileTransformer.Application.Services;
 
 public sealed class OrganizationWorkflowService
 {
+    private static readonly HashSet<string> SidecarExtensions =
+    [
+        ".json",
+        ".xml",
+        ".xmp",
+        ".cue",
+        ".srt",
+        ".vtt"
+    ];
+
     private readonly IFileScanner fileScanner;
     private readonly IFileContentReader fileContentReader;
     private readonly SemanticClassifierCoordinator semanticClassifierCoordinator;
+    private readonly DateResolutionService dateResolutionService;
+    private readonly DuplicateDetectionService duplicateDetectionService;
+    private readonly ProtectionPolicyService protectionPolicyService;
     private readonly DestinationPathBuilder destinationPathBuilder;
     private readonly PathSafetyService pathSafetyService;
     private readonly ILogger<OrganizationWorkflowService> logger;
@@ -19,6 +33,9 @@ public sealed class OrganizationWorkflowService
         IFileScanner fileScanner,
         IFileContentReader fileContentReader,
         SemanticClassifierCoordinator semanticClassifierCoordinator,
+        DateResolutionService dateResolutionService,
+        DuplicateDetectionService duplicateDetectionService,
+        ProtectionPolicyService protectionPolicyService,
         DestinationPathBuilder destinationPathBuilder,
         PathSafetyService pathSafetyService,
         ILogger<OrganizationWorkflowService> logger)
@@ -26,6 +43,9 @@ public sealed class OrganizationWorkflowService
         this.fileScanner = fileScanner;
         this.fileContentReader = fileContentReader;
         this.semanticClassifierCoordinator = semanticClassifierCoordinator;
+        this.dateResolutionService = dateResolutionService;
+        this.duplicateDetectionService = duplicateDetectionService;
+        this.protectionPolicyService = protectionPolicyService;
         this.destinationPathBuilder = destinationPathBuilder;
         this.pathSafetyService = pathSafetyService;
         this.logger = logger;
@@ -37,6 +57,7 @@ public sealed class OrganizationWorkflowService
         CancellationToken cancellationToken)
     {
         var settings = appSettings.Organization;
+        var strategyDefinition = StrategyPresetCatalog.Resolve(settings.OrganizationPolicy);
 
         progress?.Report(new WorkflowProgress { Stage = "scan", Message = "Scanning files...", Processed = 0, Total = 0 });
         var scannedFiles = await fileScanner.ScanAsync(settings, progress, cancellationToken);
@@ -46,7 +67,8 @@ public sealed class OrganizationWorkflowService
             .Take(settings.PreviewSampleSize)
             .ToList();
 
-        var operations = new PlanOperation[selectedFiles.Count];
+        var groupingKeys = protectionPolicyService.BuildGroupingKeys(selectedFiles, settings.ProtectionPolicy);
+        var contexts = new FileAnalysisContext[selectedFiles.Count];
         using var gate = new SemaphoreSlim(Math.Max(1, settings.MaxConcurrentClassification));
         var processed = 0;
 
@@ -66,26 +88,42 @@ public sealed class OrganizationWorkflowService
                     appSettings.Gemini,
                     cancellationToken);
 
-                operations[index] = destinationPathBuilder.Build(file, insight, settings, pathSafetyService);
+                var dateResolution = dateResolutionService.Resolve(file, content, settings);
+                var protection = protectionPolicyService.Evaluate(file, settings);
+                var groupKey = groupingKeys.TryGetValue(file.RelativePath, out var resolvedKey)
+                    ? resolvedKey
+                    : $"file::{file.RelativePath}";
+
+                contexts[index] = new FileAnalysisContext
+                {
+                    File = file,
+                    Content = content,
+                    Insight = insight,
+                    DateResolution = dateResolution,
+                    ProtectedByRule = protection.IsProtected,
+                    ProtectionReason = protection.Reason,
+                    PlanningGroupKey = groupKey,
+                    PlanningGroupLeaderKey = groupKey
+                };
             }
             catch (Exception exception)
             {
                 logger.LogWarning(exception, "Plan generation failed for {File}", file.RelativePath);
-                operations[index] = new PlanOperation
+                contexts[index] = new FileAnalysisContext
                 {
-                    OperationType = PlanOperationType.Skip,
-                    CurrentRelativePath = file.RelativePath,
-                    ProposedRelativePath = file.RelativePath,
-                    FileName = file.FileName,
-                    Confidence = 0,
-                    RequiresReview = true,
-                    AllowedToExecute = false,
-                    RiskLevel = RiskLevel.High,
-                    WarningFlags = ["Planning failure"],
-                    Reason = $"Planning failed: {exception.Message}",
-                    CategoryKey = "uncategorized",
-                    CategoryDisplayName = "Uncategorized",
-                    ProjectOrTopic = string.Empty
+                    File = file,
+                    Content = new FileContentSnapshot(),
+                    Insight = new SemanticInsight
+                    {
+                        CategoryKey = "uncategorized",
+                        OriginalCategoryLabel = "Uncategorized",
+                        Confidence = 0,
+                        Explanation = $"Planning failed: {exception.Message}"
+                    },
+                    ProtectedByRule = true,
+                    ProtectionReason = $"Planning failed: {exception.Message}",
+                    PlanningGroupKey = $"file::{file.RelativePath}",
+                    PlanningGroupLeaderKey = $"file::{file.RelativePath}"
                 };
             }
             finally
@@ -104,13 +142,65 @@ public sealed class OrganizationWorkflowService
 
         await Task.WhenAll(tasks);
 
+        var duplicateMatches = await duplicateDetectionService.DetectAsync(selectedFiles, settings.DuplicatePolicy, progress, cancellationToken);
+        foreach (var context in contexts)
+        {
+            if (duplicateMatches.TryGetValue(context.File.RelativePath, out var duplicateMatch))
+            {
+                context.DuplicateMatch = duplicateMatch;
+            }
+        }
+
+        var groupedContexts = contexts
+            .GroupBy(context => context.PlanningGroupKey, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.ToList(), StringComparer.OrdinalIgnoreCase);
+
+        var groupLeaders = groupedContexts.ToDictionary(
+            pair => pair.Key,
+            pair => SelectGroupLeader(pair.Value),
+            StringComparer.OrdinalIgnoreCase);
+
+        var categoryCounts = contexts
+            .GroupBy(context => groupLeaders[context.PlanningGroupKey].Insight.CategoryKey, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
+
+        var operations = contexts
+            .Select(context =>
+            {
+                var group = groupedContexts[context.PlanningGroupKey];
+                var groupLeader = groupLeaders[context.PlanningGroupKey];
+                var sharedFolderGroup = group.Count > 1 && context.PlanningGroupKey.StartsWith("basename::", StringComparison.OrdinalIgnoreCase);
+
+                return destinationPathBuilder.Build(
+                    context,
+                    groupLeader,
+                    settings,
+                    strategyDefinition,
+                    categoryCounts,
+                    pathSafetyService,
+                    sharedFolderGroup);
+            })
+            .ToArray();
+
         return new OrganizationPlan
         {
             Settings = settings,
+            StrategyPreset = strategyDefinition.Preset,
             Operations = operations,
             Summary = BuildSummary(operations)
         };
     }
+
+    private static FileAnalysisContext SelectGroupLeader(IReadOnlyList<FileAnalysisContext> group)
+    {
+        return group
+            .OrderBy(context => IsSidecar(context.File.Extension))
+            .ThenByDescending(context => context.Insight.Confidence)
+            .ThenBy(context => context.File.RelativePath, StringComparer.OrdinalIgnoreCase)
+            .First();
+    }
+
+    private static bool IsSidecar(string extension) => SidecarExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
 
     private static PlanSummary BuildSummary(IEnumerable<PlanOperation> operations)
     {
@@ -124,7 +214,10 @@ public sealed class OrganizationWorkflowService
             SkipCount = operationList.Count(operation => operation.OperationType == PlanOperationType.Skip),
             GeminiAssistedCount = operationList.Count(operation => operation.GeminiUsed),
             RequiresReviewCount = operationList.Count(operation => operation.RequiresReview),
-            HighRiskCount = operationList.Count(operation => operation.RiskLevel == RiskLevel.High)
+            HighRiskCount = operationList.Count(operation => operation.RiskLevel == RiskLevel.High),
+            DuplicateCount = operationList.Count(operation => operation.DuplicateDetected),
+            ProtectedCount = operationList.Count(operation => operation.ProtectionPreventedTransformation),
+            AutoApprovedCount = operationList.Count(operation => operation.AutoApproved)
         };
     }
 }

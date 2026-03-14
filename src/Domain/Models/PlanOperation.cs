@@ -24,6 +24,8 @@ public sealed class PlanOperation
 
     public bool AllowedToExecute { get; init; } = true;
 
+    public bool AutoApproved { get; init; }
+
     public bool GeminiUsed { get; init; }
 
     public DetectedLanguageContext LanguageContext { get; init; } = DetectedLanguageContext.Unclear;
@@ -35,4 +37,20 @@ public sealed class PlanOperation
     public string ProjectOrTopic { get; init; } = string.Empty;
 
     public string FileName { get; init; } = string.Empty;
+
+    public OrganizationStrategyPreset StrategyPreset { get; init; } = OrganizationStrategyPreset.ManualCustom;
+
+    public List<string> ReviewReasons { get; init; } = [];
+
+    public bool DuplicateDetected { get; init; }
+
+    public string DuplicateOfRelativePath { get; init; } = string.Empty;
+
+    public bool ProtectionPreventedTransformation { get; init; }
+
+    public string ProtectionReason { get; init; } = string.Empty;
+
+    public bool RoutedToReviewFolder { get; init; }
+
+    public DateSourceKind DateSource { get; init; } = DateSourceKind.None;
 }
