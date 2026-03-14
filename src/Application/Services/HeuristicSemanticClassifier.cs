@@ -8,6 +8,7 @@ namespace FileTransformer.Application.Services;
 
 public sealed partial class HeuristicSemanticClassifier
 {
+    // TODO: Blend these keyword heuristics with embeddings/vector search once v1 ships.
     private static readonly Dictionary<string, string[]> CategoryKeywords =
         new(StringComparer.OrdinalIgnoreCase)
         {

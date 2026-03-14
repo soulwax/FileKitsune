@@ -6,12 +6,14 @@ using FileTransformer.Application.Services;
 using FileTransformer.Infrastructure;
 using FileTransformer.Infrastructure.Configuration;
 using FileTransformer.Infrastructure.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace FileTransformer.App;
 
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     private IHost? host;
 

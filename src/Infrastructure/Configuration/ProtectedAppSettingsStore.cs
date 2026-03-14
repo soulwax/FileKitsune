@@ -2,11 +2,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Runtime.Versioning;
 using FileTransformer.Application.Abstractions;
 using FileTransformer.Application.Models;
 
 namespace FileTransformer.Infrastructure.Configuration;
 
+[SupportedOSPlatform("windows")]
 public sealed class ProtectedAppSettingsStore : IAppSettingsStore
 {
     private static readonly JsonSerializerOptions SerializerOptions = new()

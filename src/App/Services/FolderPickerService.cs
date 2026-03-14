@@ -13,7 +13,7 @@ public sealed class FolderPickerService : IFolderPickerService
             ShowNewFolderButton = false
         };
 
-        if (!string.IsNullOrWhiteSpace(initialPath) && Directory.Exists(initialPath))
+        if (!string.IsNullOrWhiteSpace(initialPath) && System.IO.Directory.Exists(initialPath))
         {
             dialog.SelectedPath = initialPath;
         }

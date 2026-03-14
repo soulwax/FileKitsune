@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -444,7 +446,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return true;
         }
 
-        return SelectedPlanFilter.Value.Value switch
+        return SelectedPlanFilter.Value switch
         {
             PlanFilterMode.ExecutableOnly => operation.CanSelect,
             PlanFilterMode.NeedsReview => operation.Operation.RequiresReview,

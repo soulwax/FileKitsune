@@ -8,6 +8,7 @@ namespace FileTransformer.Application.Services;
 
 public sealed class PlanExecutionService
 {
+    // TODO: Add duplicate-detection policies before execution when the planner grows beyond v1.
     private readonly IFileOperations fileOperations;
     private readonly IExecutionJournalStore executionJournalStore;
     private readonly PathSafetyService pathSafetyService;

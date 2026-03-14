@@ -3,9 +3,11 @@ using FileTransformer.Infrastructure.Classification;
 using FileTransformer.Infrastructure.Configuration;
 using FileTransformer.Infrastructure.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.Versioning;
 
 namespace FileTransformer.Infrastructure;
 
+[SupportedOSPlatform("windows")]
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddFileTransformerInfrastructure(this IServiceCollection services)

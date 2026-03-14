@@ -9,6 +9,7 @@ namespace FileTransformer.Infrastructure.FileSystem;
 
 public sealed class LocalFileContentReader : IFileContentReader
 {
+    // TODO: Add OCR/image classification hooks for scanned PDFs and image-first folders.
     private const int MaxExtractedCharacters = 12_000;
     private readonly ILogger<LocalFileContentReader> logger;
 

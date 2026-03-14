@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Windows;
 
 namespace FileTransformer.App.Services;
 
@@ -9,13 +8,13 @@ public sealed class UiLogStore
 
     public void Add(UiLogEntry entry)
     {
-        if (Application.Current?.Dispatcher.CheckAccess() == true)
+        if (System.Windows.Application.Current?.Dispatcher.CheckAccess() == true)
         {
             AddCore(entry);
             return;
         }
 
-        Application.Current?.Dispatcher.Invoke(() => AddCore(entry));
+        System.Windows.Application.Current?.Dispatcher.Invoke(() => AddCore(entry));
     }
 
     private void AddCore(UiLogEntry entry)

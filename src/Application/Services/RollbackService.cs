@@ -6,6 +6,7 @@ namespace FileTransformer.Application.Services;
 
 public sealed class RollbackService
 {
+    // TODO: Persist richer rollback checkpoints for partial-failure recovery across sessions.
     private readonly IExecutionJournalStore executionJournalStore;
     private readonly IFileOperations fileOperations;
     private readonly ILogger<RollbackService> logger;

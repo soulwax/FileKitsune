@@ -58,7 +58,55 @@ public sealed class GeminiSemanticClassifier : IGeminiSemanticClassifier
             generationConfig = new
             {
                 temperature = 0.1,
-                responseMimeType = "application/json"
+                responseMimeType = "application/json",
+                responseJsonSchema = new Dictionary<string, object?>
+                {
+                    ["type"] = "object",
+                    ["required"] = new[]
+                    {
+                        "category",
+                        "projectTopic",
+                        "detectedLanguageContext",
+                        "confidence",
+                        "suggestedFolderPathFragment",
+                        "explanation"
+                    },
+                    ["additionalProperties"] = false,
+                    ["properties"] = new Dictionary<string, object?>
+                    {
+                        ["category"] = new Dictionary<string, object?>
+                        {
+                            ["type"] = "string",
+                            ["description"] = "Semantic category label or stable key."
+                        },
+                        ["projectTopic"] = new Dictionary<string, object?>
+                        {
+                            ["type"] = new[] { "string", "null" },
+                            ["description"] = "Project, topic, or workstream hint."
+                        },
+                        ["detectedLanguageContext"] = new Dictionary<string, object?>
+                        {
+                            ["type"] = "string",
+                            ["enum"] = new[] { "German", "English", "Mixed", "Unclear" }
+                        },
+                        ["confidence"] = new Dictionary<string, object?>
+                        {
+                            ["type"] = "number",
+                            ["minimum"] = 0,
+                            ["maximum"] = 1
+                        },
+                        ["suggestedFolderPathFragment"] = new Dictionary<string, object?>
+                        {
+                            ["type"] = new[] { "string", "null" },
+                            ["description"] = "Advisory folder path fragment only."
+                        },
+                        ["explanation"] = new Dictionary<string, object?>
+                        {
+                            ["type"] = "string",
+                            ["description"] = "Short explanation of the classification."
+                        }
+                    }
+                }
             }
         };
 
