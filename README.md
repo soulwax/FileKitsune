@@ -40,9 +40,17 @@ The app stores settings and encrypted Gemini credentials under `%LocalAppData%\\
 
 ```powershell
 dotnet restore
-dotnet build
-dotnet test
+dotnet build FileTransformer.sln
+dotnet test FileTransformer.sln
 ```
+
+## Run the desktop app
+
+```powershell
+dotnet run --project src/App/FileTransformer.App.csproj
+```
+
+If you prefer the newer solution format, `FileTransformer.slnx` is also included alongside `FileTransformer.sln`.
 
 ## Gemini notes
 

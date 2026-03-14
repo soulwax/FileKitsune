@@ -133,3 +133,14 @@ $RECYCLE.BIN/
 _NCrunch*
 
 .env
+
+# FileTransformer local tooling and outputs
+.vs/
+TestResults/
+artifacts/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+*.nupkg
+gemini.json
