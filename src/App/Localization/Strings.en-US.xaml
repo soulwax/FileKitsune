@@ -15,6 +15,7 @@
     <sys:String x:Key="ExecuteButton">Execute selected</sys:String>
     <sys:String x:Key="CancelButton">Cancel</sys:String>
     <sys:String x:Key="RollbackButton">Rollback latest</sys:String>
+    <sys:String x:Key="UndoByFolderLabel">Undo by folder:</sys:String>
     <sys:String x:Key="SelectExecutableButton">Select executable</sys:String>
     <sys:String x:Key="ClearSelectionButton">Clear selection</sys:String>
     <sys:String x:Key="PlanPreview">Plan preview</sys:String>

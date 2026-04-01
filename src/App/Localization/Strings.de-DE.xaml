@@ -15,6 +15,7 @@
     <sys:String x:Key="ExecuteButton">Ausgewählte ausführen</sys:String>
     <sys:String x:Key="CancelButton">Abbrechen</sys:String>
     <sys:String x:Key="RollbackButton">Letzten Lauf zurücksetzen</sys:String>
+    <sys:String x:Key="UndoByFolderLabel">Ordner rückgängig machen:</sys:String>
     <sys:String x:Key="SelectExecutableButton">Ausführbare wählen</sys:String>
     <sys:String x:Key="ClearSelectionButton">Auswahl leeren</sys:String>
     <sys:String x:Key="PlanPreview">Planvorschau</sys:String>

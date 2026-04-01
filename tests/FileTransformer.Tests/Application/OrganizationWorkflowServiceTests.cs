@@ -42,7 +42,10 @@ public sealed class OrganizationWorkflowServiceTests
             scanner,
             reader,
             coordinator,
-            new DestinationPathBuilder(),
+            new DateResolutionService(),
+            new DuplicateDetectionService(new NullFileHashProvider(), NullLogger<DuplicateDetectionService>.Instance),
+            new ProtectionPolicyService(),
+            new DestinationPathBuilder(new NamingPolicyService(), new ReviewDecisionService()),
             new PathSafetyService(),
             NullLogger<OrganizationWorkflowService>.Instance);
 
@@ -104,5 +107,11 @@ public sealed class OrganizationWorkflowServiceTests
             SemanticAnalysisRequest request,
             GeminiOptions options,
             CancellationToken cancellationToken) => Task.FromResult<SemanticInsight?>(null);
+    }
+
+    private sealed class NullFileHashProvider : IFileHashProvider
+    {
+        public Task<string> ComputeHashAsync(string fullPath, CancellationToken cancellationToken) =>
+            Task.FromResult(string.Empty);
     }
 }

@@ -156,6 +156,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<PlanOperationItemViewModel> PlanOperations { get; }
 
+    public ObservableCollection<RollbackFolderItem> RollbackFolderGroups { get; } = [];
+
     public ICollectionView PlanView { get; }
 
     public ObservableCollection<UiLogEntry> LogEntries { get; }
@@ -265,6 +267,27 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private int geminiAssistedCount;
+
+    [ObservableProperty]
+    private OptionItem<OrganizationStrategyPreset>? selectedStrategyPreset;
+
+    [ObservableProperty]
+    private OptionItem<DateSourceKind>? selectedPreferredDateSource;
+
+    [ObservableProperty]
+    private OptionItem<ExecutionMode>? selectedExecutionMode;
+
+    [ObservableProperty]
+    private OptionItem<DuplicateHandlingMode>? selectedDuplicateHandlingMode;
+
+    [ObservableProperty]
+    private OptionItem<FilenameLanguagePolicy>? selectedFilenameLanguagePolicy;
+
+    [ObservableProperty]
+    private string strategyDisplayName = string.Empty;
+
+    [ObservableProperty]
+    private bool hasRollbackFolderGroups;
 
     [ObservableProperty]
     private PlanOperationItemViewModel? selectedOperation;
@@ -440,6 +463,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 logger.LogInformation(message);
             }
 
+            PopulateRollbackFolderGroups(outcome.Journal);
             dialogService.ShowInformation("Execution finished", outcome.Summary);
         }
         catch (OperationCanceledException)
@@ -488,6 +512,41 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             logger.LogError(exception, "Rollback failed.");
             dialogService.ShowError("Rollback failed", exception.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task RollbackFolderAsync(string folderName)
+    {
+        if (!dialogService.Confirm(
+                "Undo folder",
+                $"Reverse all moves into \"{folderName}\" from the latest run?"))
+        {
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+            var outcome = await rollbackService.RollbackFolderAsync(folderName, CancellationToken.None);
+            StatusMessage = outcome.Summary;
+            logger.LogInformation(outcome.Summary);
+
+            foreach (var message in outcome.Messages)
+            {
+                logger.LogInformation(message);
+            }
+
+            dialogService.ShowInformation("Undo finished", outcome.Summary);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Folder rollback failed.");
+            dialogService.ShowError("Undo failed", exception.Message);
         }
         finally
         {
@@ -644,6 +703,48 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         return true;
+    }
+
+    private void PopulateRollbackFolderGroups(ExecutionJournal? journal)
+    {
+        RollbackFolderGroups.Clear();
+
+        if (journal is null || journal.Entries.Count == 0)
+        {
+            HasRollbackFolderGroups = false;
+            return;
+        }
+
+        var groups = journal.Entries
+            .GroupBy(entry => GetTopLevelRelativeFolder(journal.RootDirectory, entry.DestinationFullPath),
+                StringComparer.OrdinalIgnoreCase)
+            .Where(group => !string.IsNullOrWhiteSpace(group.Key))
+            .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (groups.Count <= 1)
+        {
+            HasRollbackFolderGroups = false;
+            return;
+        }
+
+        foreach (var group in groups)
+        {
+            RollbackFolderGroups.Add(new RollbackFolderItem { FolderName = group.Key, Count = group.Count() });
+        }
+
+        HasRollbackFolderGroups = true;
+    }
+
+    private static string GetTopLevelRelativeFolder(string rootDirectory, string destinationFullPath)
+    {
+        if (!destinationFullPath.StartsWith(rootDirectory, StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Empty;
+        }
+
+        var relative = destinationFullPath[rootDirectory.Length..].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return relative.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], 2)[0];
     }
 
     private static List<string> ParseList(string value) =>

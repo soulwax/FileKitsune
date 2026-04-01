@@ -207,6 +207,24 @@
                                     Command="{Binding RollbackLatestCommand}"
                                     Content="{DynamicResource RollbackButton}"
                                     IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+                            <StackPanel Margin="0,8,0,0"
+                                        Visibility="{Binding HasRollbackFolderGroups, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                           FontSize="12"
+                                           Text="{DynamicResource UndoByFolderLabel}" />
+                                <ItemsControl ItemsSource="{Binding RollbackFolderGroups}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Margin="0,4,0,0"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Command="{Binding DataContext.RollbackFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding FolderName}"
+                                                    Content="{Binding Label}"
+                                                    IsEnabled="{Binding DataContext.IsBusy, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource InverseBooleanConverter}}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
                         </StackPanel>
                     </Border>
                 </StackPanel>
