@@ -75,11 +75,89 @@
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
                     <StackPanel>
                         <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PlannerDimensions}" />
+                        <TextBlock Margin="0,8,0,12"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource PlannerDimensionsHint}" />
                         <CheckBox Content="{DynamicResource RuleGroupBySemanticCategory}" IsChecked="{Binding UseSemanticCategoryDimension}" />
                         <CheckBox Content="{DynamicResource RuleGroupByProjectTopic}" IsChecked="{Binding UseProjectDimension}" />
                         <CheckBox Content="{DynamicResource RuleGroupByYear}" IsChecked="{Binding UseYearDimension}" />
                         <CheckBox Content="{DynamicResource RuleGroupByMonth}" IsChecked="{Binding UseMonthDimension}" />
                         <CheckBox Content="{DynamicResource RuleUseFileTypeSecondary}" IsChecked="{Binding UseFileTypeSecondaryCriterion}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PlannerBehavior}" />
+                        <TextBlock Margin="0,8,0,12"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource PlannerBehaviorHint}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RulePreferredDateSource}" />
+                        <ComboBox ItemsSource="{Binding DateSources}"
+                                  DisplayMemberPath="Label"
+                                  SelectedItem="{Binding SelectedPreferredDateSource}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleExecutionMode}" />
+                        <ComboBox ItemsSource="{Binding ExecutionModes}"
+                                  DisplayMemberPath="Label"
+                                  SelectedItem="{Binding SelectedExecutionMode}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleDuplicateHandlingMode}" />
+                        <ComboBox ItemsSource="{Binding DuplicateHandlingModes}"
+                                  DisplayMemberPath="Label"
+                                  SelectedItem="{Binding SelectedDuplicateHandlingMode}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource ReviewAndDuplicateRules}" />
+                        <TextBlock Margin="0,8,0,12"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource ReviewAndDuplicateHint}" />
+                        <CheckBox Content="{DynamicResource RuleRequireReviewForRenames}" IsChecked="{Binding RequireReviewForRenames}" />
+                        <CheckBox Content="{DynamicResource RuleSuggestOnlyOnLowConfidence}" IsChecked="{Binding SuggestOnlyOnLowConfidence}" />
+                        <CheckBox Content="{DynamicResource RuleRouteLowConfidenceToReviewFolder}" IsChecked="{Binding RouteLowConfidenceToReviewFolder}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleReviewFolderName}" />
+                        <TextBox Text="{Binding ReviewFolderName, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleAutoApproveConfidenceThreshold}" />
+                        <TextBox Text="{Binding AutoApproveConfidenceThreshold, StringFormat=F2}" />
+                        <CheckBox Content="{DynamicResource RuleEnableExactDuplicateDetection}" IsChecked="{Binding EnableExactDuplicateDetection}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleDuplicatesFolderName}" />
+                        <TextBox Text="{Binding DuplicatesFolderName, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource AdvancedPlannerSettings}" />
+                        <TextBlock Margin="0,8,0,12"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource AdvancedPlannerHint}" />
+                        <CheckBox Content="{DynamicResource RuleOnlyCreateDateFoldersWhenReliable}" IsChecked="{Binding OnlyCreateDateFoldersWhenReliable}" />
+                        <CheckBox Content="{DynamicResource RulePreferGeminiFolderSuggestion}" IsChecked="{Binding PreferGeminiFolderSuggestion}" />
+                        <CheckBox Content="{DynamicResource RuleMergeSparseCategories}" IsChecked="{Binding MergeSparseCategories}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleMaximumFolderDepth}" />
+                                <TextBox Text="{Binding MaxFolderDepth}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleSparseCategoryThreshold}" />
+                                <TextBox Text="{Binding SparseCategoryThreshold}" />
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleMiscellaneousBucketName}" />
+                        <TextBox Text="{Binding MiscellaneousBucketName, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                 </Border>
 

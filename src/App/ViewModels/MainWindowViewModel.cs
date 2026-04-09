@@ -139,6 +139,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
         selectedExecutionMode = ExecutionModes[0];
         selectedDuplicateHandlingMode = DuplicateHandlingModes[0];
         selectedFilenameLanguagePolicy = FilenameLanguagePolicies[1];
+        maxFolderDepth = 4;
+        mergeSparseCategories = false;
+        sparseCategoryThreshold = 2;
+        miscellaneousBucketName = "Misc";
+        onlyCreateDateFoldersWhenReliable = true;
+        preferGeminiFolderSuggestion = true;
+        suggestOnlyOnLowConfidence = true;
+        requireReviewForRenames = true;
+        routeLowConfidenceToReviewFolder = true;
+        reviewFolderName = "Review";
+        autoApproveConfidenceThreshold = 0.82d;
+        enableExactDuplicateDetection = false;
+        duplicatesFolderName = "Duplicates";
         selectedAppLanguage = AppLanguages[0];
 
         PlanOperations = [];
@@ -299,6 +312,45 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private OptionItem<FilenameLanguagePolicy>? selectedFilenameLanguagePolicy;
+
+    [ObservableProperty]
+    private int maxFolderDepth;
+
+    [ObservableProperty]
+    private bool mergeSparseCategories;
+
+    [ObservableProperty]
+    private int sparseCategoryThreshold;
+
+    [ObservableProperty]
+    private string miscellaneousBucketName = string.Empty;
+
+    [ObservableProperty]
+    private bool onlyCreateDateFoldersWhenReliable;
+
+    [ObservableProperty]
+    private bool preferGeminiFolderSuggestion;
+
+    [ObservableProperty]
+    private bool suggestOnlyOnLowConfidence;
+
+    [ObservableProperty]
+    private bool requireReviewForRenames;
+
+    [ObservableProperty]
+    private bool routeLowConfidenceToReviewFolder;
+
+    [ObservableProperty]
+    private string reviewFolderName = string.Empty;
+
+    [ObservableProperty]
+    private double autoApproveConfidenceThreshold = 0.82d;
+
+    [ObservableProperty]
+    private bool enableExactDuplicateDetection;
+
+    [ObservableProperty]
+    private string duplicatesFolderName = string.Empty;
 
     [ObservableProperty]
     private string strategyDisplayName = string.Empty;
@@ -702,6 +754,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
             dimensions |= OrganizationDimension.FileType;
         }
 
+        var lowConfidence = Math.Clamp(LowConfidenceThreshold, 0.1d, 0.95d);
+        var autoApprove = Math.Clamp(AutoApproveConfidenceThreshold, lowConfidence, 0.98d);
+
         return new AppSettings
         {
             UiLanguage = SelectedAppLanguage?.Value ?? "de-DE",
@@ -726,7 +781,41 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     : dimensions,
                 UseFileTypeAsSecondaryCriterion = UseFileTypeSecondaryCriterion,
                 UseGeminiWhenAvailable = UseGemini,
-                LowConfidenceThreshold = Math.Clamp(LowConfidenceThreshold, 0.1d, 0.95d)
+                OrganizationPolicy = new OrganizationPolicy
+                {
+                    StrategyPreset = SelectedStrategyPreset?.Value ?? OrganizationStrategyPreset.SemanticCategoryFirst,
+                    ManualDimensions = dimensions == OrganizationDimension.None
+                        ? OrganizationDimension.SemanticCategory | OrganizationDimension.Year
+                        : dimensions,
+                    UseFileTypeAsSecondaryCriterion = UseFileTypeSecondaryCriterion,
+                    PreferredDateSource = SelectedPreferredDateSource?.Value ?? DateSourceKind.ModifiedTime,
+                    MaximumFolderDepth = Math.Max(1, MaxFolderDepth),
+                    MergeSparseCategories = MergeSparseCategories,
+                    SparseCategoryThreshold = Math.Max(1, SparseCategoryThreshold),
+                    MiscellaneousBucketName = string.IsNullOrWhiteSpace(MiscellaneousBucketName)
+                        ? "Misc"
+                        : MiscellaneousBucketName.Trim(),
+                    OnlyCreateDateFoldersWhenReliable = OnlyCreateDateFoldersWhenReliable,
+                    PreferGeminiFolderSuggestion = PreferGeminiFolderSuggestion
+                },
+                ReviewPolicy = new ReviewPolicy
+                {
+                    LowConfidenceThreshold = lowConfidence,
+                    AutoApproveConfidenceThreshold = autoApprove,
+                    RequireReviewForRenames = RequireReviewForRenames,
+                    SuggestOnlyOnLowConfidence = SuggestOnlyOnLowConfidence,
+                    RouteLowConfidenceToReviewFolder = RouteLowConfidenceToReviewFolder,
+                    ReviewFolderName = string.IsNullOrWhiteSpace(ReviewFolderName) ? "Review" : ReviewFolderName.Trim(),
+                    ExecutionMode = SelectedExecutionMode?.Value ?? ExecutionMode.HeuristicsPlusGeminiReviewFirst
+                },
+                DuplicatePolicy = new DuplicatePolicy
+                {
+                    EnableExactDuplicateDetection = EnableExactDuplicateDetection,
+                    HandlingMode = SelectedDuplicateHandlingMode?.Value ?? DuplicateHandlingMode.RequireReview,
+                    DuplicatesFolderName = string.IsNullOrWhiteSpace(DuplicatesFolderName)
+                        ? "Duplicates"
+                        : DuplicatesFolderName.Trim()
+                }
             },
             Gemini = new GeminiOptions
             {
@@ -762,8 +851,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SelectedRenameMode = RenameModes.First(option => option.Value == settings.Organization.FileRenameMode);
         SelectedFolderLanguageMode = FolderLanguageModes.First(option => option.Value == settings.Organization.FolderLanguageMode);
         SelectedConflictMode = ConflictModes.First(option => option.Value == settings.Organization.ConflictHandlingMode);
+        SelectedStrategyPreset = StrategyPresets.First(option => option.Value == settings.Organization.StrategyPreset);
+        SelectedPreferredDateSource = DateSources.First(option => option.Value == settings.Organization.PreferredDateSource);
+        SelectedExecutionMode = ExecutionModes.First(option => option.Value == settings.Organization.ExecutionMode);
+        SelectedDuplicateHandlingMode =
+            DuplicateHandlingModes.First(option => option.Value == settings.Organization.DuplicateHandlingMode);
         SelectedFilenameLanguagePolicy =
             FilenameLanguagePolicies.First(option => option.Value == settings.Organization.FilenameLanguagePolicy);
+        MaxFolderDepth = settings.Organization.OrganizationPolicy.MaximumFolderDepth;
+        MergeSparseCategories = settings.Organization.OrganizationPolicy.MergeSparseCategories;
+        SparseCategoryThreshold = settings.Organization.OrganizationPolicy.SparseCategoryThreshold;
+        MiscellaneousBucketName = settings.Organization.OrganizationPolicy.MiscellaneousBucketName;
+        OnlyCreateDateFoldersWhenReliable = settings.Organization.OrganizationPolicy.OnlyCreateDateFoldersWhenReliable;
+        PreferGeminiFolderSuggestion = settings.Organization.OrganizationPolicy.PreferGeminiFolderSuggestion;
+        SuggestOnlyOnLowConfidence = settings.Organization.ReviewPolicy.SuggestOnlyOnLowConfidence;
+        RequireReviewForRenames = settings.Organization.ReviewPolicy.RequireReviewForRenames;
+        RouteLowConfidenceToReviewFolder = settings.Organization.ReviewPolicy.RouteLowConfidenceToReviewFolder;
+        ReviewFolderName = settings.Organization.ReviewPolicy.ReviewFolderName;
+        AutoApproveConfidenceThreshold = settings.Organization.ReviewPolicy.AutoApproveConfidenceThreshold;
+        EnableExactDuplicateDetection = settings.Organization.DuplicatePolicy.EnableExactDuplicateDetection;
+        DuplicatesFolderName = settings.Organization.DuplicatePolicy.DuplicatesFolderName;
 
         UseGemini = settings.Gemini.Enabled;
         GeminiApiKey = settings.Gemini.ApiKey;

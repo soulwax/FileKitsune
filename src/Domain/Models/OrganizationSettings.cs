@@ -115,10 +115,28 @@ public sealed class OrganizationSettings
         set => OrganizationPolicy.UseFileTypeAsSecondaryCriterion = value;
     }
 
+    public OrganizationStrategyPreset StrategyPreset
+    {
+        get => OrganizationPolicy.StrategyPreset;
+        set => OrganizationPolicy.StrategyPreset = value;
+    }
+
+    public DateSourceKind PreferredDateSource
+    {
+        get => OrganizationPolicy.PreferredDateSource;
+        set => OrganizationPolicy.PreferredDateSource = value;
+    }
+
     public double LowConfidenceThreshold
     {
         get => ReviewPolicy.LowConfidenceThreshold;
         set => ReviewPolicy.LowConfidenceThreshold = value;
+    }
+
+    public ExecutionMode ExecutionMode
+    {
+        get => ReviewPolicy.ExecutionMode;
+        set => ReviewPolicy.ExecutionMode = value;
     }
 
     public bool SuggestOnlyOnLowConfidence
@@ -131,5 +149,11 @@ public sealed class OrganizationSettings
     {
         get => OrganizationPolicy.PreferGeminiFolderSuggestion;
         set => OrganizationPolicy.PreferGeminiFolderSuggestion = value;
+    }
+
+    public DuplicateHandlingMode DuplicateHandlingMode
+    {
+        get => DuplicatePolicy.HandlingMode;
+        set => DuplicatePolicy.HandlingMode = value;
     }
 }
