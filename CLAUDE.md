@@ -1,40 +1,125 @@
-# Claude Notes For FileTransformer
+# AGENTS.md
+## Codex GPT-5.4 Implementation Guide for File-Transformer
 
-Use this repository as a Windows-only .NET 8 WPF app, not as a generic CLI tool.
+This document defines the architecture, constraints, and feature roadmap for AI agents working on this repository.
 
-## Ground Truth
+---
 
-- The app starts from `src/App/App.xaml.cs`.
-- The planner lives in `src/Application/Services/OrganizationWorkflowService.cs`.
-- Destination validation is enforced by `PathSafetyService` and `WindowsPathRules`.
-- Execution and rollback live in `PlanExecutionService` and `RollbackService`.
-- Gemini is optional and advisory. The WPF app stores the API key in `%LocalAppData%\\FileTransformer\\settings.json` via DPAPI, not via `.env`.
+# 🧭 Core Principles
 
-## What To Preserve
+## 1. Preview-First Safety Model
+- NEVER perform destructive filesystem actions without preview
+- ALL operations must:
+  - be planned first
+  - be visible to the user
+  - be reversible via rollback
+- ALL paths must remain inside the selected root directory
 
-- Preview-first workflow.
-- In-root-only path safety.
-- No delete operations in normal execution.
-- Clear reasons, warnings, and review flags on every proposed operation.
-- Heuristic fallback when Gemini is unavailable or disabled.
+## 2. Deterministic Core + AI Assistance
+- Local logic is ALWAYS authoritative
+- AI (Gemini) is advisory only
+- AI suggestions must be validated before execution
+- No direct AI-generated file operations
 
-## Current Codebase Realities
+## 3. Reversibility is Mandatory
+- Every filesystem mutation must be journaled
+- Rollback must be reliable, testable, and idempotent
 
-- Text extraction supports plain text and `.docx`; OCR/PDF handling is not implemented yet.
-- Some advanced settings exist in models/view-model enums but are not fully surfaced in `MainWindow.xaml` or persisted by `BuildSettings()`.
-- Duplicate detection and protection rules exist in the core even though the default UI does not expose every knob.
-- `gemini.json` is present in the repo, but the application runtime does not read it.
+---
 
-## Expected Commands
+# 🏗 Architecture Overview
 
-```powershell
-dotnet restore FileTransformer.sln
-dotnet build FileTransformer.sln -c Debug
-dotnet test FileTransformer.sln -c Debug
-```
+## Layers
 
-## Edit Guidance
+### App (WPF / UI)
+- `MainWindow.xaml`
+- `MainWindowViewModel.cs`
+- Wizard UI logic
+- Localization
 
-- For planning changes, inspect `OrganizationWorkflowService`, `DestinationPathBuilder`, `ReviewDecisionService`, and the related tests.
-- For configuration changes, inspect `MainWindowViewModel`, `ProtectedAppSettingsStore`, and the WPF bindings together.
-- For Gemini changes, inspect `GeminiSemanticClassifier`, `GeminiPromptBuilder`, `GeminiResponseParser`, and `SemanticClassifierCoordinator`.
+### Application
+- `OrganizationWorkflowService`
+- `PlanExecutionService`
+- `RollbackService`
+- Strategy recommendation layer (to be added)
+
+### Domain
+- Organization rules
+- Strategy presets
+- Naming policies
+- Duplicate policies
+
+### Infrastructure
+- File system access
+- Hashing
+- Journaling
+- Content extraction (PDF, DOCX, etc.)
+- Gemini integration
+
+---
+
+# 🚀 Feature Requirements
+
+---
+
+## 🔁 1. Flawless Rollback System
+
+### Requirements
+- Support rollback of ANY historical run (not just latest)
+- Rollback must be:
+  - idempotent
+  - safe against partial failures
+  - transparent to user
+
+### Implementation
+
+#### Journal Enhancements
+Each operation must store:
+- Source path
+- Destination path
+- File hash
+- File size
+- Timestamp
+- Operation type
+- Pre-existing destination state
+- Rollback status
+
+#### Execution Model
+- Write journal header BEFORE execution
+- Append entries DURING execution
+- Mark run complete AFTER execution
+
+#### Rollback Features
+- Select run from history
+- Preview rollback plan
+- Execute rollback safely
+- Handle:
+  - missing files
+  - path conflicts
+  - partial rollbacks
+
+#### Tests (MANDATORY)
+- Full rollback
+- Partial rollback
+- Conflict recovery
+- Repeated rollback (idempotency)
+
+---
+
+## 🧹 2. Hash-Based Duplicate Removal
+
+### Rules
+- ONLY use file content hash (SHA-256)
+- NEVER rely on filename
+
+### Process
+1. Group files by size
+2. Hash only same-size files
+3. Build duplicate groups
+
+### Behavior
+- Propose duplicates in preview
+- NEVER auto-delete immediately
+
+### Default Action
+Move duplicates to:

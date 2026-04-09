@@ -65,3 +65,200 @@ dotnet build FileTransformer.sln -c Debug
 dotnet test FileTransformer.sln -c Debug
 dotnet run --project src/App/FileTransformer.App.csproj
 ```
+
+
+### Canonical File Selection
+Priority:
+1. Best target location
+2. Oldest path
+3. Richest metadata/content
+
+### Rollback
+- Duplicate operations MUST be journaled
+- Must be fully reversible
+
+---
+
+## 🧠 3. Gemini Contextual Analysis
+
+### Rules
+- Gemini is advisory ONLY
+- Local validation is required
+
+### Input Sources
+- Extracted text from:
+  - PDF (NEW)
+  - DOCX
+  - TXT / Markdown
+- Metadata fallback if extraction fails
+
+### Processing Pipeline
+1. Extract text locally
+2. Summarize / chunk
+3. Send to Gemini
+4. Receive:
+   - topic
+   - project
+   - semantic grouping
+5. Merge with local heuristics
+
+### Output
+- Contextual grouping across files
+- Project inference
+- Strategy recommendation signals
+
+### Forbidden
+- Gemini generating file paths directly
+- Blind trust in AI output
+
+---
+
+## 📄 4. PDF & Content Extraction
+
+### Requirements
+- Add PDF text extraction
+- Handle large files safely
+- Support partial extraction
+
+### Behavior
+- Use sampling for large PDFs
+- Fallback to metadata if needed
+- OCR is optional future extension
+
+---
+
+## 🧭 5. Strategy Recommendations
+
+After folder analysis, propose strategies:
+
+### Examples
+
+#### Projektorientiert (empfohlen)
+- Strong contextual clustering
+
+#### Nach Datum
+- Strong date signals
+
+#### Semantisch
+- Clean category distribution
+
+#### Duplikate bereinigen
+- High duplicate density
+
+### Implementation
+- Score strategies based on:
+  - clustering strength
+  - date density
+  - duplicates
+  - file type distribution
+
+---
+
+## 🧙 6. Wizard UI (REQUIRED)
+
+Replace single screen with 5 steps:
+
+1. Folder selection  
+2. Strategy selection  
+3. Rule configuration  
+4. Preview  
+5. Execute / Rollback  
+
+### Requirements
+- Progressive disclosure
+- Advanced options hidden initially
+- Clear navigation (Next / Back)
+
+---
+
+## 🌍 7. Language System (German-First)
+
+### Defaults
+- UI: German
+- Folder naming: German
+- Filename normalization: German
+
+### Options
+- English
+- Bilingual
+
+### Implementation
+
+#### Separate Layers
+1. UI language
+2. Folder naming language
+3. Filename language
+
+### Technical Tasks
+- Replace ALL hardcoded XAML strings
+- Use resource dictionaries:
+  - `Strings.de-DE.xaml`
+  - `Strings.en-US.xaml`
+
+---
+
+## 📊 8. Duplicate + Strategy Integration
+
+- Duplicate detection must influence strategy recommendations
+- High duplicates → suggest cleanup-first strategy
+
+---
+
+## 🧪 Testing Requirements
+
+### MUST INCLUDE
+
+#### Rollback
+- Full restore
+- Partial restore
+- Conflict handling
+
+#### Deduplication
+- Hash accuracy
+- Large file handling
+- Rollback after dedup
+
+#### Content Analysis
+- PDF extraction
+- Gemini fallback handling
+
+---
+
+# ⚠️ Anti-Patterns (DO NOT DO)
+
+- ❌ Direct file operations without journaling
+- ❌ AI-generated paths without validation
+- ❌ Filename-based duplicate detection
+- ❌ Hardcoded UI strings
+- ❌ Mixing UI and domain logic
+- ❌ Destructive actions without preview
+
+---
+
+# 🧾 Codex Task Summary
+
+Implement:
+
+1. Wizard UI
+2. German-first localization
+3. Strategy recommendations
+4. Hash-based duplicate detection
+5. PDF + content extraction
+6. Gemini contextual grouping
+7. Historical rollback system
+8. Full test coverage
+
+---
+
+# 🧩 Guiding Philosophy
+
+This is NOT a file mover.
+
+It is a:
+- safe
+- explainable
+- reversible
+- intelligent organization system
+
+Every feature must reinforce:
+👉 trust, transparency, and control
