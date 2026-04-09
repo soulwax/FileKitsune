@@ -10,9 +10,9 @@ public sealed class NamingPolicy
 
     public string NamingTemplate { get; set; } = "{originalName}";
 
-    public FolderLanguageMode FolderLanguageMode { get; set; } = FolderLanguageMode.PreserveOriginal;
+    public FolderLanguageMode FolderLanguageMode { get; set; } = FolderLanguageMode.NormalizeToGerman;
 
-    public FilenameLanguagePolicy FilenameLanguagePolicy { get; set; } = FilenameLanguagePolicy.PreserveSourceLanguage;
+    public FilenameLanguagePolicy FilenameLanguagePolicy { get; set; } = FilenameLanguagePolicy.PreferGerman;
 
     public ConflictHandlingMode ConflictHandlingMode { get; set; } = ConflictHandlingMode.AppendCounter;
 

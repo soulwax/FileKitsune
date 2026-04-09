@@ -13,11 +13,11 @@
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
                     <StackPanel>
                         <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource GeneralSettings}" />
-                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Include patterns" />
+                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleIncludePatterns}" />
                         <TextBox Height="56" AcceptsReturn="True" Text="{Binding IncludePatternsText, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Exclude patterns" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleExcludePatterns}" />
                         <TextBox Height="56" AcceptsReturn="True" Text="{Binding ExcludePatternsText, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Readable extensions" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleReadableExtensions}" />
                         <TextBox Height="56" AcceptsReturn="True" Text="{Binding SupportedExtensionsText, UpdateSourceTrigger=PropertyChanged}" />
 
                         <Grid>
@@ -28,16 +28,16 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
-                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Max file size (KB)" />
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleMaxFileSizeKb}" />
                                 <TextBox Text="{Binding MaxFileSizeKb}" />
-                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Preview sample size" />
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RulePreviewSampleSize}" />
                                 <TextBox Text="{Binding PreviewSampleSize}" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
-                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Max files to scan" />
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleMaxFilesToScan}" />
                                 <TextBox Text="{Binding MaxFilesToScan}" />
-                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Low-confidence threshold" />
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleLowConfidenceThreshold}" />
                                 <TextBox Text="{Binding LowConfidenceThreshold, StringFormat=F2}" />
                             </StackPanel>
                         </Grid>
@@ -47,22 +47,26 @@
                 <Border Style="{StaticResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource NamingRules}" />
-                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="File rename style" />
+                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleFileRenameStyle}" />
                         <ComboBox ItemsSource="{Binding RenameModes}"
                                   DisplayMemberPath="Label"
                                   SelectedItem="{Binding SelectedRenameMode}" />
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Naming template" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleNamingTemplate}" />
                         <TextBox Text="{Binding NamingTemplate, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Folder label language" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleFolderLabelLanguage}" />
                         <ComboBox ItemsSource="{Binding FolderLanguageModes}"
                                   DisplayMemberPath="Label"
                                   SelectedItem="{Binding SelectedFolderLanguageMode}" />
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Conflict handling" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleFilenameLanguagePolicy}" />
+                        <ComboBox ItemsSource="{Binding FilenameLanguagePolicies}"
+                                  DisplayMemberPath="Label"
+                                  SelectedItem="{Binding SelectedFilenameLanguagePolicy}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleConflictHandling}" />
                         <ComboBox ItemsSource="{Binding ConflictModes}"
                                   DisplayMemberPath="Label"
                                   SelectedItem="{Binding SelectedConflictMode}" />
-                        <CheckBox Content="Allow file renames" IsChecked="{Binding AllowFileRename}" />
-                        <CheckBox Content="Remove empty folders after successful moves" IsChecked="{Binding RemoveEmptyFolders}" />
+                        <CheckBox Content="{DynamicResource RuleAllowFileRenames}" IsChecked="{Binding AllowFileRename}" />
+                        <CheckBox Content="{DynamicResource RuleRemoveEmptyFolders}" IsChecked="{Binding RemoveEmptyFolders}" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -71,21 +75,21 @@
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
                     <StackPanel>
                         <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PlannerDimensions}" />
-                        <CheckBox Content="Group by semantic category" IsChecked="{Binding UseSemanticCategoryDimension}" />
-                        <CheckBox Content="Group by project/topic" IsChecked="{Binding UseProjectDimension}" />
-                        <CheckBox Content="Group by year" IsChecked="{Binding UseYearDimension}" />
-                        <CheckBox Content="Group by month" IsChecked="{Binding UseMonthDimension}" />
-                        <CheckBox Content="Use file type as secondary criterion" IsChecked="{Binding UseFileTypeSecondaryCriterion}" />
+                        <CheckBox Content="{DynamicResource RuleGroupBySemanticCategory}" IsChecked="{Binding UseSemanticCategoryDimension}" />
+                        <CheckBox Content="{DynamicResource RuleGroupByProjectTopic}" IsChecked="{Binding UseProjectDimension}" />
+                        <CheckBox Content="{DynamicResource RuleGroupByYear}" IsChecked="{Binding UseYearDimension}" />
+                        <CheckBox Content="{DynamicResource RuleGroupByMonth}" IsChecked="{Binding UseMonthDimension}" />
+                        <CheckBox Content="{DynamicResource RuleUseFileTypeSecondary}" IsChecked="{Binding UseFileTypeSecondaryCriterion}" />
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
                     <StackPanel>
                         <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource GeminiSettings}" />
-                        <CheckBox Content="Use Gemini when an API key is present" IsChecked="{Binding UseGemini}" />
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="API key" />
+                        <CheckBox Content="{DynamicResource RuleUseGemini}" IsChecked="{Binding UseGemini}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleApiKey}" />
                         <TextBox Text="{Binding GeminiApiKey, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Model" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleModel}" />
                         <TextBox Text="{Binding GeminiModel, UpdateSourceTrigger=PropertyChanged}" />
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -95,12 +99,12 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
-                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Max requests/minute" />
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleMaxRequestsPerMinute}" />
                                 <TextBox Text="{Binding GeminiMaxRequestsPerMinute}" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
-                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Request timeout (sec)" />
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleRequestTimeoutSeconds}" />
                                 <TextBox Text="{Binding GeminiRequestTimeoutSeconds}" />
                             </StackPanel>
                         </Grid>
@@ -113,7 +117,7 @@
                         <TextBlock Margin="0,8,0,12"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    TextWrapping="Wrap"
-                                   Text="Save rule changes before moving to the preview step." />
+                                   Text="{DynamicResource RulesSaveHint}" />
                         <Button Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{Binding SaveSettingsCommand}"
                                 Content="{DynamicResource SaveButton}"

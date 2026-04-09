@@ -16,7 +16,7 @@
                         <TextBlock Margin="0,8,0,12"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    TextWrapping="Wrap"
-                                   Text="Execute only reviewed and selected operations. Moves and renames stay inside the chosen root." />
+                                   Text="{DynamicResource ExecuteIntroText}" />
                         <Button Style="{StaticResource PrimaryButtonStyle}"
                                 Command="{Binding ExecuteSelectedCommand}"
                                 Content="{DynamicResource ExecuteButton}"
@@ -30,11 +30,11 @@
 
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
                     <StackPanel>
-                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Rollback" />
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource RollbackTitle}" />
                         <TextBlock Margin="0,8,0,12"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    TextWrapping="Wrap"
-                                   Text="Rollback remains latest-run only at this stage. Historical rollback arrives in the dedicated rollback upgrade step." />
+                                   Text="{DynamicResource RollbackBody}" />
                         <Button Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{Binding RollbackLatestCommand}"
                                 Content="{DynamicResource RollbackButton}"
@@ -63,11 +63,26 @@
                 <Border Style="{StaticResource CardBorderStyle}">
                     <StackPanel>
                         <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PlanSummary}" />
-                        <TextBlock Margin="0,12,0,0" Text="{Binding TotalItems, StringFormat=Analyzed items: {0}}" />
-                        <TextBlock Text="{Binding MoveCount, StringFormat=Move-related operations: {0}}" />
-                        <TextBlock Text="{Binding RenameCount, StringFormat=Rename-related operations: {0}}" />
-                        <TextBlock Text="{Binding NeedsReviewCount, StringFormat=Items needing review: {0}}" />
-                        <TextBlock Text="{Binding GeminiAssistedCount, StringFormat=Gemini-assisted items: {0}}" />
+                        <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                            <TextBlock Text="{DynamicResource SummaryAnalyzedItemsLabel}" />
+                            <TextBlock Margin="4,0,0,0" Text="{Binding TotalItems}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{DynamicResource SummaryMoveOperationsLabel}" />
+                            <TextBlock Margin="4,0,0,0" Text="{Binding MoveCount}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{DynamicResource SummaryRenameOperationsLabel}" />
+                            <TextBlock Margin="4,0,0,0" Text="{Binding RenameCount}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{DynamicResource SummaryItemsNeedingReviewLabel}" />
+                            <TextBlock Margin="4,0,0,0" Text="{Binding NeedsReviewCount}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{DynamicResource SummaryGeminiItemsLabel}" />
+                            <TextBlock Margin="4,0,0,0" Text="{Binding GeminiAssistedCount}" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -77,12 +92,12 @@
             <TabItem Header="{DynamicResource ActivityTitle}">
                 <Border Margin="8" Style="{StaticResource CardBorderStyle}">
                     <StackPanel>
-                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Selected operation" />
-                        <TextBlock Margin="0,12,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Current path" />
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource SelectedOperationTitle}" />
+                        <TextBlock Margin="0,12,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource CurrentPathLabel}" />
                         <TextBlock Text="{Binding SelectedOperation.CurrentRelativePath}" TextWrapping="Wrap" />
-                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Proposed path" />
+                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource ProposedPathLabel}" />
                         <TextBlock Text="{Binding SelectedOperation.ProposedRelativePath}" TextWrapping="Wrap" />
-                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Reason" />
+                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource ReasonLabel}" />
                         <TextBlock Text="{Binding SelectedOperation.Reason}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>

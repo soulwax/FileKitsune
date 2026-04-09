@@ -39,6 +39,7 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
 
         return new AppSettings
         {
+            UiLanguage = string.IsNullOrWhiteSpace(envelope.UiLanguage) ? "de-DE" : envelope.UiLanguage,
             Organization = envelope.Organization ?? new(),
             Gemini = new GeminiOptions
             {
@@ -61,6 +62,7 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
 
         var envelope = new StoredSettingsEnvelope
         {
+            UiLanguage = string.IsNullOrWhiteSpace(settings.UiLanguage) ? "de-DE" : settings.UiLanguage,
             Organization = settings.Organization,
             Gemini = new StoredGeminiSettings
             {
@@ -111,6 +113,8 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
 
     private sealed class StoredSettingsEnvelope
     {
+        public string UiLanguage { get; set; } = "de-DE";
+
         public FileTransformer.Domain.Models.OrganizationSettings? Organization { get; set; }
 
         public StoredGeminiSettings Gemini { get; set; } = new();

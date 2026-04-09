@@ -76,6 +76,8 @@ Services/
  FolderPickerService.cs
  IDialogService.cs
  IFolderPickerService.cs
+ ILocalizationService.cs
+ LocalizationService.cs
  UiLogEntry.cs
  UiLoggerProvider.cs
  UiLogStore.cs

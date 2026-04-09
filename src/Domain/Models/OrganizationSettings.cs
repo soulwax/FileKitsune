@@ -97,6 +97,12 @@ public sealed class OrganizationSettings
         set => NamingPolicy.ConflictHandlingMode = value;
     }
 
+    public FilenameLanguagePolicy FilenameLanguagePolicy
+    {
+        get => NamingPolicy.FilenameLanguagePolicy;
+        set => NamingPolicy.FilenameLanguagePolicy = value;
+    }
+
     public OrganizationDimension Dimensions
     {
         get => OrganizationPolicy.ManualDimensions;

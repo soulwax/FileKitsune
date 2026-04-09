@@ -22,6 +22,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly RollbackService rollbackService;
     private readonly IFolderPickerService folderPickerService;
     private readonly IDialogService dialogService;
+    private readonly ILocalizationService localizationService;
     private readonly UiLogStore uiLogStore;
     private readonly ILogger<MainWindowViewModel> logger;
     private OrganizationPlan? currentPlan;
@@ -35,6 +36,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RollbackService rollbackService,
         IFolderPickerService folderPickerService,
         IDialogService dialogService,
+        ILocalizationService localizationService,
         UiLogStore uiLogStore,
         ILogger<MainWindowViewModel> logger)
     {
@@ -44,6 +46,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         this.rollbackService = rollbackService;
         this.folderPickerService = folderPickerService;
         this.dialogService = dialogService;
+        this.localizationService = localizationService;
         this.uiLogStore = uiLogStore;
         this.logger = logger;
 
@@ -118,15 +121,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
             new(FilenameLanguagePolicy.FolderLanguageOnly, "Folder language only")
         ];
 
+        AppLanguages =
+        [
+            new("de-DE", "Deutsch"),
+            new("en-US", "English")
+        ];
+
         selectedRenameMode = RenameModes[1];
-        selectedFolderLanguageMode = FolderLanguageModes[0];
+        selectedFolderLanguageMode = FolderLanguageModes[1];
         selectedConflictMode = ConflictModes[1];
         selectedPlanFilter = PlanFilters[0];
         selectedStrategyPreset = StrategyPresets[0];
         selectedPreferredDateSource = DateSources[2];
         selectedExecutionMode = ExecutionModes[0];
         selectedDuplicateHandlingMode = DuplicateHandlingModes[0];
-        selectedFilenameLanguagePolicy = FilenameLanguagePolicies[0];
+        selectedFilenameLanguagePolicy = FilenameLanguagePolicies[1];
+        selectedAppLanguage = AppLanguages[0];
 
         PlanOperations = [];
         PlanView = CollectionViewSource.GetDefaultView(PlanOperations);
@@ -153,6 +163,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public IReadOnlyList<OptionItem<DuplicateHandlingMode>> DuplicateHandlingModes { get; }
 
     public IReadOnlyList<OptionItem<FilenameLanguagePolicy>> FilenameLanguagePolicies { get; }
+
+    public IReadOnlyList<OptionItem<string>> AppLanguages { get; }
 
     public ObservableCollection<PlanOperationItemViewModel> PlanOperations { get; }
 
@@ -291,6 +303,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private PlanOperationItemViewModel? selectedOperation;
+
+    [ObservableProperty]
+    private OptionItem<string>? selectedAppLanguage;
 
     [ObservableProperty]
     private WizardStep currentStep = WizardStep.Folder;
@@ -588,6 +603,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         StrategyDisplayName = value?.Label ?? string.Empty;
     }
 
+    partial void OnSelectedAppLanguageChanged(OptionItem<string>? value)
+    {
+        localizationService.ApplyLanguage(value?.Value ?? "de-DE");
+    }
+
     partial void OnCurrentStepChanged(WizardStep value)
     {
         OnPropertyChanged(nameof(CurrentStepIndex));
@@ -667,6 +687,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         return new AppSettings
         {
+            UiLanguage = SelectedAppLanguage?.Value ?? "de-DE",
             Organization = new OrganizationSettings
             {
                 RootDirectory = RootDirectory.Trim(),
@@ -680,7 +701,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 AllowFileRename = AllowFileRename,
                 FileRenameMode = SelectedRenameMode?.Value ?? FileRenameMode.NormalizeWhitespaceAndPunctuation,
                 NamingTemplate = string.IsNullOrWhiteSpace(NamingTemplate) ? "{originalName}" : NamingTemplate.Trim(),
-                FolderLanguageMode = SelectedFolderLanguageMode?.Value ?? FolderLanguageMode.PreserveOriginal,
+                FolderLanguageMode = SelectedFolderLanguageMode?.Value ?? FolderLanguageMode.NormalizeToGerman,
+                FilenameLanguagePolicy = SelectedFilenameLanguagePolicy?.Value ?? FilenameLanguagePolicy.PreferGerman,
                 ConflictHandlingMode = SelectedConflictMode?.Value ?? ConflictHandlingMode.AppendCounter,
                 Dimensions = dimensions == OrganizationDimension.None
                     ? OrganizationDimension.SemanticCategory | OrganizationDimension.Year
@@ -702,6 +724,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void ApplySettings(AppSettings settings)
     {
+        SelectedAppLanguage = AppLanguages.FirstOrDefault(option => option.Value == settings.UiLanguage) ?? AppLanguages[0];
         RootDirectory = settings.Organization.RootDirectory;
         IncludePatternsText = string.Join("; ", settings.Organization.IncludePatterns);
         ExcludePatternsText = string.Join("; ", settings.Organization.ExcludePatterns);
@@ -722,6 +745,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SelectedRenameMode = RenameModes.First(option => option.Value == settings.Organization.FileRenameMode);
         SelectedFolderLanguageMode = FolderLanguageModes.First(option => option.Value == settings.Organization.FolderLanguageMode);
         SelectedConflictMode = ConflictModes.First(option => option.Value == settings.Organization.ConflictHandlingMode);
+        SelectedFilenameLanguagePolicy =
+            FilenameLanguagePolicies.First(option => option.Value == settings.Organization.FilenameLanguagePolicy);
 
         UseGemini = settings.Gemini.Enabled;
         GeminiApiKey = settings.Gemini.ApiKey;
