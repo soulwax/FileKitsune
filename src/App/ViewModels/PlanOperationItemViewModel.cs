@@ -17,6 +17,9 @@ public sealed partial class PlanOperationItemViewModel : ObservableObject
     [ObservableProperty]
     private bool isSelected;
 
+    [ObservableProperty]
+    private bool isDuplicateGroupSelected;
+
     public Guid OperationId => Operation.Id;
 
     public bool CanSelect => Operation.AllowedToExecute && Operation.OperationType != PlanOperationType.Skip;

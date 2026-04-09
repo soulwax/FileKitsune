@@ -111,6 +111,9 @@
                             <DataTrigger Binding="{Binding Operation.RequiresReview}" Value="True">
                                 <Setter Property="Background" Value="#FFFFF3E4" />
                             </DataTrigger>
+                            <DataTrigger Binding="{Binding IsDuplicateGroupSelected}" Value="True">
+                                <Setter Property="Background" Value="#FFE8F4FF" />
+                            </DataTrigger>
                             <DataTrigger Binding="{Binding CanSelect}" Value="False">
                                 <Setter Property="Opacity" Value="0.75" />
                             </DataTrigger>
@@ -249,6 +252,120 @@
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{DynamicResource SummaryGeminiItemsLabel}" />
                         <TextBlock Margin="4,0,0,0" Text="{Binding GeminiAssistedCount}" />
+                    </StackPanel>
+                    <TextBlock Margin="0,12,0,4"
+                               FontWeight="SemiBold"
+                               Text="{DynamicResource DuplicateGroupsLabel}" />
+                    <TextBlock Text="{DynamicResource DuplicateGroupsEmpty}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasDuplicateGroups}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <ItemsControl ItemsSource="{Binding DuplicateGroups}">
+                        <ItemsControl.Style>
+                            <Style TargetType="ItemsControl">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasDuplicateGroups}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock Text="{Binding DisplayLabel}" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                               TextWrapping="Wrap"
+                                               Text="{Binding DuplicateList}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Margin="0,12,0,4"
+                               FontWeight="SemiBold"
+                               Text="{DynamicResource DuplicateReviewLabel}" />
+                    <TextBlock Text="{DynamicResource DuplicateReviewHint}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasDuplicateGroups}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasDuplicateGroups}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <ComboBox ItemsSource="{Binding DuplicateGroups}"
+                                  DisplayMemberPath="DisplayLabel"
+                                  SelectedItem="{Binding SelectedDuplicateGroup}" />
+                        <Button Margin="0,8,0,0"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding SelectDuplicateGroupOperationsCommand}"
+                                Content="{DynamicResource DuplicateReviewSelectButton}" />
+                        <TextBlock Margin="0,10,0,4"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   Text="{DynamicResource DuplicateGroupDetailsLabel}" />
+                        <TextBlock Text="{DynamicResource DuplicateGroupDetailsEmpty}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasSelectedDuplicateGroup}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <ItemsControl ItemsSource="{Binding DuplicateGroupOperations}">
+                            <ItemsControl.Style>
+                                <Style TargetType="ItemsControl">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasSelectedDuplicateGroup}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.Style>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <CheckBox DockPanel.Dock="Left"
+                                                  VerticalAlignment="Center"
+                                                  IsEnabled="{Binding CanSelect}"
+                                                  IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                                        <StackPanel Margin="8,0,0,0">
+                                            <TextBlock Text="{Binding CurrentRelativePath}" TextWrapping="Wrap" />
+                                            <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                                       Text="{Binding OperationType}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </StackPanel>
             </Border>

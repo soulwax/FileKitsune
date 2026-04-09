@@ -29,6 +29,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private OrganizationPlan? currentPlan;
     private CancellationTokenSource? currentCancellationTokenSource;
     private bool initialized;
+    private bool suppressDuplicateSelection;
 
     public MainWindowViewModel(
         IAppSettingsStore appSettingsStore,
@@ -79,7 +80,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             new(PlanFilterMode.All, "All"),
             new(PlanFilterMode.ExecutableOnly, "Executable"),
             new(PlanFilterMode.NeedsReview, "Needs review"),
-            new(PlanFilterMode.GeminiOnly, "Gemini")
+            new(PlanFilterMode.GeminiOnly, "Gemini"),
+            new(PlanFilterMode.Duplicates, "Duplicates")
         ];
 
         StrategyPresets =
@@ -185,6 +187,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<PlanOperationItemViewModel> PlanOperations { get; }
 
     public ObservableCollection<StrategyRecommendation> StrategyRecommendations { get; } = [];
+
+    public ObservableCollection<DuplicateGroupItem> DuplicateGroups { get; } = [];
+
+    public ObservableCollection<PlanOperationItemViewModel> DuplicateGroupOperations { get; } = [];
 
     public ObservableCollection<RollbackFolderItem> RollbackFolderGroups { get; } = [];
 
@@ -300,6 +306,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private int duplicateCount;
+
+    [ObservableProperty]
+    private bool hasDuplicateGroups;
+
+    [ObservableProperty]
+    private DuplicateGroupItem? selectedDuplicateGroup;
+
+    [ObservableProperty]
+    private bool hasSelectedDuplicateGroup;
 
     [ObservableProperty]
     private OptionItem<OrganizationStrategyPreset>? selectedStrategyPreset;
@@ -444,6 +459,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PlanOperations.Clear();
         StrategyRecommendations.Clear();
         HasStrategyRecommendations = false;
+        DuplicateGroups.Clear();
+        HasDuplicateGroups = false;
+        DuplicateGroupOperations.Clear();
+        HasSelectedDuplicateGroup = false;
         currentPlan = null;
 
         currentCancellationTokenSource = new CancellationTokenSource();
@@ -466,6 +485,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             UpdateSummary(currentPlan.Summary);
             PopulateStrategyRecommendations(currentPlan);
+            PopulateDuplicateGroups(currentPlan);
             PlanView.Refresh();
             StatusMessage = $"Preview ready. {currentPlan.Summary.TotalItems} items analyzed.";
             logger.LogInformation("Preview plan built with {Count} operations.", currentPlan.Operations.Count);
@@ -500,18 +520,59 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void SelectExecutable()
     {
-        foreach (var item in PlanOperations)
-        {
-            item.IsSelected = item.CanSelect;
-        }
+        SetSelection(item => item.CanSelect);
     }
 
     [RelayCommand]
     private void ClearSelection()
     {
-        foreach (var item in PlanOperations)
+        SetSelection(_ => false);
+    }
+
+    [RelayCommand]
+    private void SelectDuplicateGroupOperations()
+    {
+        if (SelectedDuplicateGroup is null)
         {
-            item.IsSelected = false;
+            return;
+        }
+
+        var target = SelectedDuplicateGroup.CanonicalRelativePath;
+        SetSelection(item =>
+            item.CanSelect &&
+            item.Operation.DuplicateDetected &&
+            string.Equals(item.Operation.DuplicateOfRelativePath, target, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [RelayCommand]
+    private void SelectDuplicateGroup()
+    {
+        if (SelectedDuplicateGroup is null || currentPlan is null)
+        {
+            return;
+        }
+
+        suppressDuplicateSelection = true;
+        try
+        {
+            foreach (var item in PlanOperations)
+            {
+                item.IsDuplicateGroupSelected = false;
+            }
+
+            var target = SelectedDuplicateGroup.CanonicalRelativePath;
+            foreach (var item in PlanOperations)
+            {
+                if (item.Operation.DuplicateDetected &&
+                    string.Equals(item.Operation.DuplicateOfRelativePath, target, StringComparison.OrdinalIgnoreCase))
+                {
+                    item.IsDuplicateGroupSelected = true;
+                }
+            }
+        }
+        finally
+        {
+            suppressDuplicateSelection = false;
         }
     }
 
@@ -703,8 +764,28 @@ public sealed partial class MainWindowViewModel : ObservableObject
             PlanFilterMode.ExecutableOnly => operation.CanSelect,
             PlanFilterMode.NeedsReview => operation.Operation.RequiresReview,
             PlanFilterMode.GeminiOnly => operation.Operation.GeminiUsed,
+            PlanFilterMode.Duplicates => operation.Operation.DuplicateDetected,
             _ => true
         };
+    }
+
+    private void SetSelection(Func<PlanOperationItemViewModel, bool> predicate)
+    {
+        var anySelected = false;
+
+        foreach (var item in PlanOperations)
+        {
+            item.IsSelected = predicate(item);
+            if (item.IsSelected)
+            {
+                anySelected = true;
+            }
+        }
+
+        if (!anySelected)
+        {
+            dialogService.ShowInformation("No items selected", "No executable items matched that selection.");
+        }
     }
 
     private bool CanMoveBack() => !IsBusy && CurrentStep is not WizardStep.Folder;
@@ -898,6 +979,75 @@ public sealed partial class MainWindowViewModel : ObservableObject
         NeedsReviewCount = summary.RequiresReviewCount;
         GeminiAssistedCount = summary.GeminiAssistedCount;
         DuplicateCount = summary.DuplicateCount;
+    }
+
+    private void PopulateDuplicateGroups(OrganizationPlan plan)
+    {
+        DuplicateGroups.Clear();
+        SelectedDuplicateGroup = null;
+        DuplicateGroupOperations.Clear();
+        HasSelectedDuplicateGroup = false;
+
+        var groups = plan.Operations
+            .Where(operation => operation.DuplicateDetected && !string.IsNullOrWhiteSpace(operation.DuplicateOfRelativePath))
+            .GroupBy(operation => operation.DuplicateOfRelativePath, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        foreach (var group in groups)
+        {
+            var plannedDuplicates = group
+                .Where(operation => operation.OperationType is not PlanOperationType.Skip)
+                .ToList();
+
+            var duplicates = group
+                .Select(operation => operation.CurrentRelativePath)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            DuplicateGroups.Add(new DuplicateGroupItem
+            {
+                CanonicalRelativePath = group.Key,
+                DuplicateCount = duplicates.Count,
+                DuplicateList = duplicates.Count == 0 ? string.Empty : string.Join(", ", duplicates),
+                PlannedDuplicateCount = plannedDuplicates.Count
+            });
+        }
+
+        HasDuplicateGroups = DuplicateGroups.Count > 0;
+    }
+
+    partial void OnSelectedDuplicateGroupChanged(DuplicateGroupItem? value)
+    {
+        if (suppressDuplicateSelection)
+        {
+            return;
+        }
+
+        SelectDuplicateGroup();
+        PopulateDuplicateGroupOperations();
+    }
+
+    private void PopulateDuplicateGroupOperations()
+    {
+        DuplicateGroupOperations.Clear();
+
+        if (SelectedDuplicateGroup is null)
+        {
+            HasSelectedDuplicateGroup = false;
+            return;
+        }
+
+        var target = SelectedDuplicateGroup.CanonicalRelativePath;
+        foreach (var item in PlanOperations.Where(item =>
+                     item.Operation.DuplicateDetected &&
+                     string.Equals(item.Operation.DuplicateOfRelativePath, target, StringComparison.OrdinalIgnoreCase)))
+        {
+            DuplicateGroupOperations.Add(item);
+        }
+
+        HasSelectedDuplicateGroup = DuplicateGroupOperations.Count > 0;
     }
 
     private void ResetProgress()

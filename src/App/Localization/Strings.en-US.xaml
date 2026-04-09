@@ -127,6 +127,13 @@
     <sys:String x:Key="DuplicateLabel">Duplicate</sys:String>
     <sys:String x:Key="DuplicateNone">None</sys:String>
     <sys:String x:Key="DuplicateOfPrefix">Duplicate of: </sys:String>
+    <sys:String x:Key="DuplicateGroupsLabel">Duplicate groups</sys:String>
+    <sys:String x:Key="DuplicateGroupsEmpty">No duplicates in the preview.</sys:String>
+    <sys:String x:Key="DuplicateReviewLabel">Review duplicates</sys:String>
+    <sys:String x:Key="DuplicateReviewHint">No duplicate group available.</sys:String>
+    <sys:String x:Key="DuplicateReviewSelectButton">Select duplicate group</sys:String>
+    <sys:String x:Key="DuplicateGroupDetailsLabel">Duplicates in group</sys:String>
+    <sys:String x:Key="DuplicateGroupDetailsEmpty">Select a duplicate group to see its entries.</sys:String>
     <sys:String x:Key="ExecuteIntroText">Execute only reviewed and selected operations. Moves and renames stay inside the chosen root.</sys:String>
     <sys:String x:Key="RollbackTitle">Rollback</sys:String>
     <sys:String x:Key="RollbackBody">Rollback remains latest-run only at this stage. Historical rollback arrives in the dedicated rollback upgrade step.</sys:String>

@@ -127,6 +127,13 @@
     <sys:String x:Key="DuplicateLabel">Duplikat</sys:String>
     <sys:String x:Key="DuplicateNone">Keines</sys:String>
     <sys:String x:Key="DuplicateOfPrefix">Duplikat von: </sys:String>
+    <sys:String x:Key="DuplicateGroupsLabel">Duplikatgruppen</sys:String>
+    <sys:String x:Key="DuplicateGroupsEmpty">Keine Duplikate in der Vorschau.</sys:String>
+    <sys:String x:Key="DuplicateReviewLabel">Duplikate prüfen</sys:String>
+    <sys:String x:Key="DuplicateReviewHint">Keine Duplikatgruppe verfügbar.</sys:String>
+    <sys:String x:Key="DuplicateReviewSelectButton">Duplikatgruppe auswählen</sys:String>
+    <sys:String x:Key="DuplicateGroupDetailsLabel">Duplikate in der Gruppe</sys:String>
+    <sys:String x:Key="DuplicateGroupDetailsEmpty">Wählen Sie eine Duplikatgruppe aus, um die Einträge anzuzeigen.</sys:String>
     <sys:String x:Key="ExecuteIntroText">Führen Sie nur geprüfte und ausgewählte Operationen aus. Verschiebungen und Umbenennungen bleiben innerhalb des gewählten Stammordners.</sys:String>
     <sys:String x:Key="RollbackTitle">Rückgängig machen</sys:String>
     <sys:String x:Key="RollbackBody">Das Rückgängigmachen unterstützt in diesem Schritt weiterhin nur den letzten Lauf. Historische Rücknahmen folgen im dedizierten Rollback-Ausbau.</sys:String>

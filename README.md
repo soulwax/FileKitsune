@@ -105,12 +105,12 @@ dotnet run --project src/App/FileTransformer.App.csproj
 
 The app is still evolving. Notable current gaps:
 
-- strategy recommendations are not implemented yet
 - duplicate handling exists in core logic but is not yet surfaced as a complete UX flow
 - rollback still targets the latest journal only
 - historical rollback selection and rollback preview are not implemented yet
 - PDF extraction is not implemented yet
 - OCR and image-first analysis are not implemented yet
+- duplicate handling is now surfaced in the rules step and flagged in the preview
 - some richer planner options exist in the view model and domain, but not all of them are exposed in the current wizard
 
 ## Storage Locations
