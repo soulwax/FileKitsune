@@ -150,4 +150,5 @@ gemini.json
 !/CLAUDE.md
 !/GEMINI.md
 !/AGENT.md
+!/.codex/
 !/.github/copilot-instructions.md
