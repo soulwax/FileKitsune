@@ -33,7 +33,7 @@ public sealed class RollbackService
             };
         }
 
-        return await RollbackEntriesAsync(journal.Entries, cancellationToken);
+        return await RollbackEntriesAsync(journal.Entries, journal.RootDirectory, cancellationToken);
     }
 
     public async Task<ExecutionOutcome> RollbackFolderAsync(string folderPrefix, CancellationToken cancellationToken)
@@ -62,14 +62,16 @@ public sealed class RollbackService
             };
         }
 
-        return await RollbackEntriesAsync(entries, cancellationToken);
+        return await RollbackEntriesAsync(entries, journal.RootDirectory, cancellationToken);
     }
 
     private async Task<ExecutionOutcome> RollbackEntriesAsync(
         IEnumerable<ExecutionJournalEntry> entries,
+        string rootDirectory,
         CancellationToken cancellationToken)
     {
         var successCount = 0;
+        var skippedCount = 0;
         var failedCount = 0;
         var messages = new List<string>();
 
@@ -79,9 +81,17 @@ public sealed class RollbackService
 
             try
             {
-                if (!fileOperations.FileExists(entry.DestinationFullPath) || fileOperations.FileExists(entry.SourceFullPath))
+                if (!fileOperations.FileExists(entry.DestinationFullPath))
                 {
-                    messages.Add($"Skipped rollback for '{entry.DestinationFullPath}'.");
+                    skippedCount++;
+                    messages.Add($"Skipped '{entry.DestinationFullPath}': file no longer at destination.");
+                    continue;
+                }
+
+                if (fileOperations.FileExists(entry.SourceFullPath))
+                {
+                    skippedCount++;
+                    messages.Add($"Skipped '{entry.DestinationFullPath}': a file already exists at the original path '{entry.SourceFullPath}'.");
                     continue;
                 }
 
@@ -102,13 +112,27 @@ public sealed class RollbackService
             }
         }
 
-        var total = successCount + failedCount + messages.Count(m => m.StartsWith("Skipped", StringComparison.Ordinal));
+        try
+        {
+            var removedFolders = await fileOperations.RemoveEmptyDirectoriesAsync(rootDirectory, cancellationToken);
+            if (removedFolders.Count > 0)
+            {
+                messages.Add($"Removed {removedFolders.Count} empty folder(s) left behind by the rolled-back run.");
+                logger.LogInformation("Removed {Count} empty folder(s) after rollback.", removedFolders.Count);
+            }
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Failed to remove empty directories after rollback.");
+        }
+
         return new ExecutionOutcome
         {
-            RequestedOperations = total,
+            RequestedOperations = successCount + skippedCount + failedCount,
             SuccessfulOperations = successCount,
+            SkippedOperations = skippedCount,
             FailedOperations = failedCount,
-            Summary = $"Rolled back {successCount} operation(s), failed {failedCount}.",
+            Summary = $"Rolled back {successCount} operation(s), skipped {skippedCount}, failed {failedCount}.",
             Messages = messages
         };
     }
