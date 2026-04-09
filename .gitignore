@@ -144,3 +144,9 @@ coverage/
 *.coveragexml
 *.nupkg
 gemini.json
+
+# Keep repository AI guidance files visible even if globally ignored.
+!/AGENTS.md
+!/CLAUDE.md
+!/GEMINI.md
+!/.github/copilot-instructions.md
