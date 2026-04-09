@@ -2,7 +2,14 @@
 
 ## Summary
 
-The app has been moved from a single-screen layout to a wizard-style flow and now has a practical German-first localization foundation. The code still compiles and tests pass.
+The app now has:
+
+- a wizard-style UX
+- German-first localization with persisted UI language
+- German-first naming defaults
+- a working strategy recommendation step
+
+The code compiles and tests pass after the latest recommendation work.
 
 ## Completed
 
@@ -20,12 +27,15 @@ The app has been moved from a single-screen layout to a wizard-style flow and no
 - UI language selection persisted in app settings
 - Remaining wizard hardcoded strings moved into localization resources
 - German-first defaults for folder naming and filename language applied
+- Strategy recommendation service added in Application layer
+- Strategy recommendations shown in the Strategy step after preview
+- Recommendation tests added
 
 ## Still Pending
 
 From `TODO.md`, the biggest unfinished work remains:
 
-- strategy recommendations
+- expose more existing rule controls in the Rules step
 - duplicate UX and dedup flow
 - PDF extraction
 - Gemini contextual enrichment improvements
@@ -34,32 +44,37 @@ From `TODO.md`, the biggest unfinished work remains:
 
 ## Recommended Next Task
 
-Implement **Strategy Presets + Recommendations** next.
+Implement the next practical Rules-step slice:
+
+- persist more of the already-modeled options
+- expose them in the Rules step
 
 Reason:
 
-- the strategy wizard step exists but is still thin
-- the domain already contains strategy presets
-- the app already has enough scan/plan signals to make simple explainable recommendations
-- it is a user-visible improvement with low risk compared to rollback rework
+- the wizard exists and is usable now
+- the Strategy step already became more helpful
+- the Rules step still hides several existing capabilities already modeled in the VM and domain
+- this is lower risk than starting rollback rework immediately
 
 ## Known Working Validation
 
 These commands passed after the latest implemented changes:
 
 ```powershell
-dotnet build FileTransformer.sln -c Debug
+dotnet build FileTransformer.sln -c Debug --no-restore
 dotnet test FileTransformer.sln -c Debug
 ```
 
 ## Files Most Relevant For The Next Task
 
 - `src/App/ViewModels/MainWindowViewModel.cs`
-- `src/App/Views/WizardStrategyStepView.xaml`
-- `src/Application/Services/OrganizationWorkflowService.cs`
-- `src/Domain/Services/StrategyPresetCatalog.cs`
-- `src/Domain/Models/OrganizationPlan.cs`
-- `src/Domain/Models/PlanSummary.cs`
+- `src/App/Views/WizardRulesStepView.xaml`
+- `src/Application/Models/AppSettings.cs`
+- `src/Domain/Models/OrganizationSettings.cs`
+- `src/Domain/Models/OrganizationPolicy.cs`
+- `src/Domain/Models/ReviewPolicy.cs`
+- `src/Domain/Models/DuplicatePolicy.cs`
+- `src/Infrastructure/Configuration/ProtectedAppSettingsStore.cs`
 
 ## Cautions
 
@@ -67,4 +82,5 @@ dotnet test FileTransformer.sln -c Debug
 - Keep UI logic in App only.
 - Do not weaken path safety or execution constraints.
 - Do not let Gemini outputs become authoritative.
-- `src/App/FileTransformer.App.csproj.lscache` changed due to build generation; it is not a functional feature change.
+- Recommendation cards must remain advisory only.
+- `.lscache` changes are generated build artifacts unless intentionally kept.

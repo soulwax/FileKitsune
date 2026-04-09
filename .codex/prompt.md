@@ -25,8 +25,8 @@ Do not move logic into code-behind.
 Already implemented in this branch:
 
 1. Wizard shell refactor
-   - `MainWindow.xaml` is now a wizard container.
-   - New step views exist:
+   - `MainWindow.xaml` is now a 5-step wizard container.
+   - Step views exist:
      - `WizardFolderStepView`
      - `WizardStrategyStepView`
      - `WizardRulesStepView`
@@ -36,15 +36,16 @@ Already implemented in this branch:
      - `WizardStep`
      - `CurrentStep`
      - `CurrentStepIndex`
+     - `CurrentStepNumber`
      - `NextCommand`
      - `BackCommand`
 
 2. German-first localization slice
    - UI default switched to `Strings.de-DE.xaml`.
-   - New `ILocalizationService` / `LocalizationService` in `src/App/Services`.
+   - `ILocalizationService` / `LocalizationService` added in `src/App/Services`.
    - `AppSettings` persists `UiLanguage`.
    - `ProtectedAppSettingsStore` loads/saves `UiLanguage`.
-   - `MainWindowViewModel` now exposes `AppLanguages` and `SelectedAppLanguage`.
+   - `MainWindowViewModel` exposes `AppLanguages` and `SelectedAppLanguage`.
    - Wizard views were converted from hardcoded text to resource-driven text.
 
 3. German-first naming defaults
@@ -53,10 +54,17 @@ Already implemented in this branch:
    - `OrganizationSettings` now exposes `FilenameLanguagePolicy`.
    - `MainWindowViewModel.BuildSettings()` persists filename language policy.
 
-Validation already passed after these changes:
+4. Strategy recommendations
+   - `StrategyRecommendationService` added in Application layer.
+   - `StrategyRecommendation` model added.
+   - recommendations are populated after scan and shown in the Strategy step
+   - recommendation cards are advisory only and set `SelectedStrategyPreset`
+   - tests were added in `StrategyRecommendationServiceTests`
+
+Validation passed after the latest feature work:
 
 ```powershell
-dotnet build FileTransformer.sln -c Debug
+dotnet build FileTransformer.sln -c Debug --no-restore
 dotnet test FileTransformer.sln -c Debug
 ```
 
@@ -64,6 +72,7 @@ dotnet test FileTransformer.sln -c Debug
 
 There are local modifications not yet committed in:
 
+- `README.md`
 - `src/App/App.xaml`
 - `src/App/App.xaml.cs`
 - `src/App/Localization/Strings.de-DE.xaml`
@@ -71,13 +80,16 @@ There are local modifications not yet committed in:
 - `src/App/ViewModels/MainWindowViewModel.cs`
 - `src/App/Views/Wizard*.xaml`
 - `src/Application/Models/AppSettings.cs`
+- new `src/Application/Models/StrategyRecommendation.cs`
+- new `src/Application/Services/StrategyRecommendationService.cs`
 - `src/Domain/Models/NamingPolicy.cs`
 - `src/Domain/Models/OrganizationSettings.cs`
 - `src/Infrastructure/Configuration/ProtectedAppSettingsStore.cs`
 - new `src/App/Services/ILocalizationService.cs`
 - new `src/App/Services/LocalizationService.cs`
+- new test `tests/FileTransformer.Tests/Application/StrategyRecommendationServiceTests.cs`
 
-`src/App/FileTransformer.App.csproj.lscache` also changed because of the build; treat it as generated noise unless the repo intentionally tracks it.
+Tracked `.lscache` files may also show changes from build generation. Treat them as generated noise unless the repo intentionally wants them updated.
 
 ## What To Do Next
 
@@ -85,49 +97,45 @@ Continue in an agile, usable-first way.
 
 The next highest-value slice is:
 
-## STEP 3 — Strategy Presets + Recommendations
+## STEP 3.5 / NEXT SLICE — Expose More Rule Controls Already Present In The ViewModel
 
 Goal:
 
-- make the new Strategy step genuinely useful
-- expose existing strategy controls already present in `MainWindowViewModel`
-- add lightweight recommendation output after scan
+- make the Rules step actually reflect more of the existing planner capabilities
+- wire existing VM/domain options into settings persistence and the wizard UI
+- improve usefulness before starting the heavier rollback upgrade
 
-Preferred implementation order:
+Priority controls to expose next:
 
-1. Inspect current strategy-related code:
+1. `SelectedPreferredDateSource`
+2. `SelectedExecutionMode`
+3. `SelectedDuplicateHandlingMode`
+4. `SelectedFilenameLanguagePolicy` is already exposed, so keep it stable
+5. any missing strategy-related or planner-related settings already modeled but not persisted
+
+## Recommended Implementation Order
+
+1. Inspect current settings flow:
    - `src/App/ViewModels/MainWindowViewModel.cs`
-   - `src/Application/Services/OrganizationWorkflowService.cs`
-   - `src/Domain/Services/StrategyPresetCatalog.cs`
-   - `src/Domain/Models/PlanSummary.cs`
-   - `src/Domain/Models/OrganizationPlan.cs`
+   - `src/Application/Models/AppSettings.cs`
+   - `src/Domain/Models/OrganizationSettings.cs`
+   - `src/Domain/Models/OrganizationPolicy.cs`
+   - `src/Domain/Models/ReviewPolicy.cs`
+   - `src/Domain/Models/DuplicatePolicy.cs`
+   - `src/Infrastructure/Configuration/ProtectedAppSettingsStore.cs`
 
-2. Add a recommendation model/service in Application:
-   - score strategies using currently available signals only
-   - keep the first version simple and explainable
-
-3. Use signals that already exist or are easy to derive:
-   - category distribution
-   - date usage / date-source presence
-   - duplicates count from plan summary
-   - project/topic presence in plan operations
-   - file type spread if easy to compute from scanned/preview data
-
-4. Return top 3 to 5 recommendations with:
+2. Fix persistence gaps in `BuildSettings()` / `ApplySettings()`:
    - strategy preset
-   - display name
-   - reason
-   - confidence score
+   - preferred date source
+   - execution mode
+   - duplicate handling mode
+   - any already-exposed language controls that still depend on defaults only
 
-5. Surface them in `WizardStrategyStepView.xaml`:
-   - “Recommended for this folder”
-   - selectable cards or simple bordered buttons
-   - selecting a recommendation should set `SelectedStrategyPreset`
+3. Update `WizardRulesStepView.xaml` to surface those existing options cleanly:
+   - keep progressive disclosure in mind
+   - prefer adding grouped controls over adding a giant wall of settings
 
-6. Keep it safe:
-   - recommendations are advisory only
-   - they do not execute anything
-   - they should not change path safety or execution logic
+4. Add or update tests if the persistence or behavior changes are substantial.
 
 ## Constraints To Keep
 
@@ -138,20 +146,22 @@ Preferred implementation order:
 - no logic in code-behind
 - keep methods small and testable
 
-## After Step 3
+## After This Slice
 
 Next likely slices:
 
-1. Expose more rule controls already present in the VM
-2. Improve Gemini configuration to optionally use `.env`
-3. Start rollback upgrade only after UI usability is in a good state
+1. Improve Gemini configuration to optionally use `.env`
+2. Start rollback upgrade:
+   - richer journals
+   - historical rollback selection
+   - rollback preview
+3. Add PDF extraction
 
 ## End Condition For Next Session
 
 Aim to finish:
 
-- strategy recommendation service
-- strategy recommendation UI in the wizard
+- persistence of more rule controls
+- Rules step UI for those controls
 - build green
 - tests green
-
