@@ -79,7 +79,7 @@ Gemini support is optional.
 
 - the app stores the Gemini API key encrypted with DPAPI in the current Windows user profile
 - runtime settings live in `%LocalAppData%\\FileTransformer\\settings.json`
-- the current desktop app does not yet load `.env` or `gemini.json` for runtime configuration
+- the app can read `.env` or environment variables as a fallback when no DPAPI value is present
 - Gemini can enrich semantic understanding, but it does not get to decide executable paths
 
 ## Current Architecture

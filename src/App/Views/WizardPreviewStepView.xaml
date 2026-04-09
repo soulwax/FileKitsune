@@ -135,6 +135,40 @@
                     <DataGridTextColumn Header="{DynamicResource GridRisk}" Binding="{Binding Risk}" Width="80" />
                     <DataGridTextColumn Header="{DynamicResource GridLanguage}" Binding="{Binding Language}" Width="95" />
                     <DataGridTextColumn Header="{DynamicResource GridGemini}" Binding="{Binding Gemini}" Width="130" />
+                    <DataGridTemplateColumn Header="{DynamicResource GridDuplicate}" Width="180">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource DuplicateNone}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DuplicateDetected}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock>
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DuplicateDetected}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                        <Run Text="{DynamicResource DuplicateOfPrefix}" />
+                                        <Run Text="{Binding DuplicateOfRelativePath}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="{DynamicResource GridWarnings}" Binding="{Binding Warnings}" Width="180" />
                     <DataGridTextColumn Header="{DynamicResource GridReason}" Binding="{Binding Reason}" Width="*" />
                 </DataGrid.Columns>
@@ -157,6 +191,35 @@
                     <TextBlock Text="{Binding SelectedOperation.ProposedRelativePath}" TextWrapping="Wrap" />
                     <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource ReasonLabel}" />
                     <TextBlock Text="{Binding SelectedOperation.Reason}" TextWrapping="Wrap" />
+                    <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource DuplicateLabel}" />
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource DuplicateNone}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedOperation.DuplicateDetected}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock>
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedOperation.DuplicateDetected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                            <Run Text="{DynamicResource DuplicateOfPrefix}" />
+                            <Run Text="{Binding SelectedOperation.DuplicateOfRelativePath}" />
+                        </TextBlock>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
@@ -178,6 +241,10 @@
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{DynamicResource SummaryItemsNeedingReviewLabel}" />
                         <TextBlock Margin="4,0,0,0" Text="{Binding NeedsReviewCount}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{DynamicResource SummaryDuplicatesLabel}" />
+                        <TextBlock Margin="4,0,0,0" Text="{Binding DuplicateCount}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{DynamicResource SummaryGeminiItemsLabel}" />

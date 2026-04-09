@@ -28,14 +28,76 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
     {
         Directory.CreateDirectory(appStoragePaths.RootDirectory);
 
-        if (!File.Exists(appStoragePaths.SettingsFilePath))
+        var settingsFileExists = File.Exists(appStoragePaths.SettingsFilePath);
+        var envelope = new StoredSettingsEnvelope();
+        if (settingsFileExists)
         {
-            return new AppSettings();
+            await using var stream = File.OpenRead(appStoragePaths.SettingsFilePath);
+            envelope = await JsonSerializer.DeserializeAsync<StoredSettingsEnvelope>(stream, SerializerOptions, cancellationToken)
+                ?? new StoredSettingsEnvelope();
         }
 
-        await using var stream = File.OpenRead(appStoragePaths.SettingsFilePath);
-        var envelope = await JsonSerializer.DeserializeAsync<StoredSettingsEnvelope>(stream, SerializerOptions, cancellationToken)
-            ?? new StoredSettingsEnvelope();
+        var env = DotEnv.LoadIfPresent(
+            Path.Combine(Directory.GetCurrentDirectory(), ".env"),
+            Path.Combine(AppContext.BaseDirectory, ".env"));
+
+        string? GetEnvValue(params string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                var value = Environment.GetEnvironmentVariable(key);
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    return value;
+                }
+
+                if (env.TryGetValue(key, out var envValue) && !string.IsNullOrWhiteSpace(envValue))
+                {
+                    return envValue;
+                }
+            }
+
+            return null;
+        }
+
+        static bool? ParseBool(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            if (bool.TryParse(value, out var parsed))
+            {
+                return parsed;
+            }
+
+            return value.Trim() switch
+            {
+                "1" => true,
+                "0" => false,
+                _ => null
+            };
+        }
+
+        static int? ParseInt(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            return int.TryParse(value, out var parsed) ? parsed : null;
+        }
+
+        var envEnabled = ParseBool(GetEnvValue("GEMINI_ENABLED"));
+        var envApiKey = GetEnvValue("GEMINI_API_KEY", "GOOGLE_API_KEY");
+        var envModel = GetEnvValue("GEMINI_MODEL");
+        var envEndpoint = GetEnvValue("GEMINI_ENDPOINT_BASE_URL");
+        var envMaxRequests = ParseInt(GetEnvValue("GEMINI_MAX_REQUESTS_PER_MINUTE"));
+        var envTimeoutSeconds = ParseInt(GetEnvValue("GEMINI_REQUEST_TIMEOUT_SECONDS"));
+        var envMaxPromptChars = ParseInt(GetEnvValue("GEMINI_MAX_PROMPT_CHARACTERS"));
+        var decryptedApiKey = Decrypt(envelope.Gemini.ApiKeyProtected);
 
         return new AppSettings
         {
@@ -43,15 +105,25 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
             Organization = envelope.Organization ?? new(),
             Gemini = new GeminiOptions
             {
-                Enabled = envelope.Gemini.Enabled,
-                ApiKey = Decrypt(envelope.Gemini.ApiKeyProtected),
-                Model = string.IsNullOrWhiteSpace(envelope.Gemini.Model) ? "gemini-1.5-flash" : envelope.Gemini.Model,
+                Enabled = settingsFileExists
+                    ? envelope.Gemini.Enabled
+                    : envEnabled ?? envelope.Gemini.Enabled,
+                ApiKey = string.IsNullOrWhiteSpace(decryptedApiKey) ? envApiKey ?? string.Empty : decryptedApiKey,
+                Model = string.IsNullOrWhiteSpace(envelope.Gemini.Model)
+                    ? envModel ?? "gemini-1.5-flash"
+                    : envelope.Gemini.Model,
                 EndpointBaseUrl = string.IsNullOrWhiteSpace(envelope.Gemini.EndpointBaseUrl)
-                    ? "https://generativelanguage.googleapis.com/v1beta"
+                    ? envEndpoint ?? "https://generativelanguage.googleapis.com/v1beta"
                     : envelope.Gemini.EndpointBaseUrl,
-                MaxRequestsPerMinute = envelope.Gemini.MaxRequestsPerMinute <= 0 ? 30 : envelope.Gemini.MaxRequestsPerMinute,
-                RequestTimeoutSeconds = envelope.Gemini.RequestTimeoutSeconds <= 0 ? 30 : envelope.Gemini.RequestTimeoutSeconds,
-                MaxPromptCharacters = envelope.Gemini.MaxPromptCharacters <= 0 ? 4_000 : envelope.Gemini.MaxPromptCharacters
+                MaxRequestsPerMinute = envelope.Gemini.MaxRequestsPerMinute <= 0
+                    ? envMaxRequests ?? 30
+                    : envelope.Gemini.MaxRequestsPerMinute,
+                RequestTimeoutSeconds = envelope.Gemini.RequestTimeoutSeconds <= 0
+                    ? envTimeoutSeconds ?? 30
+                    : envelope.Gemini.RequestTimeoutSeconds,
+                MaxPromptCharacters = envelope.Gemini.MaxPromptCharacters <= 0
+                    ? envMaxPromptChars ?? 4_000
+                    : envelope.Gemini.MaxPromptCharacters
             }
         };
     }

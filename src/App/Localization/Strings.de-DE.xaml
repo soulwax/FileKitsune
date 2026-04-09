@@ -36,6 +36,7 @@
     <sys:String x:Key="GridWarnings">Hinweise</sys:String>
     <sys:String x:Key="GridLanguage">Sprache</sys:String>
     <sys:String x:Key="GridGemini">Klassifikator</sys:String>
+    <sys:String x:Key="GridDuplicate">Duplikat</sys:String>
     <sys:String x:Key="WizardLabel">Assistent</sys:String>
     <sys:String x:Key="WizardBackButton">Zurück</sys:String>
     <sys:String x:Key="WizardNextButton">Weiter</sys:String>
@@ -122,6 +123,10 @@
     <sys:String x:Key="SummaryMoveOperationsLabel">Verschiebungsbezogene Operationen:</sys:String>
     <sys:String x:Key="SummaryRenameOperationsLabel">Umbenennungsbezogene Operationen:</sys:String>
     <sys:String x:Key="SummaryItemsNeedingReviewLabel">Prüfbedürftige Elemente:</sys:String>
+    <sys:String x:Key="SummaryDuplicatesLabel">Duplikate:</sys:String>
+    <sys:String x:Key="DuplicateLabel">Duplikat</sys:String>
+    <sys:String x:Key="DuplicateNone">Keines</sys:String>
+    <sys:String x:Key="DuplicateOfPrefix">Duplikat von: </sys:String>
     <sys:String x:Key="ExecuteIntroText">Führen Sie nur geprüfte und ausgewählte Operationen aus. Verschiebungen und Umbenennungen bleiben innerhalb des gewählten Stammordners.</sys:String>
     <sys:String x:Key="RollbackTitle">Rückgängig machen</sys:String>
     <sys:String x:Key="RollbackBody">Das Rückgängigmachen unterstützt in diesem Schritt weiterhin nur den letzten Lauf. Historische Rücknahmen folgen im dedizierten Rollback-Ausbau.</sys:String>

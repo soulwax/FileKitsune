@@ -36,6 +36,7 @@
     <sys:String x:Key="GridWarnings">Warnings</sys:String>
     <sys:String x:Key="GridLanguage">Language</sys:String>
     <sys:String x:Key="GridGemini">Classifier</sys:String>
+    <sys:String x:Key="GridDuplicate">Duplicate</sys:String>
     <sys:String x:Key="WizardLabel">Wizard</sys:String>
     <sys:String x:Key="WizardBackButton">Back</sys:String>
     <sys:String x:Key="WizardNextButton">Next</sys:String>
@@ -122,6 +123,10 @@
     <sys:String x:Key="SummaryMoveOperationsLabel">Move-related operations:</sys:String>
     <sys:String x:Key="SummaryRenameOperationsLabel">Rename-related operations:</sys:String>
     <sys:String x:Key="SummaryItemsNeedingReviewLabel">Items needing review:</sys:String>
+    <sys:String x:Key="SummaryDuplicatesLabel">Duplicates:</sys:String>
+    <sys:String x:Key="DuplicateLabel">Duplicate</sys:String>
+    <sys:String x:Key="DuplicateNone">None</sys:String>
+    <sys:String x:Key="DuplicateOfPrefix">Duplicate of: </sys:String>
     <sys:String x:Key="ExecuteIntroText">Execute only reviewed and selected operations. Moves and renames stay inside the chosen root.</sys:String>
     <sys:String x:Key="RollbackTitle">Rollback</sys:String>
     <sys:String x:Key="RollbackBody">Rollback remains latest-run only at this stage. Historical rollback arrives in the dedicated rollback upgrade step.</sys:String>

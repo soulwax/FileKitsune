@@ -151,7 +151,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         reviewFolderName = "Review";
         autoApproveConfidenceThreshold = 0.82d;
         enableExactDuplicateDetection = false;
-        duplicatesFolderName = "Duplicates";
+        duplicatesFolderName = "Zu prüfende Duplikate";
         selectedAppLanguage = AppLanguages[0];
 
         PlanOperations = [];
@@ -297,6 +297,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private int geminiAssistedCount;
+
+    [ObservableProperty]
+    private int duplicateCount;
 
     [ObservableProperty]
     private OptionItem<OrganizationStrategyPreset>? selectedStrategyPreset;
@@ -813,7 +816,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     EnableExactDuplicateDetection = EnableExactDuplicateDetection,
                     HandlingMode = SelectedDuplicateHandlingMode?.Value ?? DuplicateHandlingMode.RequireReview,
                     DuplicatesFolderName = string.IsNullOrWhiteSpace(DuplicatesFolderName)
-                        ? "Duplicates"
+                        ? "Zu prüfende Duplikate"
                         : DuplicatesFolderName.Trim()
                 }
             },
@@ -894,6 +897,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RenameCount = summary.RenameCount + summary.MoveAndRenameCount;
         NeedsReviewCount = summary.RequiresReviewCount;
         GeminiAssistedCount = summary.GeminiAssistedCount;
+        DuplicateCount = summary.DuplicateCount;
     }
 
     private void ResetProgress()

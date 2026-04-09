@@ -51,6 +51,10 @@ public sealed partial class PlanOperationItemViewModel : ObservableObject
 
     public string Duplicate => Operation.DuplicateDetected ? $"Duplicate of {Operation.DuplicateOfRelativePath}" : "No";
 
+    public bool DuplicateDetected => Operation.DuplicateDetected;
+
+    public string DuplicateOfRelativePath => Operation.DuplicateOfRelativePath;
+
     public string Protection => string.IsNullOrWhiteSpace(Operation.ProtectionReason) ? "None" : Operation.ProtectionReason;
 
     public string Approval => Operation.AutoApproved ? "Auto" : Operation.RequiresReview ? "Review" : "Manual";

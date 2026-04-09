@@ -8,5 +8,5 @@ public sealed class DuplicatePolicy
 
     public DuplicateHandlingMode HandlingMode { get; set; } = DuplicateHandlingMode.RequireReview;
 
-    public string DuplicatesFolderName { get; set; } = "Duplicates";
+    public string DuplicatesFolderName { get; set; } = "Zu prüfende Duplikate";
 }
