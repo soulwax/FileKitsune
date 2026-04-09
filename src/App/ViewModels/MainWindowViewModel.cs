@@ -292,6 +292,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private PlanOperationItemViewModel? selectedOperation;
 
+    [ObservableProperty]
+    private WizardStep currentStep = WizardStep.Folder;
+
+    public int CurrentStepIndex
+    {
+        get => (int)CurrentStep;
+        set => CurrentStep = ClampStep(value);
+    }
+
+    public int CurrentStepNumber => CurrentStepIndex + 1;
+
+    public int TotalWizardSteps => 5;
+
     public async Task InitializeAsync()
     {
         if (initialized)
@@ -375,6 +388,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             PlanView.Refresh();
             StatusMessage = $"Preview ready. {currentPlan.Summary.TotalItems} items analyzed.";
             logger.LogInformation("Preview plan built with {Count} operations.", currentPlan.Operations.Count);
+            NotifyWizardNavigationChanged();
         }
         catch (OperationCanceledException)
         {
@@ -392,6 +406,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             IsBusy = false;
             currentCancellationTokenSource?.Dispose();
             currentCancellationTokenSource = null;
+            NotifyWizardNavigationChanged();
         }
     }
 
@@ -554,7 +569,35 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [RelayCommand(CanExecute = nameof(CanMoveBack))]
+    private void Back()
+    {
+        CurrentStep = ClampStep(CurrentStepIndex - 1);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanMoveNext))]
+    private void Next()
+    {
+        CurrentStep = ClampStep(CurrentStepIndex + 1);
+    }
+
     partial void OnSelectedPlanFilterChanged(OptionItem<PlanFilterMode>? value) => PlanView.Refresh();
+
+    partial void OnSelectedStrategyPresetChanged(OptionItem<OrganizationStrategyPreset>? value)
+    {
+        StrategyDisplayName = value?.Label ?? string.Empty;
+    }
+
+    partial void OnCurrentStepChanged(WizardStep value)
+    {
+        OnPropertyChanged(nameof(CurrentStepIndex));
+        OnPropertyChanged(nameof(CurrentStepNumber));
+        NotifyWizardNavigationChanged();
+    }
+
+    partial void OnRootDirectoryChanged(string value) => NotifyWizardNavigationChanged();
+
+    partial void OnIsBusyChanged(bool value) => NotifyWizardNavigationChanged();
 
     private bool ApplyPlanFilter(object item)
     {
@@ -568,6 +611,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
             PlanFilterMode.ExecutableOnly => operation.CanSelect,
             PlanFilterMode.NeedsReview => operation.Operation.RequiresReview,
             PlanFilterMode.GeminiOnly => operation.Operation.GeminiUsed,
+            _ => true
+        };
+    }
+
+    private bool CanMoveBack() => !IsBusy && CurrentStep is not WizardStep.Folder;
+
+    private bool CanMoveNext()
+    {
+        if (IsBusy || CurrentStep == WizardStep.ExecuteRollback)
+        {
+            return false;
+        }
+
+        return CurrentStep switch
+        {
+            WizardStep.Folder => !string.IsNullOrWhiteSpace(RootDirectory) && Directory.Exists(RootDirectory),
+            WizardStep.Preview => currentPlan is not null,
             _ => true
         };
     }
@@ -735,6 +795,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         HasRollbackFolderGroups = true;
     }
+
+    private void NotifyWizardNavigationChanged()
+    {
+        BackCommand.NotifyCanExecuteChanged();
+        NextCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(CurrentStepIndex));
+        OnPropertyChanged(nameof(CurrentStepNumber));
+        OnPropertyChanged(nameof(TotalWizardSteps));
+    }
+
+    private static WizardStep ClampStep(int stepIndex) =>
+        stepIndex < (int)WizardStep.Folder
+            ? WizardStep.Folder
+            : stepIndex > (int)WizardStep.ExecuteRollback
+                ? WizardStep.ExecuteRollback
+                : (WizardStep)stepIndex;
 
     private static string GetTopLevelRelativeFolder(string rootDirectory, string destinationFullPath)
     {

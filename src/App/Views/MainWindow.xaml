@@ -3,24 +3,64 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:FileTransformer.App.ViewModels"
+        xmlns:views="clr-namespace:FileTransformer.App.Views"
         mc:Ignorable="d"
         Title="{DynamicResource AppTitle}"
         Width="1480"
         Height="900"
         MinWidth="1200"
         MinHeight="780">
+    <Window.Resources>
+        <Style x:Key="WizardStepTitleStyle" TargetType="TextBlock">
+            <Setter Property="Text" Value="{DynamicResource WizardStepFolderTitle}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
+                    <Setter Property="Text" Value="{DynamicResource WizardStepStrategyTitle}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
+                    <Setter Property="Text" Value="{DynamicResource WizardStepRulesTitle}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
+                    <Setter Property="Text" Value="{DynamicResource WizardStepPreviewTitle}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
+                    <Setter Property="Text" Value="{DynamicResource WizardStepExecuteTitle}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="WizardStepBodyStyle" TargetType="TextBlock">
+            <Setter Property="Text" Value="{DynamicResource WizardStepFolderBody}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
+                    <Setter Property="Text" Value="{DynamicResource WizardStepStrategyBody}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
+                    <Setter Property="Text" Value="{DynamicResource WizardStepRulesBody}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
+                    <Setter Property="Text" Value="{DynamicResource WizardStepPreviewBody}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
+                    <Setter Property="Text" Value="{DynamicResource WizardStepExecuteBody}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="220" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Border Style="{StaticResource CardBorderStyle}" Padding="20">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="300" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel>
@@ -33,7 +73,30 @@
                                  Maximum="{Binding ProgressMaximum}"
                                  Value="{Binding ProgressValue}"
                                  IsIndeterminate="{Binding IsProgressIndeterminate}" />
-                    <TextBlock Margin="0,8,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{Binding StatusMessage}" />
+                    <TextBlock Margin="0,8,0,0"
+                               Foreground="{StaticResource MutedTextBrush}"
+                               Text="{Binding StatusMessage}" />
+
+                    <Border Margin="0,18,0,0"
+                            Padding="16"
+                            Background="{StaticResource SurfaceAltBrush}"
+                            CornerRadius="14">
+                        <StackPanel>
+                            <TextBlock FontSize="13" FontWeight="SemiBold" Text="{DynamicResource WizardLabel}" />
+                            <TextBlock Margin="0,4,0,0"
+                                       FontSize="24"
+                                       FontWeight="SemiBold"
+                                       Style="{StaticResource WizardStepTitleStyle}" />
+                            <TextBlock Margin="0,6,0,10"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       TextWrapping="Wrap"
+                                       Style="{StaticResource WizardStepBodyStyle}" />
+                            <ProgressBar Minimum="1"
+                                         Maximum="{Binding TotalWizardSteps}"
+                                         Value="{Binding CurrentStepNumber}"
+                                         Height="8" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <Border Grid.Column="1"
@@ -42,374 +105,57 @@
                         Background="{StaticResource AccentSoftBrush}"
                         CornerRadius="14">
                     <StackPanel>
-                        <TextBlock FontSize="13" FontWeight="SemiBold" Text="Safety guardrails" />
-                        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Width="250">
-                            Preview-first, in-root moves only, no deletions, no silent overwrites.
-                        </TextBlock>
+                        <TextBlock FontSize="13" FontWeight="SemiBold" Text="{DynamicResource SafetyGuardrailsTitle}" />
+                        <TextBlock Margin="0,4,0,0"
+                                   Width="250"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource SafetyGuardrailsBody}" />
                     </StackPanel>
                 </Border>
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,18,0,18">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="360" />
-                <ColumnDefinition Width="18" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
-                <StackPanel>
-                    <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
-                        <StackPanel>
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource RootFolder}" />
-                            <DockPanel Margin="0,10,0,0">
-                                <Button DockPanel.Dock="Right"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        Command="{Binding BrowseRootCommand}"
-                                        Content="{DynamicResource Browse}" />
-                                <TextBox Margin="0"
-                                         VerticalContentAlignment="Center"
-                                         Text="{Binding RootDirectory, UpdateSourceTrigger=PropertyChanged}" />
-                            </DockPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
-                        <StackPanel>
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource GeneralSettings}" />
-                            <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Include patterns" />
-                            <TextBox Height="56" AcceptsReturn="True" Text="{Binding IncludePatternsText, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Exclude patterns" />
-                            <TextBox Height="56" AcceptsReturn="True" Text="{Binding ExcludePatternsText, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Readable extensions" />
-                            <TextBox Height="56" AcceptsReturn="True" Text="{Binding SupportedExtensionsText, UpdateSourceTrigger=PropertyChanged}" />
-
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="12" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Max file size (KB)" />
-                                    <TextBox Text="{Binding MaxFileSizeKb}" />
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Preview sample size" />
-                                    <TextBox Text="{Binding PreviewSampleSize}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Max files to scan" />
-                                    <TextBox Text="{Binding MaxFilesToScan}" />
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Low-confidence threshold" />
-                                    <TextBox Text="{Binding LowConfidenceThreshold, StringFormat=F2}" />
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
-                        <StackPanel>
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource NamingRules}" />
-                            <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="File rename style" />
-                            <ComboBox ItemsSource="{Binding RenameModes}"
-                                      DisplayMemberPath="Label"
-                                      SelectedItem="{Binding SelectedRenameMode}" />
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Naming template" />
-                            <TextBox Text="{Binding NamingTemplate, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Folder label language" />
-                            <ComboBox ItemsSource="{Binding FolderLanguageModes}"
-                                      DisplayMemberPath="Label"
-                                      SelectedItem="{Binding SelectedFolderLanguageMode}" />
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Conflict handling" />
-                            <ComboBox ItemsSource="{Binding ConflictModes}"
-                                      DisplayMemberPath="Label"
-                                      SelectedItem="{Binding SelectedConflictMode}" />
-                            <CheckBox Content="Allow file renames" IsChecked="{Binding AllowFileRename}" />
-                            <CheckBox Content="Remove empty folders after successful moves" IsChecked="{Binding RemoveEmptyFolders}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
-                        <StackPanel>
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PlannerDimensions}" />
-                            <CheckBox Content="Group by semantic category" IsChecked="{Binding UseSemanticCategoryDimension}" />
-                            <CheckBox Content="Group by project/topic" IsChecked="{Binding UseProjectDimension}" />
-                            <CheckBox Content="Group by year" IsChecked="{Binding UseYearDimension}" />
-                            <CheckBox Content="Group by month" IsChecked="{Binding UseMonthDimension}" />
-                            <CheckBox Content="Use file type as secondary criterion" IsChecked="{Binding UseFileTypeSecondaryCriterion}" />
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
-                        <StackPanel>
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource GeminiSettings}" />
-                            <CheckBox Content="Use Gemini when an API key is present" IsChecked="{Binding UseGemini}" />
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="API key" />
-                            <TextBox Text="{Binding GeminiApiKey, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Model" />
-                            <TextBox Text="{Binding GeminiModel, UpdateSourceTrigger=PropertyChanged}" />
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="12" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Max requests/minute" />
-                                    <TextBox Text="{Binding GeminiMaxRequestsPerMinute}" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Request timeout (sec)" />
-                                    <TextBox Text="{Binding GeminiRequestTimeoutSeconds}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <Border Margin="0,8,0,0"
-                                    Padding="12"
-                                    Background="{StaticResource AccentSoftBrush}"
-                                    CornerRadius="12">
-                                <TextBlock TextWrapping="Wrap">
-                                    Gemini is advisory only. The app validates every category, path fragment, and destination locally before anything can run.
-                                </TextBlock>
-                            </Border>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource CardBorderStyle}">
-                        <StackPanel>
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PreviewActions}" />
-                            <WrapPanel Margin="0,12,0,0">
-                                <Button Style="{StaticResource PrimaryButtonStyle}"
-                                        Command="{Binding ScanCommand}"
-                                        Content="{DynamicResource ScanButton}"
-                                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
-                                <Button Style="{StaticResource SecondaryButtonStyle}"
-                                        Command="{Binding SaveSettingsCommand}"
-                                        Content="{DynamicResource SaveButton}"
-                                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
-                            </WrapPanel>
-                            <WrapPanel Margin="0,4,0,0">
-                                <Button Style="{StaticResource PrimaryButtonStyle}"
-                                        Command="{Binding ExecuteSelectedCommand}"
-                                        Content="{DynamicResource ExecuteButton}"
-                                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
-                                <Button Style="{StaticResource SecondaryButtonStyle}"
-                                        Command="{Binding CancelCurrentWorkCommand}"
-                                        Content="{DynamicResource CancelButton}"
-                                        IsEnabled="{Binding IsBusy}" />
-                            </WrapPanel>
-                            <Button Margin="0,8,0,0"
-                                    Style="{StaticResource SecondaryButtonStyle}"
-                                    Command="{Binding RollbackLatestCommand}"
-                                    Content="{DynamicResource RollbackButton}"
-                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
-                            <StackPanel Margin="0,8,0,0"
-                                        Visibility="{Binding HasRollbackFolderGroups, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock Foreground="{StaticResource MutedTextBrush}"
-                                           FontSize="12"
-                                           Text="{DynamicResource UndoByFolderLabel}" />
-                                <ItemsControl ItemsSource="{Binding RollbackFolderGroups}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Button Margin="0,4,0,0"
-                                                    Style="{StaticResource SecondaryButtonStyle}"
-                                                    Command="{Binding DataContext.RollbackFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                    CommandParameter="{Binding FolderName}"
-                                                    Content="{Binding Label}"
-                                                    IsEnabled="{Binding DataContext.IsBusy, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource InverseBooleanConverter}}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </ScrollViewer>
-
-            <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <StackPanel>
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="{DynamicResource PlanPreview}" />
-                        <TextBlock Margin="0,6,0,16"
-                                   Foreground="{StaticResource MutedTextBrush}"
-                                   Text="Every proposal shows a reason, classifier source, and safety warnings before execution." />
-
-                        <UniformGrid Columns="4" Margin="0,0,0,16">
-                            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,12,0" Padding="14">
-                                <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Items analyzed" />
-                                    <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding TotalItems}" />
-                                </StackPanel>
-                            </Border>
-                            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,12,0" Padding="14">
-                                <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Moves" />
-                                    <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding MoveCount}" />
-                                </StackPanel>
-                            </Border>
-                            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,12,0" Padding="14">
-                                <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Renames" />
-                                    <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding RenameCount}" />
-                                </StackPanel>
-                            </Border>
-                            <Border Style="{StaticResource CardBorderStyle}" Padding="14">
-                                <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Needs review" />
-                                    <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding NeedsReviewCount}" />
-                                </StackPanel>
-                            </Border>
-                        </UniformGrid>
-                    </StackPanel>
-
-                    <DockPanel Grid.Row="1" Margin="0,0,0,12">
-                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                            <Button Style="{StaticResource SecondaryButtonStyle}"
-                                    Command="{Binding SelectExecutableCommand}"
-                                    Content="{DynamicResource SelectExecutableButton}" />
-                            <Button Style="{StaticResource SecondaryButtonStyle}"
-                                    Command="{Binding ClearSelectionCommand}"
-                                    Content="{DynamicResource ClearSelectionButton}" />
-                        </StackPanel>
-
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock VerticalAlignment="Center" Text="Filter" />
-                            <ComboBox Width="180"
-                                      Margin="10,0,0,0"
-                                      VerticalAlignment="Center"
-                                      ItemsSource="{Binding PlanFilters}"
-                                      DisplayMemberPath="Label"
-                                      SelectedItem="{Binding SelectedPlanFilter}" />
-                            <Border Margin="14,0,0,0"
-                                    Padding="10,6"
-                                    Background="{StaticResource AccentSoftBrush}"
-                                    CornerRadius="10">
-                                <TextBlock Text="{Binding GeminiAssistedCount, StringFormat=Gemini-assisted items: {0}}" />
-                            </Border>
-                        </StackPanel>
-                    </DockPanel>
-
-                    <DataGrid Grid.Row="2"
-                              ItemsSource="{Binding PlanView}"
-                              SelectedItem="{Binding SelectedOperation}"
-                              AlternationCount="2"
-                              RowHeight="34"
-                              ColumnHeaderHeight="36">
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow">
-                                <Setter Property="VerticalContentAlignment" Value="Center" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Operation.RequiresReview}" Value="True">
-                                        <Setter Property="Background" Value="#FFFFF3E4" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding CanSelect}" Value="False">
-                                        <Setter Property="Opacity" Value="0.75" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.RowStyle>
-                        <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="{DynamicResource GridRun}" Width="52">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <CheckBox HorizontalAlignment="Center"
-                                                  IsEnabled="{Binding CanSelect}"
-                                                  IsChecked="{Binding IsSelected, Mode=TwoWay}" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="{DynamicResource GridAction}" Binding="{Binding OperationType}" Width="105" />
-                            <DataGridTextColumn Header="{DynamicResource GridCurrentPath}" Binding="{Binding CurrentRelativePath}" Width="200" />
-                            <DataGridTextColumn Header="{DynamicResource GridProposedPath}" Binding="{Binding ProposedRelativePath}" Width="250" />
-                            <DataGridTextColumn Header="{DynamicResource GridCategory}" Binding="{Binding Category}" Width="135" />
-                            <DataGridTextColumn Header="{DynamicResource GridConfidence}" Binding="{Binding Confidence}" Width="90" />
-                            <DataGridTextColumn Header="{DynamicResource GridRisk}" Binding="{Binding Risk}" Width="80" />
-                            <DataGridTextColumn Header="{DynamicResource GridLanguage}" Binding="{Binding Language}" Width="95" />
-                            <DataGridTextColumn Header="{DynamicResource GridGemini}" Binding="{Binding Gemini}" Width="130" />
-                            <DataGridTextColumn Header="{DynamicResource GridWarnings}" Binding="{Binding Warnings}" Width="180" />
-                            <DataGridTextColumn Header="{DynamicResource GridReason}" Binding="{Binding Reason}" Width="*" />
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-            </Border>
-        </Grid>
-
-        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}">
-            <TabControl Background="Transparent" BorderThickness="0">
-                <TabItem Header="{DynamicResource ActivityTitle}">
-                    <Grid Margin="8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*" />
-                            <ColumnDefinition Width="16" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <Border Style="{StaticResource CardBorderStyle}" Padding="16">
-                            <StackPanel>
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="Selected operation" />
-                                <TextBlock Margin="0,12,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Current path" />
-                                <TextBlock Text="{Binding SelectedOperation.CurrentRelativePath}" TextWrapping="Wrap" />
-                                <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Proposed path" />
-                                <TextBlock Text="{Binding SelectedOperation.ProposedRelativePath}" TextWrapping="Wrap" />
-                                <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Reason" />
-                                <TextBlock Text="{Binding SelectedOperation.Reason}" TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
-
-                        <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}" Padding="16">
-                            <StackPanel>
-                                <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PlanSummary}" />
-                                <TextBlock Margin="0,12,0,0" Text="{Binding TotalItems, StringFormat=Analyzed items: {0}}" />
-                                <TextBlock Text="{Binding MoveCount, StringFormat=Move-related operations: {0}}" />
-                                <TextBlock Text="{Binding RenameCount, StringFormat=Rename-related operations: {0}}" />
-                                <TextBlock Text="{Binding NeedsReviewCount, StringFormat=Items needing review: {0}}" />
-                                <TextBlock Text="{Binding GeminiAssistedCount, StringFormat=Gemini-assisted items: {0}}" />
-                            </StackPanel>
-                        </Border>
-                    </Grid>
+        <Border Grid.Row="1" Margin="0,18,0,18" Style="{StaticResource CardBorderStyle}">
+            <TabControl SelectedIndex="{Binding CurrentStepIndex, Mode=TwoWay}"
+                        TabStripPlacement="None"
+                        Background="Transparent"
+                        BorderThickness="0">
+                <TabItem>
+                    <views:WizardFolderStepView />
                 </TabItem>
-
-                <TabItem Header="{DynamicResource LogsTitle}">
-                    <ListBox Margin="8"
-                             BorderThickness="0"
-                             ItemsSource="{Binding LogEntries}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border Margin="0,0,0,8"
-                                        Padding="12"
-                                        Background="{StaticResource SurfaceAltBrush}"
-                                        CornerRadius="12">
-                                    <StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock FontWeight="SemiBold"
-                                                       Text="{Binding Timestamp, StringFormat={}{0:HH:mm:ss}}" />
-                                            <TextBlock Margin="8,0,0,0"
-                                                       FontWeight="SemiBold"
-                                                       Text="{Binding Level}" />
-                                        </StackPanel>
-                                        <TextBlock Margin="0,4,0,0"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Text="{Binding Category}" />
-                                        <TextBlock Margin="0,6,0,0"
-                                                   TextWrapping="Wrap"
-                                                   Text="{Binding Message}" />
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                <TabItem>
+                    <views:WizardStrategyStepView />
+                </TabItem>
+                <TabItem>
+                    <views:WizardRulesStepView />
+                </TabItem>
+                <TabItem>
+                    <views:WizardPreviewStepView />
+                </TabItem>
+                <TabItem>
+                    <views:WizardExecuteStepView />
                 </TabItem>
             </TabControl>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}">
+            <DockPanel>
+                <Button DockPanel.Dock="Right"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding NextCommand}"
+                        Content="{DynamicResource WizardNextButton}" />
+                <Button DockPanel.Dock="Right"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding BackCommand}"
+                        Content="{DynamicResource WizardBackButton}" />
+                <StackPanel>
+                    <TextBlock FontSize="13"
+                               FontWeight="SemiBold"
+                               Text="{DynamicResource WizardLabel}" />
+                    <TextBlock Margin="0,4,0,0"
+                               Style="{StaticResource WizardStepTitleStyle}" />
+                </StackPanel>
+            </DockPanel>
         </Border>
     </Grid>
 </Window>

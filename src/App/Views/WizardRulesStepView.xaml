@@ -1,0 +1,126 @@
+<UserControl x:Class="FileTransformer.App.Views.WizardRulesStepView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Margin="6" VerticalScrollBarVisibility="Auto">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource GeneralSettings}" />
+                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Include patterns" />
+                        <TextBox Height="56" AcceptsReturn="True" Text="{Binding IncludePatternsText, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Exclude patterns" />
+                        <TextBox Height="56" AcceptsReturn="True" Text="{Binding ExcludePatternsText, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Readable extensions" />
+                        <TextBox Height="56" AcceptsReturn="True" Text="{Binding SupportedExtensionsText, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Max file size (KB)" />
+                                <TextBox Text="{Binding MaxFileSizeKb}" />
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Preview sample size" />
+                                <TextBox Text="{Binding PreviewSampleSize}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Max files to scan" />
+                                <TextBox Text="{Binding MaxFilesToScan}" />
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Low-confidence threshold" />
+                                <TextBox Text="{Binding LowConfidenceThreshold, StringFormat=F2}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource NamingRules}" />
+                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="File rename style" />
+                        <ComboBox ItemsSource="{Binding RenameModes}"
+                                  DisplayMemberPath="Label"
+                                  SelectedItem="{Binding SelectedRenameMode}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Naming template" />
+                        <TextBox Text="{Binding NamingTemplate, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Folder label language" />
+                        <ComboBox ItemsSource="{Binding FolderLanguageModes}"
+                                  DisplayMemberPath="Label"
+                                  SelectedItem="{Binding SelectedFolderLanguageMode}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Conflict handling" />
+                        <ComboBox ItemsSource="{Binding ConflictModes}"
+                                  DisplayMemberPath="Label"
+                                  SelectedItem="{Binding SelectedConflictMode}" />
+                        <CheckBox Content="Allow file renames" IsChecked="{Binding AllowFileRename}" />
+                        <CheckBox Content="Remove empty folders after successful moves" IsChecked="{Binding RemoveEmptyFolders}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PlannerDimensions}" />
+                        <CheckBox Content="Group by semantic category" IsChecked="{Binding UseSemanticCategoryDimension}" />
+                        <CheckBox Content="Group by project/topic" IsChecked="{Binding UseProjectDimension}" />
+                        <CheckBox Content="Group by year" IsChecked="{Binding UseYearDimension}" />
+                        <CheckBox Content="Group by month" IsChecked="{Binding UseMonthDimension}" />
+                        <CheckBox Content="Use file type as secondary criterion" IsChecked="{Binding UseFileTypeSecondaryCriterion}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource GeminiSettings}" />
+                        <CheckBox Content="Use Gemini when an API key is present" IsChecked="{Binding UseGemini}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="API key" />
+                        <TextBox Text="{Binding GeminiApiKey, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Model" />
+                        <TextBox Text="{Binding GeminiModel, UpdateSourceTrigger=PropertyChanged}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Max requests/minute" />
+                                <TextBox Text="{Binding GeminiMaxRequestsPerMinute}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Request timeout (sec)" />
+                                <TextBox Text="{Binding GeminiRequestTimeoutSeconds}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PreviewActions}" />
+                        <TextBlock Margin="0,8,0,12"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="Save rule changes before moving to the preview step." />
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding SaveSettingsCommand}"
+                                Content="{DynamicResource SaveButton}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

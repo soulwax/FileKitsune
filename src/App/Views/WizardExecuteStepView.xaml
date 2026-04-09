@@ -1,0 +1,123 @@
+<UserControl x:Class="FileTransformer.App.Views.WizardExecuteStepView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="6">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="360" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PreviewActions}" />
+                        <TextBlock Margin="0,8,0,12"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="Execute only reviewed and selected operations. Moves and renames stay inside the chosen root." />
+                        <Button Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding ExecuteSelectedCommand}"
+                                Content="{DynamicResource ExecuteButton}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding CancelCurrentWorkCommand}"
+                                Content="{DynamicResource CancelButton}"
+                                IsEnabled="{Binding IsBusy}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Rollback" />
+                        <TextBlock Margin="0,8,0,12"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="Rollback remains latest-run only at this stage. Historical rollback arrives in the dedicated rollback upgrade step." />
+                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding RollbackLatestCommand}"
+                                Content="{DynamicResource RollbackButton}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+                        <StackPanel Margin="0,8,0,0"
+                                    Visibility="{Binding HasRollbackFolderGroups, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                       FontSize="12"
+                                       Text="{DynamicResource UndoByFolderLabel}" />
+                            <ItemsControl ItemsSource="{Binding RollbackFolderGroups}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Margin="0,4,0,0"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Command="{Binding DataContext.RollbackFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding FolderName}"
+                                                Content="{Binding Label}"
+                                                IsEnabled="{Binding DataContext.IsBusy, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource InverseBooleanConverter}}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PlanSummary}" />
+                        <TextBlock Margin="0,12,0,0" Text="{Binding TotalItems, StringFormat=Analyzed items: {0}}" />
+                        <TextBlock Text="{Binding MoveCount, StringFormat=Move-related operations: {0}}" />
+                        <TextBlock Text="{Binding RenameCount, StringFormat=Rename-related operations: {0}}" />
+                        <TextBlock Text="{Binding NeedsReviewCount, StringFormat=Items needing review: {0}}" />
+                        <TextBlock Text="{Binding GeminiAssistedCount, StringFormat=Gemini-assisted items: {0}}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <TabControl Grid.Column="2" Background="Transparent" BorderThickness="0">
+            <TabItem Header="{DynamicResource ActivityTitle}">
+                <Border Margin="8" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Selected operation" />
+                        <TextBlock Margin="0,12,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Current path" />
+                        <TextBlock Text="{Binding SelectedOperation.CurrentRelativePath}" TextWrapping="Wrap" />
+                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Proposed path" />
+                        <TextBlock Text="{Binding SelectedOperation.ProposedRelativePath}" TextWrapping="Wrap" />
+                        <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="Reason" />
+                        <TextBlock Text="{Binding SelectedOperation.Reason}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </TabItem>
+
+            <TabItem Header="{DynamicResource LogsTitle}">
+                <ListBox Margin="8"
+                         BorderThickness="0"
+                         ItemsSource="{Binding LogEntries}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,8"
+                                    Padding="12"
+                                    Background="{StaticResource SurfaceAltBrush}"
+                                    CornerRadius="12">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock FontWeight="SemiBold"
+                                                   Text="{Binding Timestamp, StringFormat={}{0:HH:mm:ss}}" />
+                                        <TextBlock Margin="8,0,0,0"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding Level}" />
+                                    </StackPanel>
+                                    <TextBlock Margin="0,4,0,0"
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               Text="{Binding Category}" />
+                                    <TextBlock Margin="0,6,0,0"
+                                               TextWrapping="Wrap"
+                                               Text="{Binding Message}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

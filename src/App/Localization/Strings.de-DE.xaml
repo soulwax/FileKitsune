@@ -33,4 +33,20 @@
     <sys:String x:Key="GridWarnings">Hinweise</sys:String>
     <sys:String x:Key="GridLanguage">Sprache</sys:String>
     <sys:String x:Key="GridGemini">Klassifikator</sys:String>
+    <sys:String x:Key="WizardLabel">Assistent</sys:String>
+    <sys:String x:Key="WizardBackButton">Zurück</sys:String>
+    <sys:String x:Key="WizardNextButton">Weiter</sys:String>
+    <sys:String x:Key="SafetyGuardrailsTitle">Sicherheitsleitplanken</sys:String>
+    <sys:String x:Key="SafetyGuardrailsBody">Vorschau zuerst, nur Verschiebungen im Stammordner, keine Löschungen, kein stilles Überschreiben.</sys:String>
+    <sys:String x:Key="RootFolderStepHint">Wählen Sie den Ordner, der analysiert und organisiert werden soll. Alle späteren Aktionen bleiben auf diesen Stammordner begrenzt.</sys:String>
+    <sys:String x:Key="WizardStepFolderTitle">Schritt 1: Ordnerauswahl</sys:String>
+    <sys:String x:Key="WizardStepFolderBody">Wählen Sie den Stammordner für die Analyse. In diesem Schritt wird noch nichts ausgeführt; er definiert nur den sicheren Arbeitsbereich.</sys:String>
+    <sys:String x:Key="WizardStepStrategyTitle">Schritt 2: Strategieauswahl</sys:String>
+    <sys:String x:Key="WizardStepStrategyBody">Wählen Sie zuerst den grundlegenden Organisationsansatz und passen Sie danach die Detailregeln an.</sys:String>
+    <sys:String x:Key="WizardStepRulesTitle">Schritt 3: Regelkonfiguration</sys:String>
+    <sys:String x:Key="WizardStepRulesBody">Prüfen Sie Scan-Grenzen, Benennungsregeln, Dimensionen und Gemini-Einstellungen, bevor eine Vorschau erstellt wird.</sys:String>
+    <sys:String x:Key="WizardStepPreviewTitle">Schritt 4: Vorschau</sys:String>
+    <sys:String x:Key="WizardStepPreviewBody">Erstellen und prüfen Sie den Plan, Hinweise und auswählbare Operationen, bevor etwas ausgeführt werden darf.</sys:String>
+    <sys:String x:Key="WizardStepExecuteTitle">Schritt 5: Ausführen und Rückgängig machen</sys:String>
+    <sys:String x:Key="WizardStepExecuteBody">Führen Sie ausgewählte Operationen aus und behalten Sie Rollback- und Aktivitätsinformationen an einem Ort im Blick.</sys:String>
 </ResourceDictionary>

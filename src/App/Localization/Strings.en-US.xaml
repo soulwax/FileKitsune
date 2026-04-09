@@ -33,4 +33,20 @@
     <sys:String x:Key="GridWarnings">Warnings</sys:String>
     <sys:String x:Key="GridLanguage">Language</sys:String>
     <sys:String x:Key="GridGemini">Classifier</sys:String>
+    <sys:String x:Key="WizardLabel">Wizard</sys:String>
+    <sys:String x:Key="WizardBackButton">Back</sys:String>
+    <sys:String x:Key="WizardNextButton">Next</sys:String>
+    <sys:String x:Key="SafetyGuardrailsTitle">Safety guardrails</sys:String>
+    <sys:String x:Key="SafetyGuardrailsBody">Preview-first, in-root moves only, no deletions, no silent overwrites.</sys:String>
+    <sys:String x:Key="RootFolderStepHint">Choose the folder you want to analyze and reorganize. The wizard keeps all later actions scoped to this root.</sys:String>
+    <sys:String x:Key="WizardStepFolderTitle">Step 1: Folder selection</sys:String>
+    <sys:String x:Key="WizardStepFolderBody">Pick the root folder for analysis. Nothing is executed here; this step only defines the safe workspace.</sys:String>
+    <sys:String x:Key="WizardStepStrategyTitle">Step 2: Strategy selection</sys:String>
+    <sys:String x:Key="WizardStepStrategyBody">Choose the primary organization approach before tuning low-level rules.</sys:String>
+    <sys:String x:Key="WizardStepRulesTitle">Step 3: Rule configuration</sys:String>
+    <sys:String x:Key="WizardStepRulesBody">Review scan limits, naming rules, dimensions, and Gemini settings before building a preview.</sys:String>
+    <sys:String x:Key="WizardStepPreviewTitle">Step 4: Preview</sys:String>
+    <sys:String x:Key="WizardStepPreviewBody">Build and inspect the plan, warnings, and selectable operations before any execution is allowed.</sys:String>
+    <sys:String x:Key="WizardStepExecuteTitle">Step 5: Execute and rollback</sys:String>
+    <sys:String x:Key="WizardStepExecuteBody">Run selected operations and review rollback and activity information in one place.</sys:String>
 </ResourceDictionary>

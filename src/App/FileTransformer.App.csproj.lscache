@@ -60,8 +60,17 @@ AssemblyInfo.cs
 Converters/InverseBooleanConverter.cs
 obj/Debug/net8.0-windows/
  .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+ App.g.cs
  FileTransformer.App.AssemblyInfo.cs
  FileTransformer.App.GlobalUsings.g.cs
+ GeneratedInternalTypeHelper.g.cs
+ Views/
+  MainWindow.g.cs
+  WizardExecuteStepView.g.cs
+  WizardFolderStepView.g.cs
+  WizardPreviewStepView.g.cs
+  WizardRulesStepView.g.cs
+  WizardStrategyStepView.g.cs
 Services/
  DialogService.cs
  FolderPickerService.cs
@@ -76,7 +85,14 @@ ViewModels/
  PlanFilterMode.cs
  PlanOperationItemViewModel.cs
  RollbackFolderItem.cs
-Views/MainWindow.xaml.cs
+ WizardStep.cs
+Views/
+ MainWindow.xaml.cs
+ WizardExecuteStepView.xaml.cs
+ WizardFolderStepView.xaml.cs
+ WizardPreviewStepView.xaml.cs
+ WizardRulesStepView.xaml.cs
+ WizardStrategyStepView.xaml.cs
 
 [metadataReferences]
 ../
