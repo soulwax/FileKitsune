@@ -15,18 +15,18 @@ primary
 lastDtbSucceeded
 
 [properties]
-AssemblyName=FileTransformer.Application
+AssemblyName=FileTransformer.Tests
 CommandLineArgsForDesignTimeEvaluation=-langversion:12.0 -define:TRACE
 CompilerGeneratedFilesOutputPath=
 MaxSupportedLangVersion=12.0
 ProjectAssetsFile=<PATH>obj/project.assets.json
-RootNamespace=FileTransformer.Application
+RootNamespace=FileTransformer.Tests
 RunAnalyzers=
 RunAnalyzersDuringLiveAnalysis=
 SolutionPath=<PATH>../../FileTransformer.sln
 TargetFrameworkIdentifier=.NETCoreApp
-TargetPath=<PATH>bin/Debug/net8.0/FileTransformer.Application.dll
-TargetRefPath=<PATH>obj/Debug/net8.0/ref/FileTransformer.Application.dll
+TargetPath=<PATH>bin/Debug/net8.0/FileTransformer.Tests.dll
+TargetRefPath=<PATH>obj/Debug/net8.0/ref/FileTransformer.Tests.dll
 TemporaryDependencyNodeTargetIdentifier=net8.0
 
 [commandLineArguments]
@@ -45,9 +45,9 @@ TemporaryDependencyNodeTargetIdentifier=net8.0
 /debug:portable
 /filealign:512
 /optimize-
-/out:obj\Debug\net8.0\FileTransformer.Application.dll
-/refout:obj\Debug\net8.0\refint\FileTransformer.Application.dll
-/target:library
+/out:obj\Debug\net8.0\FileTransformer.Tests.dll
+/refout:obj\Debug\net8.0\refint\FileTransformer.Tests.dll
+/target:exe
 /warnaserror-
 /utf8output
 /deterministic+
@@ -55,43 +55,24 @@ TemporaryDependencyNodeTargetIdentifier=net8.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
-Abstractions/
- IAppSettingsStore.cs
- IExecutionJournalStore.cs
- IFileContentReader.cs
- IFileHashProvider.cs
- IFileOperations.cs
- IFileScanner.cs
- IGeminiSemanticClassifier.cs
-Models/
- AppSettings.cs
- DuplicateMatch.cs
- ExecutionOutcome.cs
- FileAnalysisContext.cs
- GeminiOptions.cs
- StrategyRecommendation.cs
- WorkflowProgress.cs
+<NUGET>/microsoft.net.test.sdk/17.11.1/build/netcoreapp3.1/Microsoft.NET.Test.Sdk.Program.cs
+Application/
+ DestinationPathBuilderTests.cs
+ OrganizationWorkflowServiceTests.cs
+ PathSafetyServiceTests.cs
+ PlanExecutionServiceTests.cs
+ StrategyRecommendationServiceTests.cs
+Infrastructure/GeminiResponseParserTests.cs
 obj/Debug/net8.0/
  .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
- FileTransformer.Application.AssemblyInfo.cs
- FileTransformer.Application.GlobalUsings.g.cs
-Services/
- DateResolutionService.cs
- DestinationPathBuilder.cs
- DuplicateDetectionService.cs
- HeuristicSemanticClassifier.cs
- NamingPolicyService.cs
- OrganizationWorkflowService.cs
- PathSafetyService.cs
- PlanExecutionService.cs
- ProtectionPolicyService.cs
- ReviewDecisionService.cs
- RollbackService.cs
- SemanticClassifierCoordinator.cs
- StrategyRecommendationService.cs
+ FileTransformer.Tests.AssemblyInfo.cs
+ FileTransformer.Tests.GlobalUsings.g.cs
 
 [metadataReferences]
-../Domain/obj/Debug/net8.0/ref/FileTransformer.Domain.dll
+../../src/
+ Application/obj/Debug/net8.0/ref/FileTransformer.Application.dll
+ Domain/obj/Debug/net8.0/ref/FileTransformer.Domain.dll
+ Infrastructure/obj/Debug/net8.0/ref/FileTransformer.Infrastructure.dll
 <DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.25/ref/net8.0/
  Microsoft.CSharp.dll
  Microsoft.VisualBasic.Core.dll
@@ -257,8 +238,45 @@ Services/
  System.Xml.XPath.XDocument.dll
  WindowsBase.dll
 <NUGET>/
+ documentformat.openxml.framework/3.0.2/lib/net8.0/DocumentFormat.OpenXml.Framework.dll
+ documentformat.openxml/3.0.2/lib/net8.0/DocumentFormat.OpenXml.dll
+ microsoft.codecoverage/17.11.1/lib/netcoreapp3.1/Microsoft.VisualStudio.CodeCoverage.Shim.dll
+ microsoft.extensions.configuration.abstractions/8.0.0/lib/net8.0/Microsoft.Extensions.Configuration.Abstractions.dll
+ microsoft.extensions.configuration.binder/8.0.2/lib/net8.0/Microsoft.Extensions.Configuration.Binder.dll
+ microsoft.extensions.configuration/8.0.0/lib/net8.0/Microsoft.Extensions.Configuration.dll
  microsoft.extensions.dependencyinjection.abstractions/8.0.2/lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ microsoft.extensions.dependencyinjection/8.0.1/lib/net8.0/Microsoft.Extensions.DependencyInjection.dll
+ microsoft.extensions.diagnostics.abstractions/8.0.1/lib/net8.0/Microsoft.Extensions.Diagnostics.Abstractions.dll
+ microsoft.extensions.diagnostics/8.0.1/lib/net8.0/Microsoft.Extensions.Diagnostics.dll
+ microsoft.extensions.fileproviders.abstractions/8.0.0/lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.dll
+ microsoft.extensions.hosting.abstractions/8.0.0/lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.dll
+ microsoft.extensions.http/8.0.1/lib/net8.0/Microsoft.Extensions.Http.dll
  microsoft.extensions.logging.abstractions/8.0.2/lib/net8.0/Microsoft.Extensions.Logging.Abstractions.dll
+ microsoft.extensions.logging/8.0.1/lib/net8.0/Microsoft.Extensions.Logging.dll
+ microsoft.extensions.options.configurationextensions/8.0.0/lib/net8.0/Microsoft.Extensions.Options.ConfigurationExtensions.dll
+ microsoft.extensions.options/8.0.2/lib/net8.0/Microsoft.Extensions.Options.dll
+ microsoft.extensions.primitives/8.0.0/lib/net8.0/Microsoft.Extensions.Primitives.dll
+ microsoft.testplatform.testhost/17.11.1/lib/netcoreapp3.1/
+  Microsoft.TestPlatform.CommunicationUtilities.dll
+  Microsoft.TestPlatform.CoreUtilities.dll
+  Microsoft.TestPlatform.CrossPlatEngine.dll
+  Microsoft.TestPlatform.PlatformAbstractions.dll
+  Microsoft.TestPlatform.Utilities.dll
+  Microsoft.VisualStudio.TestPlatform.Common.dll
+  Microsoft.VisualStudio.TestPlatform.ObjectModel.dll
+  testhost.dll
+ newtonsoft.json/13.0.1/lib/netstandard2.0/Newtonsoft.Json.dll
+ serilog.extensions.hosting/8.0.0/lib/net8.0/Serilog.Extensions.Hosting.dll
+ serilog.extensions.logging/8.0.0/lib/net8.0/Serilog.Extensions.Logging.dll
+ serilog.formatting.compact/2.0.0/lib/net7.0/Serilog.Formatting.Compact.dll
+ serilog.sinks.file/5.0.0/lib/net5.0/Serilog.Sinks.File.dll
+ serilog/3.1.1/lib/net7.0/Serilog.dll
+ system.io.packaging/8.0.0/lib/net8.0/System.IO.Packaging.dll
+ system.security.cryptography.protecteddata/8.0.0/lib/net8.0/System.Security.Cryptography.ProtectedData.dll
+ xunit.abstractions/2.0.3/lib/netstandard2.0/xunit.abstractions.dll
+ xunit.assert/2.9.2/lib/net6.0/xunit.assert.dll
+ xunit.extensibility.core/2.9.2/lib/netstandard1.1/xunit.core.dll
+ xunit.extensibility.execution/2.9.2/lib/netstandard1.1/xunit.execution.dotnet.dll
 
 [analyzerReferences]
 <DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.25/analyzers/dotnet/cs/
@@ -271,8 +289,13 @@ Services/
 <DOTNET>/sdk/10.0.201/Sdks/Microsoft.NET.Sdk/analyzers/
  Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
  Microsoft.CodeAnalysis.NetAnalyzers.dll
-<NUGET>/microsoft.extensions.logging.abstractions/8.0.2/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Logging.Generators.dll
+<NUGET>/
+ microsoft.extensions.logging.abstractions/8.0.2/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Logging.Generators.dll
+ microsoft.extensions.options/8.0.2/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Options.SourceGeneration.dll
+ xunit.analyzers/1.16.0/analyzers/dotnet/cs/
+  xunit.analyzers.dll
+  xunit.analyzers.fixes.dll
 
 [analyzerConfigFiles]
 <DOTNET>/sdk/10.0.201/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_8_default.globalconfig
-obj/Debug/net8.0/FileTransformer.Application.GeneratedMSBuildEditorConfig.editorconfig
+obj/Debug/net8.0/FileTransformer.Tests.GeneratedMSBuildEditorConfig.editorconfig

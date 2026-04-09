@@ -51,10 +51,14 @@
     <sys:String x:Key="WizardStepExecuteBody">Führen Sie ausgewählte Operationen aus und behalten Sie Rollback- und Aktivitätsinformationen an einem Ort im Blick.</sys:String>
     <sys:String x:Key="UiLanguageLabel">Programmsprache</sys:String>
     <sys:String x:Key="StrategySelectionTitle">Strategieauswahl</sys:String>
-    <sys:String x:Key="StrategySelectionBody">Wählen Sie die primäre Organisationsstrategie. Empfehlungskarten folgen im nächsten Umsetzungsschritt.</sys:String>
+    <sys:String x:Key="StrategySelectionBody">Wählen Sie jetzt die primäre Organisationsstrategie oder nutzen Sie nach einer Vorschau die Empfehlungskarten in diesem Schritt.</sys:String>
     <sys:String x:Key="StrategyPresetLabel">Strategievorgabe</sys:String>
     <sys:String x:Key="CurrentStrategyTitle">Aktuelle Strategie</sys:String>
-    <sys:String x:Key="CurrentStrategyBody">Dieser Schritt etabliert zunächst den Assistentenablauf; erklärbare Empfehlungen folgen im dedizierten Strategieschritt.</sys:String>
+    <sys:String x:Key="CurrentStrategyBody">Die gewählte Vorgabe bleibt vollständig anpassbar. Empfehlungen sind hier rein beratend und führen nie direkt Änderungen aus.</sys:String>
+    <sys:String x:Key="StrategyRecommendationTitle">Empfohlen für diesen Ordner</sys:String>
+    <sys:String x:Key="StrategyRecommendationHint">Diese Empfehlungen sind rein beratend und basieren nur auf den aktuellen Vorschaudaten.</sys:String>
+    <sys:String x:Key="StrategyRecommendationUseButton">Empfehlung verwenden</sys:String>
+    <sys:String x:Key="StrategyRecommendationEmpty">Erstellen Sie in Schritt 4 zuerst eine Vorschau, um Empfehlungskarten für diesen Ordner zu erhalten.</sys:String>
     <sys:String x:Key="RuleIncludePatterns">Einschlussmuster</sys:String>
     <sys:String x:Key="RuleExcludePatterns">Ausschlussmuster</sys:String>
     <sys:String x:Key="RuleReadableExtensions">Lesbare Erweiterungen</sys:String>

@@ -41,6 +41,7 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton<ReviewDecisionService>();
         builder.Services.AddSingleton<DestinationPathBuilder>();
         builder.Services.AddSingleton<HeuristicSemanticClassifier>();
+        builder.Services.AddSingleton<StrategyRecommendationService>();
         builder.Services.AddSingleton<SemanticClassifierCoordinator>();
         builder.Services.AddSingleton<OrganizationWorkflowService>();
         builder.Services.AddSingleton<PlanExecutionService>();

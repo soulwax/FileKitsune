@@ -51,10 +51,14 @@
     <sys:String x:Key="WizardStepExecuteBody">Run selected operations and review rollback and activity information in one place.</sys:String>
     <sys:String x:Key="UiLanguageLabel">App language</sys:String>
     <sys:String x:Key="StrategySelectionTitle">Strategy selection</sys:String>
-    <sys:String x:Key="StrategySelectionBody">Choose the primary organization strategy. Recommendation cards come in the next implementation step.</sys:String>
+    <sys:String x:Key="StrategySelectionBody">Choose the primary organization strategy now, or use recommendation cards here after you build a preview.</sys:String>
     <sys:String x:Key="StrategyPresetLabel">Strategy preset</sys:String>
     <sys:String x:Key="CurrentStrategyTitle">Current strategy</sys:String>
-    <sys:String x:Key="CurrentStrategyBody">This step establishes the wizard flow now; explainable recommendations will be added in the dedicated strategy step.</sys:String>
+    <sys:String x:Key="CurrentStrategyBody">Your chosen preset stays fully editable. Recommendations here are advisory only and never execute changes.</sys:String>
+    <sys:String x:Key="StrategyRecommendationTitle">Recommended for this folder</sys:String>
+    <sys:String x:Key="StrategyRecommendationHint">These recommendations are advisory and based on the current preview data only.</sys:String>
+    <sys:String x:Key="StrategyRecommendationUseButton">Use recommendation</sys:String>
+    <sys:String x:Key="StrategyRecommendationEmpty">Build a preview in step 4 to unlock recommendation cards for this folder.</sys:String>
     <sys:String x:Key="RuleIncludePatterns">Include patterns</sys:String>
     <sys:String x:Key="RuleExcludePatterns">Exclude patterns</sys:String>
     <sys:String x:Key="RuleReadableExtensions">Readable extensions</sys:String>

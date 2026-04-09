@@ -1,6 +1,7 @@
 <UserControl x:Class="FileTransformer.App.Views.WizardStrategyStepView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:domain="clr-namespace:FileTransformer.Domain.Enums;assembly=FileTransformer.Domain">
     <Grid Margin="6">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*" />
@@ -19,6 +20,19 @@
                 <ComboBox ItemsSource="{Binding StrategyPresets}"
                           DisplayMemberPath="Label"
                           SelectedItem="{Binding SelectedStrategyPreset}" />
+
+                <Border Margin="0,8,0,0"
+                        Padding="12"
+                        Background="{StaticResource SurfaceAltBrush}"
+                        CornerRadius="12">
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="{DynamicResource StrategyRecommendationTitle}" />
+                        <TextBlock Margin="0,4,0,0"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource StrategyRecommendationHint}" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </Border>
 
@@ -33,6 +47,52 @@
                            Foreground="{StaticResource MutedTextBrush}"
                            TextWrapping="Wrap"
                            Text="{DynamicResource CurrentStrategyBody}" />
+
+                <ItemsControl Margin="0,14,0,0" ItemsSource="{Binding StrategyRecommendations}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,10"
+                                    Padding="12"
+                                    Background="{StaticResource SurfaceAltBrush}"
+                                    CornerRadius="12">
+                                <StackPanel>
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Command="{Binding DataContext.ApplyStrategyRecommendationCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding Preset}"
+                                                Content="{DynamicResource StrategyRecommendationUseButton}" />
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" Text="{Binding DisplayName}" />
+                                            <TextBlock Margin="0,2,0,0"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       Text="{Binding Confidence, StringFormat={}{0:P0}}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                    <TextBlock Margin="0,8,0,0"
+                                               TextWrapping="Wrap"
+                                               Text="{Binding Reason}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Margin="0,10,0,0"
+                           Foreground="{StaticResource MutedTextBrush}"
+                           TextWrapping="Wrap"
+                           Text="{DynamicResource StrategyRecommendationEmpty}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasStrategyRecommendations}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
             </StackPanel>
         </Border>
     </Grid>

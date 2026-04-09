@@ -20,6 +20,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly OrganizationWorkflowService organizationWorkflowService;
     private readonly PlanExecutionService planExecutionService;
     private readonly RollbackService rollbackService;
+    private readonly StrategyRecommendationService strategyRecommendationService;
     private readonly IFolderPickerService folderPickerService;
     private readonly IDialogService dialogService;
     private readonly ILocalizationService localizationService;
@@ -34,6 +35,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OrganizationWorkflowService organizationWorkflowService,
         PlanExecutionService planExecutionService,
         RollbackService rollbackService,
+        StrategyRecommendationService strategyRecommendationService,
         IFolderPickerService folderPickerService,
         IDialogService dialogService,
         ILocalizationService localizationService,
@@ -44,6 +46,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         this.organizationWorkflowService = organizationWorkflowService;
         this.planExecutionService = planExecutionService;
         this.rollbackService = rollbackService;
+        this.strategyRecommendationService = strategyRecommendationService;
         this.folderPickerService = folderPickerService;
         this.dialogService = dialogService;
         this.localizationService = localizationService;
@@ -167,6 +170,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public IReadOnlyList<OptionItem<string>> AppLanguages { get; }
 
     public ObservableCollection<PlanOperationItemViewModel> PlanOperations { get; }
+
+    public ObservableCollection<StrategyRecommendation> StrategyRecommendations { get; } = [];
 
     public ObservableCollection<RollbackFolderItem> RollbackFolderGroups { get; } = [];
 
@@ -305,6 +310,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private PlanOperationItemViewModel? selectedOperation;
 
     [ObservableProperty]
+    private bool hasStrategyRecommendations;
+
+    [ObservableProperty]
     private OptionItem<string>? selectedAppLanguage;
 
     [ObservableProperty]
@@ -379,6 +387,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         await PersistSettingsAsync(CancellationToken.None);
         ResetProgress();
         PlanOperations.Clear();
+        StrategyRecommendations.Clear();
+        HasStrategyRecommendations = false;
         currentPlan = null;
 
         currentCancellationTokenSource = new CancellationTokenSource();
@@ -400,6 +410,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
 
             UpdateSummary(currentPlan.Summary);
+            PopulateStrategyRecommendations(currentPlan);
             PlanView.Refresh();
             StatusMessage = $"Preview ready. {currentPlan.Summary.TotalItems} items analyzed.";
             logger.LogInformation("Preview plan built with {Count} operations.", currentPlan.Operations.Count);
@@ -594,6 +605,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void Next()
     {
         CurrentStep = ClampStep(CurrentStepIndex + 1);
+    }
+
+    [RelayCommand]
+    private void ApplyStrategyRecommendation(OrganizationStrategyPreset preset)
+    {
+        SelectedStrategyPreset = StrategyPresets.FirstOrDefault(option => option.Value == preset) ?? SelectedStrategyPreset;
     }
 
     partial void OnSelectedPlanFilterChanged(OptionItem<PlanFilterMode>? value) => PlanView.Refresh();
@@ -819,6 +836,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         HasRollbackFolderGroups = true;
+    }
+
+    private void PopulateStrategyRecommendations(OrganizationPlan plan)
+    {
+        StrategyRecommendations.Clear();
+
+        foreach (var recommendation in strategyRecommendationService.Recommend(plan))
+        {
+            StrategyRecommendations.Add(recommendation);
+        }
+
+        HasStrategyRecommendations = StrategyRecommendations.Count > 0;
     }
 
     private void NotifyWizardNavigationChanged()
