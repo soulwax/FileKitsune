@@ -92,6 +92,10 @@ public sealed class PlanExecutionServiceTests
             Assert.Equal(ExecutionJournalStatus.Completed, journalStore.LastSavedJournal!.Status);
             Assert.Single(journalStore.LastSavedJournal.Entries);
             Assert.Equal(destinationFullPath, journalStore.LastSavedJournal.Entries[0].DestinationFullPath);
+            Assert.Equal(sourceName, journalStore.LastSavedJournal.Entries[0].SourceRelativePath);
+            Assert.Equal(destinationRelativePath, journalStore.LastSavedJournal.Entries[0].DestinationRelativePath);
+            Assert.Equal(sourceName, journalStore.LastSavedJournal.Entries[0].FileName);
+            Assert.Equal(Path.GetExtension(sourceName), journalStore.LastSavedJournal.Entries[0].FileExtension);
             Assert.Equal($"HASH::{destinationFullPath}", journalStore.LastSavedJournal.Entries[0].ContentHash);
         }
         finally

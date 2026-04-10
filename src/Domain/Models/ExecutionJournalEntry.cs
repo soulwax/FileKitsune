@@ -10,6 +10,14 @@ public sealed class ExecutionJournalEntry
 
     public string DestinationFullPath { get; set; } = string.Empty;
 
+    public string SourceRelativePath { get; set; } = string.Empty;
+
+    public string DestinationRelativePath { get; set; } = string.Empty;
+
+    public string FileName { get; set; } = string.Empty;
+
+    public string FileExtension { get; set; } = string.Empty;
+
     public DateTimeOffset ExecutedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 
     public string Outcome { get; set; } = string.Empty;

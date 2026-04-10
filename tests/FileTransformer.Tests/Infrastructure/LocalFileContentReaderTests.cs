@@ -108,6 +108,45 @@ public sealed class LocalFileContentReaderTests
         }
     }
 
+    [Fact]
+    public async Task ReadAsync_SamplesLargeTextFilesFromStartAndEnd()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.txt");
+        var start = new string('A', 7_000);
+        var tail = new string('Z', 7_000);
+
+        try
+        {
+            await File.WriteAllTextAsync(path, $"{start}{tail}");
+
+            var reader = new LocalFileContentReader(NullLogger<LocalFileContentReader>.Instance);
+            var snapshot = await reader.ReadAsync(
+                new ScannedFile
+                {
+                    FullPath = path,
+                    RelativePath = "large.txt",
+                    FileName = "large.txt",
+                    Extension = ".txt",
+                    SizeBytes = new FileInfo(path).Length
+                },
+                new OrganizationSettings(),
+                CancellationToken.None);
+
+            Assert.True(snapshot.IsTextReadable);
+            Assert.True(snapshot.IsTruncated);
+            Assert.Contains(new string('A', 256), snapshot.Text);
+            Assert.Contains(new string('Z', 256), snapshot.Text);
+            Assert.Contains("...", snapshot.Text);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
     private static byte[] CreateSimplePdf(string text)
     {
         var content = string.IsNullOrEmpty(text)

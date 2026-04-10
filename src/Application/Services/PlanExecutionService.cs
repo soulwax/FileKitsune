@@ -69,7 +69,7 @@ public sealed class PlanExecutionService
                     Stage = "execute",
                     Processed = index,
                     Total = operations.Count,
-                    Message = $"Executing {index + 1} of {operations.Count}: {operation.CurrentRelativePath}"
+                    Message = operation.CurrentRelativePath
                 });
 
                 var sourceFullPath = pathSafetyService.CombineWithinRoot(plan.Settings.RootDirectory, operation.CurrentRelativePath);
@@ -101,6 +101,10 @@ public sealed class PlanExecutionService
                         OperationId = operation.Id,
                         SourceFullPath = sourceFullPath,
                         DestinationFullPath = destinationFullPath,
+                        SourceRelativePath = operation.CurrentRelativePath,
+                        DestinationRelativePath = operation.ProposedRelativePath,
+                        FileName = operation.FileName,
+                        FileExtension = Path.GetExtension(operation.FileName),
                         Outcome = "Moved",
                         Notes = operation.Reason,
                         DestinationExistedBeforeMove = destinationExistedBeforeMove,

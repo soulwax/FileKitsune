@@ -67,15 +67,11 @@ public sealed class LocalFileContentReader : IFileContentReader
         await using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, useAsync: true);
         using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
         var text = await reader.ReadToEndAsync(cancellationToken);
-        var truncated = text.Length > MaxExtractedCharacters;
-        if (truncated)
-        {
-            text = text[..MaxExtractedCharacters];
-        }
+        var (sampledText, truncated) = SampleText(text);
 
         return new FileContentSnapshot
         {
-            Text = text,
+            Text = sampledText,
             IsTextReadable = true,
             IsTruncated = truncated,
             ExtractionSource = "text"
@@ -121,15 +117,11 @@ public sealed class LocalFileContentReader : IFileContentReader
                 };
             }
 
-            var truncated = extractedText.Length > MaxExtractedCharacters;
-            if (truncated)
-            {
-                extractedText = extractedText[..MaxExtractedCharacters];
-            }
+            var (sampledText, truncated) = SampleText(extractedText);
 
             return new FileContentSnapshot
             {
-                Text = extractedText,
+                Text = sampledText,
                 IsTextReadable = true,
                 IsTruncated = truncated,
                 ExtractionSource = "pdf"
@@ -157,19 +149,36 @@ public sealed class LocalFileContentReader : IFileContentReader
                 Environment.NewLine,
                 body.Descendants<Paragraph>().Select(paragraph => paragraph.InnerText));
 
-            var truncated = text.Length > MaxExtractedCharacters;
-            if (truncated)
-            {
-                text = text[..MaxExtractedCharacters];
-            }
+            var (sampledText, truncated) = SampleText(text);
 
             return new FileContentSnapshot
             {
-                Text = text,
+                Text = sampledText,
                 IsTextReadable = true,
                 IsTruncated = truncated,
                 ExtractionSource = "docx"
             };
         }, cancellationToken);
+    }
+
+    private static (string Text, bool Truncated) SampleText(string text)
+    {
+        if (text.Length <= MaxExtractedCharacters)
+        {
+            return (text, false);
+        }
+
+        const string separator = $"{Environment.NewLine}...{Environment.NewLine}";
+        var availableCharacters = MaxExtractedCharacters - separator.Length;
+        if (availableCharacters <= 0)
+        {
+            return (text[..MaxExtractedCharacters], true);
+        }
+
+        var headLength = availableCharacters / 2;
+        var tailLength = availableCharacters - headLength;
+        var head = text[..headLength].TrimEnd();
+        var tail = text[^tailLength..].TrimStart();
+        return ($"{head}{separator}{tail}", true);
     }
 }
