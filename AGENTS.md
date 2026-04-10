@@ -31,6 +31,10 @@ Today the app already:
 - scans a root folder and builds a preview plan
 - classifies files with heuristics and optional Gemini assistance
 - proposes move, rename, or move-and-rename operations with reasons and warnings
+- exposes a 5-step wizard flow with German-first defaults
+- localizes the wizard, option labels, dialogs, and most status updates
+- recommends strategy presets after preview
+- detects exact duplicates using size pre-filtering and SHA-256 hashing
 - journals executed operations and can roll back the latest run
 - stores settings and journals under `%LocalAppData%\\FileTransformer`
 
@@ -74,6 +78,8 @@ Target direction:
 - idempotent rollback behavior
 - clear conflict and skip reporting
 
+This is the biggest current trust gap. Prefer rollback work over cosmetic UI work unless a small UI patch clearly unblocks usability.
+
 ### 5. Several organization strategies
 
 The codebase already contains strategy presets and related policy models. Agents should prefer exposing and wiring the existing capabilities before inventing new parallel systems.
@@ -110,6 +116,7 @@ The codebase already contains strategy presets and related policy models. Agents
 - Replace hardcoded UI strings with resource keys.
 - Keep both `Strings.de-DE.xaml` and `Strings.en-US.xaml` complete.
 - Treat UI language, folder label language, and filename language as separate settings.
+- If Application-layer progress text is still emitted in English, normalize it in a clean layer boundary instead of reintroducing hardcoded UI strings.
 
 ## Testing Priorities
 

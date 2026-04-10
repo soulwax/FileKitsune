@@ -1,94 +1,100 @@
 # FileTransformer
 
-FileTransformer is a Windows-only .NET 8 WPF desktop application for safe, preview-first file organization. It analyzes a user-selected root folder, classifies files with local heuristics and optional Gemini assistance, builds an explainable move/rename plan, and only runs user-selected operations after local safety validation.
+FileTransformer is a Windows-only .NET 8 WPF desktop app for safe, preview-first file organization. It scans a chosen root folder, classifies files with local heuristics and optional Gemini assistance, builds an explainable plan, and only executes user-selected moves and renames after local safety checks pass.
 
 ## Current State
 
 The app is usable today and currently provides:
 
-- a 5-step wizard flow: folder, strategy, rules, preview, execute/undo
-- German-first defaults for both UI and naming behavior
-- switchable UI language between German and English
+- a 5-step wizard: folder, strategy, rules, preview, execute/undo
+- German-first defaults for UI, folder labels, and filename language policy
+- switchable German/English UI with localized wizard text, option labels, dialogs, and status updates
+- strategy presets plus recommendation cards after preview
+- exact duplicate detection with size pre-filtering and SHA-256 hashing
+- duplicate review in the preview step and duplicate-routing options in the rules step
 - preview-first planning with reasons, warnings, confidence, and review indicators
-- in-root-only path validation before anything can execute
-- rollback for the latest execution journal, including top-level folder rollback from that latest run
-- persisted user settings and encrypted Gemini credentials under `%LocalAppData%\\FileTransformer`
+- rollback for the latest execution journal, including top-level folder rollback for that latest run
+- persisted settings and DPAPI-protected Gemini credentials under `%LocalAppData%\FileTransformer`
 
 ## What The App Does Right Now
 
 - scans a chosen root folder without modifying anything
-- extracts lightweight content from readable text-like files and `.docx`
-- classifies files using deterministic heuristics and optional Gemini enrichment
-- proposes move, rename, or move-and-rename operations
-- lets you review the plan before selecting operations to execute
-- journals executed operations so they can be rolled back later
+- reads lightweight content from readable text-like files and `.docx`
+- classifies files using deterministic heuristics with optional Gemini enrichment
+- proposes move, rename, move-and-rename, skip, and duplicate-review outcomes
+- lets you filter and select executable operations before execution
+- journals executed operations so the latest run can be undone later
 
 ## Wizard Usage
 
 ### 1. Folder
 
-- select the root folder to analyze
+- choose the root folder to analyze
 - choose the UI language: `Deutsch` or `English`
 
 ### 2. Strategy
 
-- choose the primary organization strategy preset
-- this step currently exposes the preset selector; recommendation cards are planned next
+- choose an organization preset
+- after a preview has been built, review advisory recommendation cards with reason and confidence
 
 ### 3. Rules
 
-- configure include and exclude patterns
-- define readable extensions and scan limits
-- set naming behavior, folder label language, filename language, and conflict handling
-- enable or disable Gemini and provide a model/API key if desired
+- configure include/exclude patterns and readable extensions
+- control scan limits, confidence thresholds, naming behavior, language behavior, and conflict handling
+- choose date source, execution mode, duplicate handling, duplicate folder name, and advanced planner behavior
+- enable or disable Gemini and edit model/API settings
 
 ### 4. Preview
 
 - build the preview plan
-- review the summary cards, filter the plan, inspect warnings, and select executable items
-- no filesystem changes happen in this step
+- inspect summary cards, warnings, duplicate groups, and selected-operation details
+- filter the grid and select executable items
+- no filesystem changes happen here
 
 ### 5. Execute / Undo
 
 - execute only the selected allowed operations
-- roll back the latest run, or undo a top-level folder group from the latest run
-- view activity details and logs
+- roll back the latest run, or undo a top-level folder group from that latest run
+- inspect activity and logs
 
 ## Safety Model
 
 - destination paths are validated as Windows-safe relative paths
-- final destinations must still resolve inside the selected root folder
+- final destinations must resolve inside the selected root folder
 - Gemini is advisory only; local logic still validates categories, fragments, and final paths
 - execution currently performs moves and renames only
-- there is no delete flow in the current app
-- hidden/system files and reparse points are skipped by default during scanning unless policy settings are changed in code
+- there is no delete flow
+- hidden/system files and reparse points are skipped by default unless policy settings are changed in code
 
-## German-First Behavior
+## Duplicate Detection
 
-The current defaults are intentionally German-first:
+Exact duplicate detection already exists in the current app:
 
-- default UI language: `de-DE`
-- default folder naming language: German
-- default filename language policy: German
+- candidates are grouped by file size first
+- only same-size candidates are hashed
+- SHA-256 is used for exact duplicate identity
+- duplicate handling can require review, route to a duplicates folder, or skip duplicate items
 
-These are user-adjustable in the wizard.
+Current limitation:
+
+- canonical duplicate selection is still simple and should become smarter before calling the feature complete
 
 ## Gemini Usage
 
 Gemini support is optional.
 
 - the app stores the Gemini API key encrypted with DPAPI in the current Windows user profile
-- runtime settings live in `%LocalAppData%\\FileTransformer\\settings.json`
-- the app can read `.env` or environment variables as a fallback when no DPAPI value is present
-- Gemini can enrich semantic understanding, but it does not get to decide executable paths
+- runtime settings live in `%LocalAppData%\FileTransformer\settings.json`
+- the app can read environment variables or `.env` as fallback when no DPAPI value is present
+- Gemini can enrich semantic understanding, but it does not decide executable paths
 
 ## Current Architecture
 
 - `src/App`: WPF shell, MVVM view models, step views, localization, dialogs, UI services
-- `src/Application`: orchestration, planning, execution, rollback, naming, classifier coordination
-- `src/Domain`: models, enums, strategy presets, semantic catalog, Windows path rules
-- `src/Infrastructure`: local filesystem access, Gemini HTTP integration, settings store, journal store, logging
-- `tests/FileTransformer.Tests`: unit tests for planning, execution, path safety, and Gemini parsing
+- `src/Application`: orchestration, planning, execution, rollback, naming, duplicate detection, recommendations
+- `src/Domain`: models, enums, presets, path rules, naming and protection policies
+- `src/Infrastructure`: local filesystem access, hashing, settings store, journals, Gemini HTTP integration, logging
+- `tests/FileTransformer.Tests`: unit tests for planning, execution, path safety, recommendations, and Gemini parsing
 
 ## Build, Test, And Run
 
@@ -103,24 +109,24 @@ dotnet run --project src/App/FileTransformer.App.csproj
 
 ## Current Limitations
 
-The app is still evolving. Notable current gaps:
+The app is still evolving. Notable gaps:
 
-- duplicate handling exists in core logic but is not yet surfaced as a complete UX flow
-- rollback still targets the latest journal only
+- rollback is still latest-run only
 - historical rollback selection and rollback preview are not implemented yet
+- rollback journaling is still end-of-run save, not append-safe per operation
 - PDF extraction is not implemented yet
 - OCR and image-first analysis are not implemented yet
-- duplicate handling is now surfaced in the rules step and flagged in the preview
-- some richer planner options exist in the view model and domain, but not all of them are exposed in the current wizard
+- some Application-layer progress messages are still generated in English and should be made fully resource-driven end-to-end
+- duplicate canonical selection and rollback coverage need strengthening
 
 ## Storage Locations
 
-- settings: `%LocalAppData%\\FileTransformer\\settings.json`
-- journals: `%LocalAppData%\\FileTransformer\\journals`
-- logs: `%LocalAppData%\\FileTransformer\\logs`
+- settings: `%LocalAppData%\FileTransformer\settings.json`
+- journals: `%LocalAppData%\FileTransformer\journals`
+- logs: `%LocalAppData%\FileTransformer\logs`
 
 ## Developer Notes
 
-- `AGENTS.md`, `AGENT.md`, `CLAUDE.md`, and `GEMINI.md` describe the current repo expectations for AI coding assistants
+- `AGENTS.md`, `AGENT.md`, `CLAUDE.md`, and `GEMINI.md` describe the current expectations for AI coding assistants
 - current roadmap and remaining work are tracked in `TODO.md`
-- if you change planner, execution, rollback, or Gemini behavior, update the tests in `tests/FileTransformer.Tests`
+- if you change planner, execution, rollback, duplicate detection, or Gemini behavior, update the tests in `tests/FileTransformer.Tests`

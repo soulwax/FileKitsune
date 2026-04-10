@@ -1,125 +1,37 @@
-# AGENTS.md
-## Codex GPT-5.4 Implementation Guide for File-Transformer
+# CLAUDE.md
 
-This document defines the architecture, constraints, and feature roadmap for AI agents working on this repository.
+## FileTransformer Assistant Notes
 
----
+Current repo reality:
 
-# 🧭 Core Principles
+- Windows-only `.NET 8` WPF app
+- MVVM wizard flow is already in place
+- German is the default UI and naming direction
+- strategy recommendations are implemented
+- exact duplicate detection already uses SHA-256 with size pre-filtering
+- rollback still only supports the latest run
 
-## 1. Preview-First Safety Model
-- NEVER perform destructive filesystem actions without preview
-- ALL operations must:
-  - be planned first
-  - be visible to the user
-  - be reversible via rollback
-- ALL paths must remain inside the selected root directory
+## Most Important Constraints
 
-## 2. Deterministic Core + AI Assistance
-- Local logic is ALWAYS authoritative
-- AI (Gemini) is advisory only
-- AI suggestions must be validated before execution
-- No direct AI-generated file operations
+- preview first
+- stay inside the selected root
+- Gemini is advisory only
+- journal every executed mutation
+- do not collapse App / Application / Domain / Infrastructure boundaries
 
-## 3. Reversibility is Mandatory
-- Every filesystem mutation must be journaled
-- Rollback must be reliable, testable, and idempotent
+## Best Next Slice
 
----
+Focus on rollback hardening:
 
-# 🏗 Architecture Overview
+1. richer journals
+2. append-safe execution journaling
+3. historical rollback selection
+4. rollback tests
 
-## Layers
+## Useful Seams
 
-### App (WPF / UI)
-- `MainWindow.xaml`
-- `MainWindowViewModel.cs`
-- Wizard UI logic
-- Localization
-
-### Application
-- `OrganizationWorkflowService`
-- `PlanExecutionService`
-- `RollbackService`
-- Strategy recommendation layer (to be added)
-
-### Domain
-- Organization rules
-- Strategy presets
-- Naming policies
-- Duplicate policies
-
-### Infrastructure
-- File system access
-- Hashing
-- Journaling
-- Content extraction (PDF, DOCX, etc.)
-- Gemini integration
-
----
-
-# 🚀 Feature Requirements
-
----
-
-## 🔁 1. Flawless Rollback System
-
-### Requirements
-- Support rollback of ANY historical run (not just latest)
-- Rollback must be:
-  - idempotent
-  - safe against partial failures
-  - transparent to user
-
-### Implementation
-
-#### Journal Enhancements
-Each operation must store:
-- Source path
-- Destination path
-- File hash
-- File size
-- Timestamp
-- Operation type
-- Pre-existing destination state
-- Rollback status
-
-#### Execution Model
-- Write journal header BEFORE execution
-- Append entries DURING execution
-- Mark run complete AFTER execution
-
-#### Rollback Features
-- Select run from history
-- Preview rollback plan
-- Execute rollback safely
-- Handle:
-  - missing files
-  - path conflicts
-  - partial rollbacks
-
-#### Tests (MANDATORY)
-- Full rollback
-- Partial rollback
-- Conflict recovery
-- Repeated rollback (idempotency)
-
----
-
-## 🧹 2. Hash-Based Duplicate Removal
-
-### Rules
-- ONLY use file content hash (SHA-256)
-- NEVER rely on filename
-
-### Process
-1. Group files by size
-2. Hash only same-size files
-3. Build duplicate groups
-
-### Behavior
-- Propose duplicates in preview
-- NEVER auto-delete immediately
-
-### Default Action
-Move duplicates to:
+- `src/App/ViewModels/MainWindowViewModel.cs`
+- `src/Application/Services/PlanExecutionService.cs`
+- `src/Application/Services/RollbackService.cs`
+- `src/Infrastructure/Configuration/ProtectedAppSettingsStore.cs`
+- `tests/FileTransformer.Tests`

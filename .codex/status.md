@@ -1,86 +1,34 @@
 # Session Status
 
-## Summary
+## Done
 
-The app now has:
+- Wizard UX is implemented.
+- German-first localization is in place.
+- View-model option labels, dialogs, and status messages now localize with language switching.
+- Strategy recommendations are implemented and tested.
+- Exact duplicate detection already uses size pre-filtering and SHA-256.
+- Build and tests are green.
 
-- a wizard-style UX
-- German-first localization with persisted UI language
-- German-first naming defaults
-- a working strategy recommendation step
+## Still Open
 
-The code compiles and tests pass after the latest recommendation work.
+- rollback is still latest-run only
+- journals are still saved at end-of-run instead of append-safe per operation
+- rollback lacks dedicated tests
+- PDF extraction is still missing
+- duplicate canonical selection is still simplistic
 
-## Completed
+## Recommended Next Slice
 
-- Wizard navigation state added to `MainWindowViewModel`
-- Wizard step enum added
-- Main window converted into a wizard shell
-- Step views created for:
-  - folder
-  - strategy
-  - rules
-  - preview
-  - execute / rollback
-- German made the default UI resource dictionary
-- Localization service added in App layer
-- UI language selection persisted in app settings
-- Remaining wizard hardcoded strings moved into localization resources
-- German-first defaults for folder naming and filename language applied
-- Strategy recommendation service added in Application layer
-- Strategy recommendations shown in the Strategy step after preview
-- Recommendation tests added
+Rollback hardening:
 
-## Still Pending
+1. journal versioning and richer entries
+2. append-safe execution journaling
+3. historical rollback selection
+4. rollback tests
 
-From `TODO.md`, the biggest unfinished work remains:
-
-- expose more existing rule controls in the Rules step
-- duplicate UX and dedup flow
-- PDF extraction
-- Gemini contextual enrichment improvements
-- historical rollback and rollback preview
-- rollback-focused test suite
-
-## Recommended Next Task
-
-Implement the next practical Rules-step slice:
-
-- persist more of the already-modeled options
-- expose them in the Rules step
-
-Reason:
-
-- the wizard exists and is usable now
-- the Strategy step already became more helpful
-- the Rules step still hides several existing capabilities already modeled in the VM and domain
-- this is lower risk than starting rollback rework immediately
-
-## Known Working Validation
-
-These commands passed after the latest implemented changes:
+## Last Known Green Commands
 
 ```powershell
 dotnet build FileTransformer.sln -c Debug --no-restore
-dotnet test FileTransformer.sln -c Debug
+dotnet test FileTransformer.sln -c Debug --no-build
 ```
-
-## Files Most Relevant For The Next Task
-
-- `src/App/ViewModels/MainWindowViewModel.cs`
-- `src/App/Views/WizardRulesStepView.xaml`
-- `src/Application/Models/AppSettings.cs`
-- `src/Domain/Models/OrganizationSettings.cs`
-- `src/Domain/Models/OrganizationPolicy.cs`
-- `src/Domain/Models/ReviewPolicy.cs`
-- `src/Domain/Models/DuplicatePolicy.cs`
-- `src/Infrastructure/Configuration/ProtectedAppSettingsStore.cs`
-
-## Cautions
-
-- Do not undo the wizard refactor.
-- Keep UI logic in App only.
-- Do not weaken path safety or execution constraints.
-- Do not let Gemini outputs become authoritative.
-- Recommendation cards must remain advisory only.
-- `.lscache` changes are generated build artifacts unless intentionally kept.

@@ -15,6 +15,7 @@ This repository already contains a `gemini.json`, but the desktop application's 
 - Windows-only WPF UI on `net8.0-windows`.
 - Planner pipeline: scan -> read -> classify -> date resolve -> duplicate detect -> build plan -> execute selected items.
 - Content extraction currently supports text files and `.docx` only.
+- Strategy recommendations are already present and should remain advisory.
 - Rollback is journal-based and currently limited to the latest saved execution journal.
 
 ## When Editing
@@ -23,6 +24,7 @@ This repository already contains a `gemini.json`, but the desktop application's 
 - Do not weaken the local safety checks around root confinement or path normalization.
 - If you expose more Gemini-related settings in the UI, wire them through `MainWindow.xaml`, `MainWindowViewModel`, and `ProtectedAppSettingsStore`.
 - If you document setup, say clearly that the Settings UI and DPAPI-backed store take priority, with `.env` only as a fallback.
+- Do not let Gemini drive duplicate identity, rollback decisions, or final executable paths.
 
 ## `.env` Fallback Keys
 

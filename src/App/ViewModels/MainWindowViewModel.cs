@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -54,83 +55,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
         this.uiLogStore = uiLogStore;
         this.logger = logger;
 
-        RenameModes =
-        [
-            new(FileRenameMode.KeepOriginal, "Keep original names"),
-            new(FileRenameMode.NormalizeWhitespaceAndPunctuation, "Normalize whitespace/punctuation"),
-            new(FileRenameMode.SuggestCleanNames, "Suggest cleaned names")
-        ];
-
-        FolderLanguageModes =
-        [
-            new(FolderLanguageMode.PreserveOriginal, "Preserve original language"),
-            new(FolderLanguageMode.NormalizeToGerman, "Normalize category labels to German"),
-            new(FolderLanguageMode.NormalizeToEnglish, "Normalize category labels to English"),
-            new(FolderLanguageMode.UseBilingualLabels, "Use bilingual labels")
-        ];
-
-        ConflictModes =
-        [
-            new(ConflictHandlingMode.Skip, "Skip on conflict"),
-            new(ConflictHandlingMode.AppendCounter, "Append counter")
-        ];
-
-        PlanFilters =
-        [
-            new(PlanFilterMode.All, "All"),
-            new(PlanFilterMode.ExecutableOnly, "Executable"),
-            new(PlanFilterMode.NeedsReview, "Needs review"),
-            new(PlanFilterMode.GeminiOnly, "Gemini"),
-            new(PlanFilterMode.Duplicates, "Duplicates")
-        ];
-
-        StrategyPresets =
-        [
-            new(OrganizationStrategyPreset.SemanticCategoryFirst, "Semantic category first"),
-            new(OrganizationStrategyPreset.ProjectFirst, "Project first"),
-            new(OrganizationStrategyPreset.DateFirst, "Date first"),
-            new(OrganizationStrategyPreset.HybridProjectDate, "Hybrid project/date"),
-            new(OrganizationStrategyPreset.ArchiveCleanup, "Archive cleanup"),
-            new(OrganizationStrategyPreset.WorkDocuments, "Work documents"),
-            new(OrganizationStrategyPreset.ResearchLibrary, "Research library"),
-            new(OrganizationStrategyPreset.ManualCustom, "Manual custom")
-        ];
-
-        DateSources =
-        [
-            new(DateSourceKind.ContentDerived, "Content-derived"),
-            new(DateSourceKind.FileName, "File name"),
-            new(DateSourceKind.ModifiedTime, "Modified time"),
-            new(DateSourceKind.CreatedTime, "Created time")
-        ];
-
-        ExecutionModes =
-        [
-            new(ExecutionMode.HeuristicsPlusGeminiReviewFirst, "Heuristics + Gemini review-first"),
-            new(ExecutionMode.FullyAssisted, "Fully assisted"),
-            new(ExecutionMode.HeuristicsOnly, "Heuristics only")
-        ];
-
-        DuplicateHandlingModes =
-        [
-            new(DuplicateHandlingMode.RequireReview, "Require review"),
-            new(DuplicateHandlingMode.RouteToDuplicatesFolder, "Route to duplicates folder"),
-            new(DuplicateHandlingMode.Skip, "Skip duplicate items")
-        ];
-
-        FilenameLanguagePolicies =
-        [
-            new(FilenameLanguagePolicy.PreserveSourceLanguage, "Preserve source language"),
-            new(FilenameLanguagePolicy.PreferGerman, "Prefer German tokens"),
-            new(FilenameLanguagePolicy.PreferEnglish, "Prefer English tokens"),
-            new(FilenameLanguagePolicy.FolderLanguageOnly, "Folder language only")
-        ];
-
+        RenameModes = [];
+        FolderLanguageModes = [];
+        ConflictModes = [];
+        PlanFilters = [];
+        StrategyPresets = [];
+        DateSources = [];
+        ExecutionModes = [];
+        DuplicateHandlingModes = [];
+        FilenameLanguagePolicies = [];
         AppLanguages =
         [
             new("de-DE", "Deutsch"),
             new("en-US", "English")
         ];
+
+        RefreshLocalizedOptionCollections();
 
         selectedRenameMode = RenameModes[1];
         selectedFolderLanguageMode = FolderLanguageModes[1];
@@ -160,27 +100,27 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PlanView = CollectionViewSource.GetDefaultView(PlanOperations);
         PlanView.Filter = ApplyPlanFilter;
         LogEntries = uiLogStore.Entries;
-        StatusMessage = "Ready.";
+        StatusMessage = GetString("StatusReady");
         StrategyDisplayName = selectedStrategyPreset.Label;
     }
 
-    public IReadOnlyList<OptionItem<FileRenameMode>> RenameModes { get; }
+    public ObservableCollection<OptionItem<FileRenameMode>> RenameModes { get; }
 
-    public IReadOnlyList<OptionItem<FolderLanguageMode>> FolderLanguageModes { get; }
+    public ObservableCollection<OptionItem<FolderLanguageMode>> FolderLanguageModes { get; }
 
-    public IReadOnlyList<OptionItem<ConflictHandlingMode>> ConflictModes { get; }
+    public ObservableCollection<OptionItem<ConflictHandlingMode>> ConflictModes { get; }
 
-    public IReadOnlyList<OptionItem<PlanFilterMode>> PlanFilters { get; }
+    public ObservableCollection<OptionItem<PlanFilterMode>> PlanFilters { get; }
 
-    public IReadOnlyList<OptionItem<OrganizationStrategyPreset>> StrategyPresets { get; }
+    public ObservableCollection<OptionItem<OrganizationStrategyPreset>> StrategyPresets { get; }
 
-    public IReadOnlyList<OptionItem<DateSourceKind>> DateSources { get; }
+    public ObservableCollection<OptionItem<DateSourceKind>> DateSources { get; }
 
-    public IReadOnlyList<OptionItem<ExecutionMode>> ExecutionModes { get; }
+    public ObservableCollection<OptionItem<ExecutionMode>> ExecutionModes { get; }
 
-    public IReadOnlyList<OptionItem<DuplicateHandlingMode>> DuplicateHandlingModes { get; }
+    public ObservableCollection<OptionItem<DuplicateHandlingMode>> DuplicateHandlingModes { get; }
 
-    public IReadOnlyList<OptionItem<FilenameLanguagePolicy>> FilenameLanguagePolicies { get; }
+    public ObservableCollection<OptionItem<FilenameLanguagePolicy>> FilenameLanguagePolicies { get; }
 
     public IReadOnlyList<OptionItem<string>> AppLanguages { get; }
 
@@ -416,7 +356,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         catch (Exception exception)
         {
             logger.LogError(exception, "Failed to load settings.");
-            dialogService.ShowError("Load failed", $"The user settings could not be loaded: {exception.Message}");
+            dialogService.ShowError(GetString("DialogLoadFailedTitle"), FormatString("DialogLoadFailedBody", exception.Message));
         }
     }
 
@@ -436,13 +376,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             await PersistSettingsAsync(CancellationToken.None);
-            StatusMessage = "Settings saved.";
+            StatusMessage = GetString("StatusSettingsSaved");
             logger.LogInformation("User settings saved.");
         }
         catch (Exception exception)
         {
             logger.LogError(exception, "Saving settings failed.");
-            dialogService.ShowError("Save failed", $"The settings could not be saved: {exception.Message}");
+            dialogService.ShowError(GetString("DialogSaveFailedTitle"), FormatString("DialogSaveFailedBody", exception.Message));
         }
     }
 
@@ -470,7 +410,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             IsBusy = true;
-            StatusMessage = "Scanning and building preview plan...";
+            StatusMessage = GetString("StatusScanning");
 
             var progress = new Progress<WorkflowProgress>(UpdateProgress);
             currentPlan = await organizationWorkflowService.BuildPlanAsync(
@@ -487,20 +427,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
             PopulateStrategyRecommendations(currentPlan);
             PopulateDuplicateGroups(currentPlan);
             PlanView.Refresh();
-            StatusMessage = $"Preview ready. {currentPlan.Summary.TotalItems} items analyzed.";
+            StatusMessage = FormatString("StatusPreviewReady", currentPlan.Summary.TotalItems);
             logger.LogInformation("Preview plan built with {Count} operations.", currentPlan.Operations.Count);
             NotifyWizardNavigationChanged();
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "Operation canceled.";
+            StatusMessage = GetString("StatusCanceled");
             logger.LogInformation("Scan operation canceled.");
         }
         catch (Exception exception)
         {
             logger.LogError(exception, "Scan operation failed.");
-            dialogService.ShowError("Scan failed", exception.Message);
-            StatusMessage = "Scan failed.";
+            dialogService.ShowError(GetString("DialogScanFailedTitle"), exception.Message);
+            StatusMessage = GetString("StatusScanFailed");
         }
         finally
         {
@@ -581,20 +521,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         if (currentPlan is null)
         {
-            dialogService.ShowInformation("Nothing to execute", "Build a preview plan first.");
+            dialogService.ShowInformation(GetString("DialogNothingToExecuteTitle"), GetString("DialogNothingToExecuteBody"));
             return;
         }
 
         var selectedIds = PlanOperations.Where(item => item.IsSelected && item.CanSelect).Select(item => item.OperationId).ToList();
         if (selectedIds.Count == 0)
         {
-            dialogService.ShowInformation("Nothing selected", "Select one or more executable operations first.");
+            dialogService.ShowInformation(GetString("DialogNothingSelectedTitle"), GetString("DialogNothingSelectedBody"));
             return;
         }
 
         if (!dialogService.Confirm(
-                "Confirm execution",
-                $"Execute {selectedIds.Count} approved operation(s)? Files will not be deleted, but selected moves and renames will run inside the chosen root folder."))
+                GetString("DialogConfirmExecutionTitle"),
+                FormatString("DialogConfirmExecutionBody", selectedIds.Count)))
         {
             return;
         }
@@ -604,7 +544,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             IsBusy = true;
-            StatusMessage = "Executing approved operations...";
+            StatusMessage = GetString("StatusExecuting");
 
             var outcome = await planExecutionService.ExecuteAsync(
                 currentPlan,
@@ -621,17 +561,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
 
             PopulateRollbackFolderGroups(outcome.Journal);
-            dialogService.ShowInformation("Execution finished", outcome.Summary);
+            dialogService.ShowInformation(GetString("DialogExecutionFinishedTitle"), outcome.Summary);
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "Execution canceled.";
+            StatusMessage = GetString("StatusCanceled");
             logger.LogInformation("Execution canceled.");
         }
         catch (Exception exception)
         {
             logger.LogError(exception, "Execution failed.");
-            dialogService.ShowError("Execution failed", exception.Message);
+            dialogService.ShowError(GetString("DialogExecutionFailedTitle"), exception.Message);
         }
         finally
         {
@@ -645,8 +585,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private async Task RollbackLatestAsync()
     {
         if (!dialogService.Confirm(
-                "Rollback latest run",
-                "Attempt to reverse the most recent successful move/rename journal? Existing conflicts will be skipped."))
+                GetString("DialogRollbackLatestTitle"),
+                GetString("DialogRollbackLatestBody")))
         {
             return;
         }
@@ -663,12 +603,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 logger.LogInformation(message);
             }
 
-            dialogService.ShowInformation("Rollback finished", outcome.Summary);
+            dialogService.ShowInformation(GetString("DialogRollbackFinishedTitle"), outcome.Summary);
         }
         catch (Exception exception)
         {
             logger.LogError(exception, "Rollback failed.");
-            dialogService.ShowError("Rollback failed", exception.Message);
+            dialogService.ShowError(GetString("DialogRollbackFailedTitle"), exception.Message);
         }
         finally
         {
@@ -680,8 +620,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private async Task RollbackFolderAsync(string folderName)
     {
         if (!dialogService.Confirm(
-                "Undo folder",
-                $"Reverse all moves into \"{folderName}\" from the latest run?"))
+                GetString("DialogUndoFolderTitle"),
+                FormatString("DialogUndoFolderBody", folderName)))
         {
             return;
         }
@@ -698,12 +638,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 logger.LogInformation(message);
             }
 
-            dialogService.ShowInformation("Undo finished", outcome.Summary);
+            dialogService.ShowInformation(GetString("DialogUndoFinishedTitle"), outcome.Summary);
         }
         catch (Exception exception)
         {
             logger.LogError(exception, "Folder rollback failed.");
-            dialogService.ShowError("Undo failed", exception.Message);
+            dialogService.ShowError(GetString("DialogUndoFailedTitle"), exception.Message);
         }
         finally
         {
@@ -739,6 +679,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnSelectedAppLanguageChanged(OptionItem<string>? value)
     {
         localizationService.ApplyLanguage(value?.Value ?? "de-DE");
+        RefreshLocalizedOptionCollections();
+        RefreshLocalizedState();
     }
 
     partial void OnCurrentStepChanged(WizardStep value)
@@ -751,6 +693,147 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnRootDirectoryChanged(string value) => NotifyWizardNavigationChanged();
 
     partial void OnIsBusyChanged(bool value) => NotifyWizardNavigationChanged();
+
+    private void RefreshLocalizedOptionCollections()
+    {
+        var selectedRenameModeValue = SelectedRenameMode?.Value ?? FileRenameMode.NormalizeWhitespaceAndPunctuation;
+        var selectedFolderLanguageModeValue = SelectedFolderLanguageMode?.Value ?? FolderLanguageMode.NormalizeToGerman;
+        var selectedConflictModeValue = SelectedConflictMode?.Value ?? ConflictHandlingMode.AppendCounter;
+        var selectedPlanFilterValue = SelectedPlanFilter?.Value ?? PlanFilterMode.All;
+        var selectedStrategyPresetValue = SelectedStrategyPreset?.Value ?? OrganizationStrategyPreset.SemanticCategoryFirst;
+        var selectedDateSourceValue = SelectedPreferredDateSource?.Value ?? DateSourceKind.ModifiedTime;
+        var selectedExecutionModeValue = SelectedExecutionMode?.Value ?? ExecutionMode.HeuristicsPlusGeminiReviewFirst;
+        var selectedDuplicateHandlingModeValue = SelectedDuplicateHandlingMode?.Value ?? DuplicateHandlingMode.RequireReview;
+        var selectedFilenameLanguagePolicyValue = SelectedFilenameLanguagePolicy?.Value ?? FilenameLanguagePolicy.PreferGerman;
+
+        ResetOptions(RenameModes,
+        [
+            new(FileRenameMode.KeepOriginal, GetString("OptionRenameKeepOriginal")),
+            new(FileRenameMode.NormalizeWhitespaceAndPunctuation, GetString("OptionRenameNormalizeWhitespace")),
+            new(FileRenameMode.SuggestCleanNames, GetString("OptionRenameSuggestCleanNames"))
+        ]);
+
+        ResetOptions(FolderLanguageModes,
+        [
+            new(FolderLanguageMode.PreserveOriginal, GetString("OptionFolderLanguagePreserveOriginal")),
+            new(FolderLanguageMode.NormalizeToGerman, GetString("OptionFolderLanguageGerman")),
+            new(FolderLanguageMode.NormalizeToEnglish, GetString("OptionFolderLanguageEnglish")),
+            new(FolderLanguageMode.UseBilingualLabels, GetString("OptionFolderLanguageBilingual"))
+        ]);
+
+        ResetOptions(ConflictModes,
+        [
+            new(ConflictHandlingMode.Skip, GetString("OptionConflictSkip")),
+            new(ConflictHandlingMode.AppendCounter, GetString("OptionConflictAppendCounter"))
+        ]);
+
+        ResetOptions(PlanFilters,
+        [
+            new(PlanFilterMode.All, GetString("OptionPlanFilterAll")),
+            new(PlanFilterMode.ExecutableOnly, GetString("OptionPlanFilterExecutable")),
+            new(PlanFilterMode.NeedsReview, GetString("OptionPlanFilterNeedsReview")),
+            new(PlanFilterMode.GeminiOnly, GetString("OptionPlanFilterGemini")),
+            new(PlanFilterMode.Duplicates, GetString("OptionPlanFilterDuplicates"))
+        ]);
+
+        ResetOptions(StrategyPresets,
+        [
+            new(OrganizationStrategyPreset.SemanticCategoryFirst, GetString("OptionStrategySemanticCategoryFirst")),
+            new(OrganizationStrategyPreset.ProjectFirst, GetString("OptionStrategyProjectFirst")),
+            new(OrganizationStrategyPreset.DateFirst, GetString("OptionStrategyDateFirst")),
+            new(OrganizationStrategyPreset.HybridProjectDate, GetString("OptionStrategyHybridProjectDate")),
+            new(OrganizationStrategyPreset.ArchiveCleanup, GetString("OptionStrategyArchiveCleanup")),
+            new(OrganizationStrategyPreset.WorkDocuments, GetString("OptionStrategyWorkDocuments")),
+            new(OrganizationStrategyPreset.ResearchLibrary, GetString("OptionStrategyResearchLibrary")),
+            new(OrganizationStrategyPreset.ManualCustom, GetString("OptionStrategyManualCustom"))
+        ]);
+
+        ResetOptions(DateSources,
+        [
+            new(DateSourceKind.ContentDerived, GetString("OptionDateSourceContentDerived")),
+            new(DateSourceKind.FileName, GetString("OptionDateSourceFileName")),
+            new(DateSourceKind.ModifiedTime, GetString("OptionDateSourceModifiedTime")),
+            new(DateSourceKind.CreatedTime, GetString("OptionDateSourceCreatedTime"))
+        ]);
+
+        ResetOptions(ExecutionModes,
+        [
+            new(ExecutionMode.HeuristicsPlusGeminiReviewFirst, GetString("OptionExecutionModeReviewFirst")),
+            new(ExecutionMode.FullyAssisted, GetString("OptionExecutionModeFullyAssisted")),
+            new(ExecutionMode.HeuristicsOnly, GetString("OptionExecutionModeHeuristicsOnly"))
+        ]);
+
+        ResetOptions(DuplicateHandlingModes,
+        [
+            new(DuplicateHandlingMode.RequireReview, GetString("OptionDuplicateHandlingRequireReview")),
+            new(DuplicateHandlingMode.RouteToDuplicatesFolder, GetString("OptionDuplicateHandlingRouteToFolder")),
+            new(DuplicateHandlingMode.Skip, GetString("OptionDuplicateHandlingSkip"))
+        ]);
+
+        ResetOptions(FilenameLanguagePolicies,
+        [
+            new(FilenameLanguagePolicy.PreserveSourceLanguage, GetString("OptionFilenameLanguagePreserveSource")),
+            new(FilenameLanguagePolicy.PreferGerman, GetString("OptionFilenameLanguagePreferGerman")),
+            new(FilenameLanguagePolicy.PreferEnglish, GetString("OptionFilenameLanguagePreferEnglish")),
+            new(FilenameLanguagePolicy.FolderLanguageOnly, GetString("OptionFilenameLanguageFolderOnly"))
+        ]);
+
+        SelectedRenameMode = RenameModes.First(option => option.Value == selectedRenameModeValue);
+        SelectedFolderLanguageMode = FolderLanguageModes.First(option => option.Value == selectedFolderLanguageModeValue);
+        SelectedConflictMode = ConflictModes.First(option => option.Value == selectedConflictModeValue);
+        SelectedPlanFilter = PlanFilters.First(option => option.Value == selectedPlanFilterValue);
+        SelectedStrategyPreset = StrategyPresets.First(option => option.Value == selectedStrategyPresetValue);
+        SelectedPreferredDateSource = DateSources.First(option => option.Value == selectedDateSourceValue);
+        SelectedExecutionMode = ExecutionModes.First(option => option.Value == selectedExecutionModeValue);
+        SelectedDuplicateHandlingMode =
+            DuplicateHandlingModes.First(option => option.Value == selectedDuplicateHandlingModeValue);
+        SelectedFilenameLanguagePolicy =
+            FilenameLanguagePolicies.First(option => option.Value == selectedFilenameLanguagePolicyValue);
+    }
+
+    private void RefreshLocalizedState()
+    {
+        StrategyDisplayName = SelectedStrategyPreset?.Label ?? string.Empty;
+
+        if (!IsBusy && currentPlan is null && string.IsNullOrWhiteSpace(StatusMessage))
+        {
+            StatusMessage = GetString("StatusReady");
+        }
+        else if (string.Equals(StatusMessage, "Ready.", StringComparison.Ordinal) ||
+                 string.Equals(StatusMessage, "Bereit.", StringComparison.Ordinal))
+        {
+            StatusMessage = GetString("StatusReady");
+        }
+    }
+
+    private string FormatProgressMessage(WorkflowProgress progress)
+    {
+        return progress.Stage switch
+        {
+            "scan" when progress.Processed > 0 => FormatString("StatusProgressScan", progress.Processed),
+            "scan" => GetString("StatusScanning"),
+            "classify" => FormatString("StatusProgressClassify", progress.Processed, progress.Total),
+            "duplicates" => FormatString("StatusProgressDuplicates", progress.Processed, progress.Total),
+            "execute" => FormatString("StatusProgressExecute", progress.Processed + 1, progress.Total, progress.Message),
+            _ => string.IsNullOrWhiteSpace(progress.Message) ? GetString("StatusReady") : progress.Message
+        };
+    }
+
+    private string GetString(string resourceKey) => localizationService.GetString(resourceKey);
+
+    private string FormatString(string resourceKey, params object[] arguments) =>
+        localizationService.Format(resourceKey, arguments);
+
+    private static void ResetOptions<T>(
+        ObservableCollection<OptionItem<T>> target,
+        IReadOnlyList<OptionItem<T>> items)
+    {
+        target.Clear();
+        foreach (var item in items)
+        {
+            target.Add(item);
+        }
+    }
 
     private bool ApplyPlanFilter(object item)
     {
@@ -784,7 +867,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         if (!anySelected)
         {
-            dialogService.ShowInformation("No items selected", "No executable items matched that selection.");
+            dialogService.ShowInformation(GetString("DialogNoItemsSelectedTitle"), GetString("DialogNoItemsSelectedBody"));
         }
     }
 
@@ -968,7 +1051,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ProgressMaximum = Math.Max(1, progress.Total == 0 ? 1 : progress.Total);
         ProgressValue = Math.Min(ProgressMaximum, progress.Processed);
         IsProgressIndeterminate = progress.Total == 0;
-        StatusMessage = progress.Message;
+        StatusMessage = FormatProgressMessage(progress);
     }
 
     private void UpdateSummary(PlanSummary summary)
@@ -1061,7 +1144,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(RootDirectory) || !Directory.Exists(RootDirectory))
         {
-            dialogService.ShowError("Root folder required", "Choose an existing root directory before scanning.");
+            dialogService.ShowError(GetString("DialogRootRequiredTitle"), GetString("DialogRootRequiredBody"));
             return false;
         }
 

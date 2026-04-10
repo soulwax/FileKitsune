@@ -1,319 +1,142 @@
 # TODO.md
-## File-Transformer — Implementation Roadmap
 
-This document tracks all required work to transform the application into a:
-
-✔ Safe  
-✔ Reversible  
-✔ German-first  
-✔ AI-assisted file organization system  
-
----
-
-# 🔴 PRIORITY LEGEND
-
-- 🔴 Critical (must be correct before release)
-- 🟡 Important (major feature / UX impact)
-- 🟢 Enhancement (nice to have / polish)
-
----
-
-# 🧙‍♂️ 1. Wizard UI Refactor (🟡)
-
-## Goal
-Replace current single-screen UI with a guided 5-step wizard.
-
-## Tasks
-
-- [ ] Add `CurrentStep` enum to ViewModel
-- [ ] Implement navigation:
-  - [ ] NextCommand
-  - [ ] BackCommand
-- [ ] Split UI into steps:
-  - [ ] Step 1: Folder selection
-  - [ ] Step 2: Strategy selection
-  - [ ] Step 3: Rule configuration
-  - [ ] Step 4: Preview (DataGrid + details)
-  - [ ] Step 5: Execute / Rollback
-- [ ] Convert MainWindow.xaml into step container
-- [ ] Add progress indicator (Step 1–5)
-- [ ] Keep preview DataGrid unchanged but move to Step 4
-- [ ] Ensure MVVM (no logic in code-behind)
-
----
-
-# 🌍 2. Localization (German-First) (🟡)
-
-## Goal
-Full bilingual UI with German as default.
-
-## Tasks
-
-- [ ] Replace ALL hardcoded strings in XAML
-- [ ] Move strings into:
-  - [ ] Strings.de-DE.xaml
-  - [ ] Strings.en-US.xaml
-- [ ] Add UI language selector
-- [ ] Default UI language = German
-- [ ] Ensure bindings use DynamicResource
-- [ ] Translate missing German strings
-
-## Validation
-
-- [ ] App fully usable in German
-- [ ] No English fallback unless selected
-
----
-
-# 🧭 3. Strategy Presets & Recommendations (🟡)
-
-## Goal
-Surface strategy presets and recommend best options after scan.
-
-## Tasks
-
-- [ ] Bind existing `StrategyPresets` to UI
-- [ ] Add strategy selection UI (cards or list)
-- [ ] Implement RecommendationService
-
-### Recommendation Logic
-
-- [ ] Analyze:
-  - [ ] file types
-  - [ ] date density
-  - [ ] duplicate density
-  - [ ] semantic signals
-- [ ] Score strategies
-- [ ] Return top 3–5 with:
-  - [ ] name
-  - [ ] reason
-  - [ ] confidence
-
-## UI
-
-- [ ] Display recommended strategies
-- [ ] Allow one-click selection
-
----
-
-# 🧹 4. Hash-Based Duplicate Detection (🔴)
-
-## Goal
-Detect duplicates using file content (NOT filenames).
-
-## Tasks
-
-### Infrastructure
-
-- [ ] Create `FileHashService`
-- [ ] Implement SHA-256 hashing
-- [ ] Add size-based pre-filtering
-
-### Application Layer
-
-- [ ] Build duplicate groups
-- [ ] Define canonical selection logic:
-  - [ ] best destination
-  - [ ] oldest file
-  - [ ] richest metadata
-
-### UI
-
-- [ ] Display duplicate groups in preview
-- [ ] Mark duplicates clearly
-
-### Execution
-
-- [ ] Move duplicates to:
-  `_Duplikate_Pruefen`
-
-### Rollback
-
-- [ ] Journal duplicate operations
-- [ ] Ensure reversibility
-
----
-
-# 📄 5. PDF & Content Extraction (🔴)
-
-## Goal
-Extract text from PDFs and other documents.
-
-## Tasks
-
-- [ ] Add PDF text extraction service
-- [ ] Extend existing content pipeline:
-  - [ ] PDF
-  - [ ] DOCX
-  - [ ] TXT
-- [ ] Implement sampling for large files
-- [ ] Add fallback to metadata
-
-## Validation
-
-- [ ] No crashes on unreadable PDFs
-- [ ] Pipeline continues on failure
-
----
-
-# 🧠 6. Gemini Integration (🟡)
-
-## Goal
-Use AI for contextual classification and grouping.
-
-## Tasks
-
-- [ ] Send extracted text to Gemini
-- [ ] Request:
-  - [ ] topic
-  - [ ] project grouping
-  - [ ] semantic category
-- [ ] Merge with local heuristics
-
-## Constraints
-
-- [ ] Gemini NEVER generates final paths
-- [ ] Results must be validated locally
-
----
-
-# 🔗 7. Contextual File Grouping (🟡)
-
-## Goal
-Group related files into projects/topics.
-
-## Tasks
-
-- [ ] Build clustering logic:
-  - [ ] based on Gemini + heuristics
-- [ ] Detect project-level groupings
-- [ ] Feed into strategy recommendations
-
----
-
-# 🔁 8. Rollback System Upgrade (🔴)
-
-## Goal
-Make rollback flawless and historical.
-
-## Tasks
-
-### Journal Improvements
-
-- [ ] Add versioning
-- [ ] Store:
-  - [ ] file hash
-  - [ ] file size
-  - [ ] timestamps
-  - [ ] operation type
-  - [ ] rollback status
-
-### Execution Flow
-
-- [ ] Write journal header BEFORE execution
-- [ ] Append per operation
-- [ ] Mark run complete AFTER execution
-
-### Rollback Features
-
-- [ ] Load historical runs
-- [ ] Select run to rollback
-- [ ] Preview rollback plan
-- [ ] Handle:
-  - [ ] missing files
-  - [ ] conflicts
-  - [ ] partial failures
-
-### Guarantees
-
-- [ ] Idempotent rollback
-- [ ] Safe to run multiple times
-
----
-
-# 🧪 9. Testing (🔴)
-
-## Goal
-Ensure system reliability and safety.
-
-## Tasks
-
-### Rollback Tests
-
-- [ ] Full rollback
-- [ ] Partial rollback
-- [ ] Conflict handling
-- [ ] Repeated rollback
-
-### Deduplication Tests
-
-- [ ] Hash correctness
-- [ ] Large file handling
-- [ ] Dedup rollback
-
-### Content Tests
-
+## FileTransformer Implementation Status
+
+This roadmap tracks where the app stands now and what remains before the trust model is fully delivered.
+
+## Current Baseline
+
+Completed and usable today:
+
+- [x] 5-step wizard flow
+- [x] German-first defaults
+- [x] switchable German/English UI
+- [x] strategy presets exposed in UI
+- [x] strategy recommendations after preview
+- [x] exact duplicate detection using size pre-filtering + SHA-256
+- [x] duplicate review surfaced in preview
+- [x] latest-run rollback
+- [x] preview-first execution model
+- [x] settings persistence including UI language and Gemini settings
+
+Validated baseline:
+
+- [x] `dotnet build FileTransformer.sln -c Debug`
+- [x] `dotnet test FileTransformer.sln -c Debug`
+
+## 1. Wizard UX
+
+- [x] Add `CurrentStep` enum to the view model
+- [x] Add `NextCommand` and `BackCommand`
+- [x] Split UI into 5 wizard steps
+- [x] Keep preview DataGrid in the preview step
+- [x] Keep MVVM boundary intact
+- [x] Add progress indication for step navigation
+
+## 2. Localization
+
+- [x] Replace hardcoded wizard XAML strings with resources
+- [x] Add `Strings.de-DE.xaml` and `Strings.en-US.xaml` coverage for wizard flow
+- [x] Add UI language selector
+- [x] Default UI language to German
+- [x] Localize view-model supplied option labels
+- [x] Localize view-model dialogs and status messages
+- [ ] Make Application-layer progress/status text fully resource-driven end-to-end
+
+## 3. Strategy Presets And Recommendations
+
+- [x] Bind existing `StrategyPresets` to the UI
+- [x] Add strategy selection UI
+- [x] Implement recommendation scoring service
+- [x] Score recommendations from category, date, duplicate, review, and project/topic signals
+- [x] Return advisory recommendations with name, reason, and confidence
+- [x] Allow one-click preset selection from recommendation cards
+- [x] Add tests for recommendation behavior
+
+## 4. Duplicate Detection And Duplicate UX
+
+- [x] Use SHA-256 for exact duplicate identity
+- [x] Group by file size before hashing
+- [x] Surface duplicates in preview
+- [x] Expose duplicate handling mode in the Rules step
+- [x] Support routing duplicates to a dedicated folder in planning
+- [ ] Improve canonical file selection beyond alphabetical path order
+- [ ] Add dedicated duplicate tests for large files and rollback behavior
+- [ ] Strengthen duplicate journaling expectations in rollback scenarios
+
+## 5. Content Extraction
+
+- [x] TXT/text-like extraction
+- [x] DOCX extraction
 - [ ] PDF extraction
-- [ ] Failure fallback
-- [ ] Gemini unavailable scenario
+- [ ] Sampling for large PDFs/documents
+- [ ] Fallback tests for unreadable documents
 
----
+## 6. Gemini Integration
 
-# 🧱 10. Architecture Compliance (🔴)
+- [x] Keep Gemini optional
+- [x] Keep heuristic fallback working
+- [x] Support DPAPI-backed stored credentials
+- [x] Support `.env` / environment fallback when no stored key exists
+- [x] Use Gemini only as advisory enrichment
+- [ ] Enrich project clustering and cross-file grouping further
+- [ ] Add more Gemini fallback tests around unavailable/partial responses
 
-## Must Ensure
+## 7. Contextual Grouping
 
-- [ ] No logic in code-behind
-- [ ] Application layer contains orchestration
-- [ ] Domain layer contains rules
-- [ ] Infrastructure handles IO, hashing, AI
+- [ ] Group related files across types into stronger project clusters
+- [ ] Feed those clusters into recommendations and destination planning
 
----
+## 8. Rollback Upgrade
 
-# 🚫 11. Anti-Patterns to Avoid
+- [ ] Add journal versioning
+- [ ] Persist richer journal entry metadata: hash, size, timestamps, rollback status
+- [ ] Save execution journal header before mutation starts
+- [ ] Append successful operations during execution
+- [ ] Mark runs complete after execution
+- [ ] Support historical run selection
+- [ ] Add rollback preview
+- [ ] Handle missing files, conflicts, and repeated rollback cleanly
+- [ ] Make rollback idempotent by design and by tests
 
-- [ ] ❌ Filename-based duplicate detection
-- [ ] ❌ Unjournaled file operations
-- [ ] ❌ Hardcoded UI strings
-- [ ] ❌ AI-generated paths without validation
-- [ ] ❌ Operations outside root folder
-- [ ] ❌ Non-reversible destructive actions
+## 9. Test Coverage
 
----
+- [ ] Add `RollbackServiceTests`
+- [ ] Cover full rollback
+- [ ] Cover partial rollback
+- [ ] Cover rollback conflict handling
+- [ ] Cover repeated rollback/idempotency
+- [ ] Add duplicate hashing tests
+- [ ] Add duplicate rollback tests
+- [ ] Add PDF extraction tests
+- [ ] Add Gemini fallback/unavailable tests
 
-# 🟢 12. Optional Enhancements
+## 10. Current Best Next Slice
 
-- [ ] OCR for scanned PDFs
-- [ ] Duplicate similarity detection (non-exact)
-- [ ] Visual diff for duplicates
-- [ ] Strategy simulation comparison
-- [ ] Performance optimization for large directories
+Highest-value next work:
 
----
+- [ ] harden rollback journaling and history selection
 
-# ✅ Definition of Done
+Why this is next:
 
-The system is complete when:
+- the wizard, rules, localization, and recommendations are already useful
+- duplicate detection already exists in a usable form
+- rollback is now the largest trust gap still visible to users
 
-- [ ] All actions are previewed before execution
-- [ ] Duplicate detection is hash-based and correct
-- [ ] Rollback works across sessions and is reliable
-- [ ] PDFs are processed for content analysis
-- [ ] Gemini is integrated safely (advisory only)
-- [ ] UI is fully localized (German default)
-- [ ] Wizard UI is implemented
-- [ ] All tests pass
+## Non-Negotiables
 
----
+- [x] No execution without preview
+- [x] Paths stay inside the selected root
+- [x] Gemini remains advisory only
+- [x] Duplicate identity is hash-based, not filename-based
+- [ ] All rollback guarantees covered by dedicated tests
 
-# 🧠 Guiding Principle
+## Guiding Principle
 
-This system must prioritize:
+Users should always be able to understand:
 
-👉 Safety  
-👉 Transparency  
-👉 Reversibility  
+- what will happen
+- why it is proposed
+- what can be undone
 
-Over speed or automation.
-
-Users must always remain in control.
+Safety, transparency, and reversibility still outrank automation speed.
