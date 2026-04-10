@@ -23,7 +23,7 @@ public sealed class JsonExecutionJournalStore : IExecutionJournalStore
     public async Task SaveAsync(ExecutionJournal journal, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(appStoragePaths.JournalDirectory);
-        var path = Path.Combine(appStoragePaths.JournalDirectory, $"{journal.CreatedAtUtc:yyyyMMdd_HHmmss}_{journal.JournalId:N}.json");
+        var path = GetJournalPath(journal);
 
         await using var stream = File.Create(path);
         await JsonSerializer.SerializeAsync(stream, journal, SerializerOptions, cancellationToken);
@@ -41,7 +41,48 @@ public sealed class JsonExecutionJournalStore : IExecutionJournalStore
             return null;
         }
 
-        await using var stream = File.OpenRead(latestFile);
+        return await LoadFromPathAsync(latestFile, cancellationToken);
+    }
+
+    public async Task<ExecutionJournal?> LoadAsync(Guid journalId, CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(appStoragePaths.JournalDirectory);
+        var journalFile = Directory.EnumerateFiles(appStoragePaths.JournalDirectory, $"*_{journalId:N}.json")
+            .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
+
+        return string.IsNullOrWhiteSpace(journalFile)
+            ? null
+            : await LoadFromPathAsync(journalFile, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ExecutionJournal>> LoadAllAsync(CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(appStoragePaths.JournalDirectory);
+
+        var files = Directory.EnumerateFiles(appStoragePaths.JournalDirectory, "*.json")
+            .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var journals = new List<ExecutionJournal>(files.Count);
+        foreach (var file in files)
+        {
+            var journal = await LoadFromPathAsync(file, cancellationToken);
+            if (journal is not null)
+            {
+                journals.Add(journal);
+            }
+        }
+
+        return journals;
+    }
+
+    private string GetJournalPath(ExecutionJournal journal) =>
+        Path.Combine(appStoragePaths.JournalDirectory, $"{journal.CreatedAtUtc:yyyyMMdd_HHmmss}_{journal.JournalId:N}.json");
+
+    private async Task<ExecutionJournal?> LoadFromPathAsync(string path, CancellationToken cancellationToken)
+    {
+        await using var stream = File.OpenRead(path);
         return await JsonSerializer.DeserializeAsync<ExecutionJournal>(stream, SerializerOptions, cancellationToken);
     }
 }

@@ -134,6 +134,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<RollbackFolderItem> RollbackFolderGroups { get; } = [];
 
+    public ObservableCollection<RollbackJournalItem> RollbackHistory { get; } = [];
+
+    public ObservableCollection<RollbackPreviewItem> RollbackPreviewEntries { get; } = [];
+
     public ICollectionView PlanView { get; }
 
     public ObservableCollection<UiLogEntry> LogEntries { get; }
@@ -317,6 +321,21 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private bool hasRollbackFolderGroups;
 
     [ObservableProperty]
+    private bool hasRollbackHistory;
+
+    [ObservableProperty]
+    private RollbackJournalItem? selectedRollbackJournal;
+
+    [ObservableProperty]
+    private bool hasSelectedRollbackJournal;
+
+    [ObservableProperty]
+    private string selectedRollbackJournalSummary = string.Empty;
+
+    [ObservableProperty]
+    private bool hasRollbackPreviewEntries;
+
+    [ObservableProperty]
     private PlanOperationItemViewModel? selectedOperation;
 
     [ObservableProperty]
@@ -351,6 +370,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             var settings = await appSettingsStore.LoadAsync(CancellationToken.None);
             ApplySettings(settings);
+            await RefreshRollbackHistoryAsync(CancellationToken.None);
             logger.LogInformation("Settings loaded from user profile.");
         }
         catch (Exception exception)
@@ -560,7 +580,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 logger.LogInformation(message);
             }
 
-            PopulateRollbackFolderGroups(outcome.Journal);
+            await RefreshRollbackHistoryAsync(CancellationToken.None, outcome.Journal?.JournalId);
             dialogService.ShowInformation(GetString("DialogExecutionFinishedTitle"), outcome.Summary);
         }
         catch (OperationCanceledException)
@@ -603,11 +623,54 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 logger.LogInformation(message);
             }
 
+            await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal?.JournalId);
             dialogService.ShowInformation(GetString("DialogRollbackFinishedTitle"), outcome.Summary);
         }
         catch (Exception exception)
         {
             logger.LogError(exception, "Rollback failed.");
+            dialogService.ShowError(GetString("DialogRollbackFailedTitle"), exception.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task RollbackSelectedAsync()
+    {
+        if (SelectedRollbackJournal is null)
+        {
+            dialogService.ShowInformation(GetString("DialogRollbackSelectionRequiredTitle"), GetString("DialogRollbackSelectionRequiredBody"));
+            return;
+        }
+
+        if (!dialogService.Confirm(
+                GetString("DialogRollbackSelectedTitle"),
+                FormatString("DialogRollbackSelectedBody", SelectedRollbackJournal.Label)))
+        {
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+            var outcome = await rollbackService.RollbackAsync(SelectedRollbackJournal.JournalId, CancellationToken.None);
+            StatusMessage = outcome.Summary;
+            logger.LogInformation(outcome.Summary);
+
+            foreach (var message in outcome.Messages)
+            {
+                logger.LogInformation(message);
+            }
+
+            await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal.JournalId);
+            dialogService.ShowInformation(GetString("DialogRollbackFinishedTitle"), outcome.Summary);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Rollback for selected journal failed.");
             dialogService.ShowError(GetString("DialogRollbackFailedTitle"), exception.Message);
         }
         finally
@@ -629,7 +692,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             IsBusy = true;
-            var outcome = await rollbackService.RollbackFolderAsync(folderName, CancellationToken.None);
+            var outcome = SelectedRollbackJournal is null
+                ? await rollbackService.RollbackFolderAsync(folderName, CancellationToken.None)
+                : await rollbackService.RollbackFolderAsync(SelectedRollbackJournal.JournalId, folderName, CancellationToken.None);
             StatusMessage = outcome.Summary;
             logger.LogInformation(outcome.Summary);
 
@@ -638,6 +703,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 logger.LogInformation(message);
             }
 
+            await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal?.JournalId);
             dialogService.ShowInformation(GetString("DialogUndoFinishedTitle"), outcome.Summary);
         }
         catch (Exception exception)
@@ -693,6 +759,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnRootDirectoryChanged(string value) => NotifyWizardNavigationChanged();
 
     partial void OnIsBusyChanged(bool value) => NotifyWizardNavigationChanged();
+
+    partial void OnSelectedRollbackJournalChanged(RollbackJournalItem? value)
+    {
+        HasSelectedRollbackJournal = value is not null;
+
+        if (value is null)
+        {
+            SelectedRollbackJournalSummary = string.Empty;
+            RollbackPreviewEntries.Clear();
+            HasRollbackPreviewEntries = false;
+            PopulateRollbackFolderGroups(null);
+            return;
+        }
+
+        _ = LoadRollbackJournalSelectionAsync(value.JournalId);
+    }
 
     private void RefreshLocalizedOptionCollections()
     {
@@ -1176,11 +1258,117 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         foreach (var group in groups)
         {
-            RollbackFolderGroups.Add(new RollbackFolderItem { FolderName = group.Key, Count = group.Count() });
+            RollbackFolderGroups.Add(new RollbackFolderItem
+            {
+                FolderName = group.Key,
+                Count = group.Count(),
+                Label = FormatString("RollbackFolderItemLabel", group.Key, group.Count())
+            });
         }
 
         HasRollbackFolderGroups = true;
     }
+
+    private async Task RefreshRollbackHistoryAsync(CancellationToken cancellationToken, Guid? preferredJournalId = null)
+    {
+        RollbackHistory.Clear();
+
+        var journals = await rollbackService.LoadHistoryAsync(cancellationToken);
+        foreach (var journal in journals)
+        {
+            RollbackHistory.Add(new RollbackJournalItem
+            {
+                JournalId = journal.JournalId,
+                CreatedAtUtc = journal.CreatedAtUtc,
+                Status = journal.Status,
+                OperationCount = journal.Entries.Count,
+                Label = FormatString(
+                    "RollbackHistoryItemLabel",
+                    journal.CreatedAtUtc.ToLocalTime(),
+                    journal.Entries.Count,
+                    GetJournalStatusLabel(journal.Status))
+            });
+        }
+
+        HasRollbackHistory = RollbackHistory.Count > 0;
+        var selectedJournalId = preferredJournalId ?? SelectedRollbackJournal?.JournalId;
+        SelectedRollbackJournal = RollbackHistory.FirstOrDefault(item => item.JournalId == selectedJournalId) ??
+                                  RollbackHistory.FirstOrDefault();
+    }
+
+    private async Task LoadRollbackJournalSelectionAsync(Guid journalId)
+    {
+        try
+        {
+            var journal = await rollbackService.LoadJournalAsync(journalId, CancellationToken.None);
+            PopulateRollbackFolderGroups(journal);
+            await PopulateRollbackPreviewEntriesAsync(journalId);
+            SelectedRollbackJournalSummary = journal is null
+                ? string.Empty
+                : FormatString(
+                    "RollbackHistorySelectedSummary",
+                    journal.CreatedAtUtc.ToLocalTime(),
+                    journal.Entries.Count,
+                    GetJournalStatusLabel(journal.Status),
+                    journal.RootDirectory);
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Loading rollback journal selection failed.");
+            SelectedRollbackJournalSummary = string.Empty;
+            RollbackPreviewEntries.Clear();
+            HasRollbackPreviewEntries = false;
+            PopulateRollbackFolderGroups(null);
+        }
+    }
+
+    private async Task PopulateRollbackPreviewEntriesAsync(Guid journalId)
+    {
+        RollbackPreviewEntries.Clear();
+        var preview = await rollbackService.PreviewRollbackAsync(journalId, CancellationToken.None);
+
+        if (preview.Journal is null || preview.Entries.Count == 0)
+        {
+            HasRollbackPreviewEntries = false;
+            return;
+        }
+
+        foreach (var entry in preview.Entries
+                     .OrderByDescending(item => item.ExecutedAtUtc)
+                     .ThenBy(item => item.DestinationFullPath, StringComparer.OrdinalIgnoreCase))
+        {
+            RollbackPreviewEntries.Add(new RollbackPreviewItem
+            {
+                ExecutedAtLocal = entry.ExecutedAtUtc.ToLocalTime(),
+                SourceRelativePath = GetRelativePathWithinRoot(preview.Journal.RootDirectory, entry.SourceFullPath),
+                DestinationRelativePath = GetRelativePathWithinRoot(preview.Journal.RootDirectory, entry.DestinationFullPath),
+                Outcome = entry.Outcome,
+                Notes = entry.Notes,
+                PreviewStatus = GetRollbackPreviewStatusLabel(entry.PreviewStatus),
+                PreviewMessage = entry.PreviewMessage
+            });
+        }
+
+        HasRollbackPreviewEntries = RollbackPreviewEntries.Count > 0;
+    }
+
+    private string GetJournalStatusLabel(ExecutionJournalStatus status) =>
+        status switch
+        {
+            ExecutionJournalStatus.Started => GetString("RollbackStatusStarted"),
+            ExecutionJournalStatus.Completed => GetString("RollbackStatusCompleted"),
+            ExecutionJournalStatus.Canceled => GetString("RollbackStatusCanceled"),
+            _ => status.ToString()
+        };
+
+    private string GetRollbackPreviewStatusLabel(RollbackPreviewStatus status) =>
+        status switch
+        {
+            RollbackPreviewStatus.Ready => GetString("RollbackPreviewStatusReady"),
+            RollbackPreviewStatus.MissingDestination => GetString("RollbackPreviewStatusMissingDestination"),
+            RollbackPreviewStatus.OriginalPathOccupied => GetString("RollbackPreviewStatusOriginalPathOccupied"),
+            _ => status.ToString()
+        };
 
     private void PopulateStrategyRecommendations(OrganizationPlan plan)
     {
@@ -1219,6 +1407,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         var relative = destinationFullPath[rootDirectory.Length..].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         return relative.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], 2)[0];
+    }
+
+    private static string GetRelativePathWithinRoot(string rootDirectory, string fullPath)
+    {
+        if (!fullPath.StartsWith(rootDirectory, StringComparison.OrdinalIgnoreCase))
+        {
+            return fullPath;
+        }
+
+        return fullPath[rootDirectory.Length..].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
     }
 
     private static List<string> ParseList(string value) =>

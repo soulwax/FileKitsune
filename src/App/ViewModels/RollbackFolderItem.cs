@@ -6,5 +6,5 @@ public sealed class RollbackFolderItem
 
     public int Count { get; init; }
 
-    public string Label => $"↩ Undo \"{FolderName}\" ({Count} file{(Count == 1 ? "" : "s")})";
+    public string Label { get; init; } = string.Empty;
 }

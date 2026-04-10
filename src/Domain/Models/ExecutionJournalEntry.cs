@@ -1,16 +1,32 @@
+using FileTransformer.Domain.Enums;
+
 namespace FileTransformer.Domain.Models;
 
 public sealed class ExecutionJournalEntry
 {
-    public Guid OperationId { get; init; }
+    public Guid OperationId { get; set; }
 
-    public string SourceFullPath { get; init; } = string.Empty;
+    public string SourceFullPath { get; set; } = string.Empty;
 
-    public string DestinationFullPath { get; init; } = string.Empty;
+    public string DestinationFullPath { get; set; } = string.Empty;
 
-    public DateTimeOffset ExecutedAtUtc { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset ExecutedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 
-    public string Outcome { get; init; } = string.Empty;
+    public string Outcome { get; set; } = string.Empty;
 
-    public string Notes { get; init; } = string.Empty;
+    public string Notes { get; set; } = string.Empty;
+
+    public bool DestinationExistedBeforeMove { get; set; }
+
+    public long? FileSizeBytes { get; set; }
+
+    public DateTimeOffset? SourceCreatedUtc { get; set; }
+
+    public DateTimeOffset? SourceModifiedUtc { get; set; }
+
+    public RollbackEntryStatus RollbackStatus { get; set; } = RollbackEntryStatus.NotAttempted;
+
+    public DateTimeOffset? LastRollbackAttemptedAtUtc { get; set; }
+
+    public string RollbackMessage { get; set; } = string.Empty;
 }

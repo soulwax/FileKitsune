@@ -88,6 +88,8 @@ ViewModels/
  PlanFilterMode.cs
  PlanOperationItemViewModel.cs
  RollbackFolderItem.cs
+ RollbackJournalItem.cs
+ RollbackPreviewItem.cs
  WizardStep.cs
 Views/
  MainWindow.xaml.cs

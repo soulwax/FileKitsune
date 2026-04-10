@@ -35,9 +35,31 @@
                                    Foreground="{StaticResource MutedTextBrush}"
                                    TextWrapping="Wrap"
                                    Text="{DynamicResource RollbackBody}" />
+                        <StackPanel Margin="0,0,0,8"
+                                    Visibility="{Binding HasRollbackHistory, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                       FontSize="12"
+                                       Text="{DynamicResource RollbackHistoryLabel}" />
+                            <TextBlock Margin="0,4,0,8"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       TextWrapping="Wrap"
+                                       Text="{DynamicResource RollbackHistoryHint}" />
+                            <ComboBox ItemsSource="{Binding RollbackHistory}"
+                                      DisplayMemberPath="Label"
+                                      SelectedItem="{Binding SelectedRollbackJournal}" />
+                            <TextBlock Margin="0,8,0,8"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       TextWrapping="Wrap"
+                                       Text="{Binding SelectedRollbackJournalSummary}" />
+                        </StackPanel>
                         <Button Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{Binding RollbackLatestCommand}"
                                 Content="{DynamicResource RollbackButton}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+                        <Button Margin="0,8,0,0"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding RollbackSelectedCommand}"
+                                Content="{DynamicResource RollbackSelectedButton}"
                                 IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
                         <StackPanel Margin="0,8,0,0"
                                     Visibility="{Binding HasRollbackFolderGroups, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -101,6 +123,60 @@
                         <TextBlock Text="{Binding SelectedOperation.Reason}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
+            </TabItem>
+
+            <TabItem Header="{DynamicResource RollbackPreviewTitle}">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                               TextWrapping="Wrap"
+                               Text="{DynamicResource RollbackPreviewHint}" />
+
+                    <Grid Grid.Row="1"
+                          Margin="0,12,0,0"
+                          Visibility="{Binding HasRollbackPreviewEntries, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <DataGrid AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  HeadersVisibility="Column"
+                                  IsReadOnly="True"
+                                  ItemsSource="{Binding RollbackPreviewEntries}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Binding="{Binding ExecutedAtLocal, StringFormat={}{0:g}}"
+                                                    Header="{DynamicResource RollbackPreviewWhenColumn}" />
+                                <DataGridTextColumn Binding="{Binding DestinationRelativePath}"
+                                                    Header="{DynamicResource RollbackPreviewCurrentColumn}"
+                                                    Width="2*" />
+                                <DataGridTextColumn Binding="{Binding SourceRelativePath}"
+                                                    Header="{DynamicResource RollbackPreviewRestoreToColumn}"
+                                                    Width="2*" />
+                                <DataGridTextColumn Binding="{Binding PreviewStatus}"
+                                                    Header="{DynamicResource RollbackPreviewStatusColumn}" />
+                                <DataGridTextColumn Binding="{Binding Outcome}"
+                                                    Header="{DynamicResource RollbackPreviewOutcomeColumn}" />
+                                <DataGridTextColumn Binding="{Binding PreviewMessage}"
+                                                    Header="{DynamicResource RollbackPreviewExpectedColumn}"
+                                                    Width="2*" />
+                                <DataGridTextColumn Binding="{Binding Notes}"
+                                                    Header="{DynamicResource RollbackPreviewReasonColumn}"
+                                                    Width="2*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+
+                    <Border Grid.Row="1"
+                            Margin="0,12,0,0"
+                            Style="{StaticResource CardBorderStyle}"
+                            Visibility="{Binding HasRollbackPreviewEntries, Converter={StaticResource InverseBooleanConverter}}">
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource RollbackPreviewEmpty}" />
+                    </Border>
+                </Grid>
             </TabItem>
 
             <TabItem Header="{DynamicResource LogsTitle}">

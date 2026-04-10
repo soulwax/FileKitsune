@@ -1,5 +1,6 @@
 using FileTransformer.Application.Abstractions;
 using FileTransformer.Application.Models;
+using FileTransformer.Domain.Enums;
 using FileTransformer.Domain.Models;
 using Microsoft.Extensions.Logging;
 
@@ -25,28 +26,70 @@ public sealed class RollbackService
     public async Task<ExecutionOutcome> RollbackLatestAsync(CancellationToken cancellationToken)
     {
         var journal = await executionJournalStore.LoadLatestAsync(cancellationToken);
-        if (journal is null || journal.Entries.Count == 0)
-        {
-            return new ExecutionOutcome
-            {
-                Summary = "No rollback journal was found."
-            };
-        }
+        return journal is null || journal.Entries.Count == 0
+            ? CreateNoJournalOutcome()
+            : await RollbackEntriesAsync(journal, journal.Entries, cancellationToken);
+    }
 
-        return await RollbackEntriesAsync(journal.Entries, journal.RootDirectory, cancellationToken);
+    public async Task<ExecutionOutcome> RollbackAsync(Guid journalId, CancellationToken cancellationToken)
+    {
+        var journal = await executionJournalStore.LoadAsync(journalId, cancellationToken);
+        return journal is null || journal.Entries.Count == 0
+            ? CreateNoJournalOutcome()
+            : await RollbackEntriesAsync(journal, journal.Entries, cancellationToken);
     }
 
     public async Task<ExecutionOutcome> RollbackFolderAsync(string folderPrefix, CancellationToken cancellationToken)
     {
         var journal = await executionJournalStore.LoadLatestAsync(cancellationToken);
+        return journal is null || journal.Entries.Count == 0
+            ? CreateNoJournalOutcome()
+            : await RollbackFolderAsync(journal, folderPrefix, cancellationToken);
+    }
+
+    public async Task<ExecutionOutcome> RollbackFolderAsync(Guid journalId, string folderPrefix, CancellationToken cancellationToken)
+    {
+        var journal = await executionJournalStore.LoadAsync(journalId, cancellationToken);
+        return journal is null || journal.Entries.Count == 0
+            ? CreateNoJournalOutcome()
+            : await RollbackFolderAsync(journal, folderPrefix, cancellationToken);
+    }
+
+    public Task<IReadOnlyList<ExecutionJournal>> LoadHistoryAsync(CancellationToken cancellationToken) =>
+        executionJournalStore.LoadAllAsync(cancellationToken);
+
+    public Task<ExecutionJournal?> LoadJournalAsync(Guid journalId, CancellationToken cancellationToken) =>
+        executionJournalStore.LoadAsync(journalId, cancellationToken);
+
+    public async Task<RollbackPreview> PreviewRollbackAsync(Guid journalId, CancellationToken cancellationToken)
+    {
+        var journal = await executionJournalStore.LoadAsync(journalId, cancellationToken);
+        return BuildPreview(journal, journal?.Entries);
+    }
+
+    public async Task<RollbackPreview> PreviewRollbackFolderAsync(Guid journalId, string folderPrefix, CancellationToken cancellationToken)
+    {
+        var journal = await executionJournalStore.LoadAsync(journalId, cancellationToken);
         if (journal is null || journal.Entries.Count == 0)
         {
-            return new ExecutionOutcome
-            {
-                Summary = "No rollback journal was found."
-            };
+            return new RollbackPreview();
         }
 
+        var folderFullPath = Path.Combine(journal.RootDirectory, folderPrefix);
+        var entries = journal.Entries
+            .Where(entry =>
+                entry.DestinationFullPath.StartsWith(folderFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(Path.GetDirectoryName(entry.DestinationFullPath), folderFullPath, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        return BuildPreview(journal, entries);
+    }
+
+    private async Task<ExecutionOutcome> RollbackFolderAsync(
+        ExecutionJournal journal,
+        string folderPrefix,
+        CancellationToken cancellationToken)
+    {
         var folderFullPath = Path.Combine(journal.RootDirectory, folderPrefix);
         var entries = journal.Entries
             .Where(entry =>
@@ -62,12 +105,18 @@ public sealed class RollbackService
             };
         }
 
-        return await RollbackEntriesAsync(entries, journal.RootDirectory, cancellationToken);
+        return await RollbackEntriesAsync(journal, entries, cancellationToken);
     }
 
+    private static ExecutionOutcome CreateNoJournalOutcome() =>
+        new()
+        {
+            Summary = "No rollback journal was found."
+        };
+
     private async Task<ExecutionOutcome> RollbackEntriesAsync(
+        ExecutionJournal journal,
         IEnumerable<ExecutionJournalEntry> entries,
-        string rootDirectory,
         CancellationToken cancellationToken)
     {
         var successCount = 0;
@@ -78,20 +127,25 @@ public sealed class RollbackService
         foreach (var entry in entries.OrderByDescending(item => item.ExecutedAtUtc))
         {
             cancellationToken.ThrowIfCancellationRequested();
+            entry.LastRollbackAttemptedAtUtc = DateTimeOffset.UtcNow;
 
             try
             {
                 if (!fileOperations.FileExists(entry.DestinationFullPath))
                 {
                     skippedCount++;
-                    messages.Add($"Skipped '{entry.DestinationFullPath}': file no longer at destination.");
+                    entry.RollbackStatus = RollbackEntryStatus.SkippedMissingDestination;
+                    entry.RollbackMessage = $"Skipped '{entry.DestinationFullPath}': file no longer at destination.";
+                    messages.Add(entry.RollbackMessage);
                     continue;
                 }
 
                 if (fileOperations.FileExists(entry.SourceFullPath))
                 {
                     skippedCount++;
-                    messages.Add($"Skipped '{entry.DestinationFullPath}': a file already exists at the original path '{entry.SourceFullPath}'.");
+                    entry.RollbackStatus = RollbackEntryStatus.SkippedOriginalPathOccupied;
+                    entry.RollbackMessage = $"Skipped '{entry.DestinationFullPath}': a file already exists at the original path '{entry.SourceFullPath}'.";
+                    messages.Add(entry.RollbackMessage);
                     continue;
                 }
 
@@ -102,19 +156,23 @@ public sealed class RollbackService
                 }
 
                 await fileOperations.MoveFileAsync(entry.DestinationFullPath, entry.SourceFullPath, cancellationToken);
+                entry.RollbackStatus = RollbackEntryStatus.Restored;
+                entry.RollbackMessage = $"Restored '{entry.DestinationFullPath}' to '{entry.SourceFullPath}'.";
                 successCount++;
             }
             catch (Exception exception)
             {
                 failedCount++;
+                entry.RollbackStatus = RollbackEntryStatus.Failed;
+                entry.RollbackMessage = $"Rollback failed for '{entry.DestinationFullPath}': {exception.Message}";
                 logger.LogError(exception, "Rollback failed for {Path}", entry.DestinationFullPath);
-                messages.Add($"Rollback failed for '{entry.DestinationFullPath}': {exception.Message}");
+                messages.Add(entry.RollbackMessage);
             }
         }
 
         try
         {
-            var removedFolders = await fileOperations.RemoveEmptyDirectoriesAsync(rootDirectory, cancellationToken);
+            var removedFolders = await fileOperations.RemoveEmptyDirectoriesAsync(journal.RootDirectory, cancellationToken);
             if (removedFolders.Count > 0)
             {
                 messages.Add($"Removed {removedFolders.Count} empty folder(s) left behind by the rolled-back run.");
@@ -126,6 +184,8 @@ public sealed class RollbackService
             logger.LogWarning(exception, "Failed to remove empty directories after rollback.");
         }
 
+        await executionJournalStore.SaveAsync(journal, cancellationToken);
+
         return new ExecutionOutcome
         {
             RequestedOperations = successCount + skippedCount + failedCount,
@@ -134,6 +194,65 @@ public sealed class RollbackService
             FailedOperations = failedCount,
             Summary = $"Rolled back {successCount} operation(s), skipped {skippedCount}, failed {failedCount}.",
             Messages = messages
+        };
+    }
+
+    private RollbackPreview BuildPreview(ExecutionJournal? journal, IEnumerable<ExecutionJournalEntry>? entries)
+    {
+        if (journal is null || entries is null)
+        {
+            return new RollbackPreview();
+        }
+
+        return new RollbackPreview
+        {
+            Journal = journal,
+            Entries = entries
+                .OrderByDescending(item => item.ExecutedAtUtc)
+                .Select(CreatePreviewEntry)
+                .ToList()
+        };
+    }
+
+    private RollbackPreviewEntry CreatePreviewEntry(ExecutionJournalEntry entry)
+    {
+        if (!fileOperations.FileExists(entry.DestinationFullPath))
+        {
+            return new RollbackPreviewEntry
+            {
+                ExecutedAtUtc = entry.ExecutedAtUtc,
+                SourceFullPath = entry.SourceFullPath,
+                DestinationFullPath = entry.DestinationFullPath,
+                Outcome = entry.Outcome,
+                Notes = entry.Notes,
+                PreviewStatus = RollbackPreviewStatus.MissingDestination,
+                PreviewMessage = "File no longer exists at the rollback source location."
+            };
+        }
+
+        if (fileOperations.FileExists(entry.SourceFullPath))
+        {
+            return new RollbackPreviewEntry
+            {
+                ExecutedAtUtc = entry.ExecutedAtUtc,
+                SourceFullPath = entry.SourceFullPath,
+                DestinationFullPath = entry.DestinationFullPath,
+                Outcome = entry.Outcome,
+                Notes = entry.Notes,
+                PreviewStatus = RollbackPreviewStatus.OriginalPathOccupied,
+                PreviewMessage = "Original path is already occupied and would be skipped."
+            };
+        }
+
+        return new RollbackPreviewEntry
+        {
+            ExecutedAtUtc = entry.ExecutedAtUtc,
+            SourceFullPath = entry.SourceFullPath,
+            DestinationFullPath = entry.DestinationFullPath,
+            Outcome = entry.Outcome,
+            Notes = entry.Notes,
+            PreviewStatus = RollbackPreviewStatus.Ready,
+            PreviewMessage = "Ready to restore."
         };
     }
 }

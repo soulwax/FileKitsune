@@ -16,6 +16,10 @@ Completed and usable today:
 - [x] exact duplicate detection using size pre-filtering + SHA-256
 - [x] duplicate review surfaced in preview
 - [x] latest-run rollback
+- [x] rollback backend can target a specific journal id
+- [x] saved-run selection for full-run rollback and folder-scoped undo in the execute step
+- [x] Add rollback preview for the selected saved run
+- [x] Show expected rollback readiness/conflict states in the rollback preview
 - [x] preview-first execution model
 - [x] settings persistence including UI language and Gemini settings
 
@@ -89,23 +93,26 @@ Validated baseline:
 
 ## 8. Rollback Upgrade
 
-- [ ] Add journal versioning
-- [ ] Persist richer journal entry metadata: hash, size, timestamps, rollback status
-- [ ] Save execution journal header before mutation starts
-- [ ] Append successful operations during execution
+- [x] Add journal versioning
+- [ ] Persist richer journal entry metadata: hash, size, timestamps
+- [x] Persist rollback status and last rollback attempt message on journal entries
+- [x] Save execution journal header before mutation starts
+- [x] Append successful operations during execution
 - [ ] Mark runs complete after execution
-- [ ] Support historical run selection
-- [ ] Add rollback preview
-- [ ] Handle missing files, conflicts, and repeated rollback cleanly
-- [ ] Make rollback idempotent by design and by tests
+- [x] Support historical run selection in backend services/store
+- [x] Support historical run selection for folder-scoped undo in the UI
+- [x] Support historical run selection for full-run rollback in the UI
+- [x] Add rollback preview
+- [x] Handle missing files, conflicts, and repeated rollback cleanly
+- [x] Make rollback idempotent by design and by tests
 
 ## 9. Test Coverage
 
-- [ ] Add `RollbackServiceTests`
-- [ ] Cover full rollback
-- [ ] Cover partial rollback
-- [ ] Cover rollback conflict handling
-- [ ] Cover repeated rollback/idempotency
+- [x] Add `RollbackServiceTests`
+- [x] Cover full rollback
+- [x] Cover partial rollback
+- [x] Cover rollback conflict handling
+- [x] Cover repeated rollback/idempotency
 - [ ] Add duplicate hashing tests
 - [ ] Add duplicate rollback tests
 - [ ] Add PDF extraction tests
@@ -115,7 +122,8 @@ Validated baseline:
 
 Highest-value next work:
 
-- [ ] harden rollback journaling and history selection
+- [ ] improve rollback preview into a clearer diff-style confirmation experience
+- [ ] finish richer journal metadata and completion semantics
 
 Why this is next:
 
@@ -129,7 +137,7 @@ Why this is next:
 - [x] Paths stay inside the selected root
 - [x] Gemini remains advisory only
 - [x] Duplicate identity is hash-based, not filename-based
-- [ ] All rollback guarantees covered by dedicated tests
+- [x] Core rollback scenarios and preview states covered by dedicated tests
 
 ## Guiding Principle
 

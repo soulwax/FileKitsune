@@ -62,6 +62,7 @@ Application/
  OrganizationWorkflowServiceTests.cs
  PathSafetyServiceTests.cs
  PlanExecutionServiceTests.cs
+ RollbackServiceTests.cs
  StrategyRecommendationServiceTests.cs
 Infrastructure/GeminiResponseParserTests.cs
 obj/Debug/net8.0/

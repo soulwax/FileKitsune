@@ -52,6 +52,46 @@ public sealed class PlanExecutionServiceTests
         Assert.EndsWith("(2).txt", fileOperations.Moves[0].Destination, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_PersistsJournalBeforeAndAfterSuccessfulOperations()
+    {
+        var sourcePath = Path.GetTempFileName();
+        var rootDirectory = Path.GetDirectoryName(sourcePath)!;
+        var sourceName = Path.GetFileName(sourcePath);
+        var destinationRelativePath = Path.Combine("Invoices", "2025", sourceName);
+        var destinationFullPath = Path.Combine(rootDirectory, destinationRelativePath);
+
+        try
+        {
+            var fileOperations = new FakeFileOperations(existingFiles: [sourcePath]);
+            var journalStore = new InMemoryJournalStore();
+            var service = new PlanExecutionService(fileOperations, journalStore, new PathSafetyService(), NullLogger<PlanExecutionService>.Instance);
+            var operation = CreateOperation(sourceName, destinationRelativePath);
+            var plan = CreatePlan(rootDirectory, ConflictHandlingMode.AppendCounter, operation);
+
+            var outcome = await service.ExecuteAsync(plan, [operation.Id], progress: null, CancellationToken.None);
+
+            Assert.Equal(1, outcome.SuccessfulOperations);
+            Assert.NotNull(journalStore.LastSavedJournal);
+            Assert.Equal(3, journalStore.SaveCount);
+            Assert.Equal(ExecutionJournalStatus.Completed, journalStore.LastSavedJournal!.Status);
+            Assert.Single(journalStore.LastSavedJournal.Entries);
+            Assert.Equal(destinationFullPath, journalStore.LastSavedJournal.Entries[0].DestinationFullPath);
+        }
+        finally
+        {
+            if (File.Exists(sourcePath))
+            {
+                File.Delete(sourcePath);
+            }
+
+            if (File.Exists(destinationFullPath))
+            {
+                File.Delete(destinationFullPath);
+            }
+        }
+    }
+
     private static PlanOperation CreateOperation(string currentRelativePath, string proposedRelativePath) =>
         new()
         {
@@ -63,17 +103,20 @@ public sealed class PlanExecutionServiceTests
             Reason = "Test move"
         };
 
-    private static OrganizationPlan CreatePlan(ConflictHandlingMode conflictHandlingMode, PlanOperation operation) =>
+    private static OrganizationPlan CreatePlan(string rootDirectory, ConflictHandlingMode conflictHandlingMode, PlanOperation operation) =>
         new()
         {
             Settings = new OrganizationSettings
             {
-                RootDirectory = @"C:\Root",
+                RootDirectory = rootDirectory,
                 ConflictHandlingMode = conflictHandlingMode
             },
             Operations = [operation],
             Summary = new PlanSummary { TotalItems = 1, MoveCount = 1 }
         };
+
+    private static OrganizationPlan CreatePlan(ConflictHandlingMode conflictHandlingMode, PlanOperation operation) =>
+        CreatePlan(@"C:\Root", conflictHandlingMode, operation);
 
     private sealed class FakeFileOperations : IFileOperations
     {
@@ -108,13 +151,22 @@ public sealed class PlanExecutionServiceTests
     {
         public ExecutionJournal? LastSavedJournal { get; private set; }
 
+        public int SaveCount { get; private set; }
+
         public Task SaveAsync(ExecutionJournal journal, CancellationToken cancellationToken)
         {
             LastSavedJournal = journal;
+            SaveCount++;
             return Task.CompletedTask;
         }
 
         public Task<ExecutionJournal?> LoadLatestAsync(CancellationToken cancellationToken) =>
             Task.FromResult(LastSavedJournal);
+
+        public Task<ExecutionJournal?> LoadAsync(Guid journalId, CancellationToken cancellationToken) =>
+            Task.FromResult(LastSavedJournal?.JournalId == journalId ? LastSavedJournal : null);
+
+        public Task<IReadOnlyList<ExecutionJournal>> LoadAllAsync(CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<ExecutionJournal>>(LastSavedJournal is null ? [] : [LastSavedJournal]);
     }
 }

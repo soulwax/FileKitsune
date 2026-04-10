@@ -13,7 +13,12 @@ The app already has:
 - strategy presets and recommendation cards
 - exact duplicate detection using size pre-filtering and SHA-256
 - duplicate review surfaced in preview
-- latest-run rollback
+- latest-run rollback in the UI
+- backend rollback history loading and append-safer journaling
+- saved-run selection in the execute step for full rollback and folder-scoped undo
+- rollback preview tab for the selected saved run
+- rollback preview now includes expected readiness/conflict states
+- journal entries persist rollback status and last rollback attempt details
 
 ## Preserve These Constraints
 
@@ -26,12 +31,12 @@ The app already has:
 
 ## Highest-Value Next Task
 
-Start the rollback hardening slice:
+Continue the rollback slice in the UI and journal model:
 
-1. inspect `PlanExecutionService` and `RollbackService`
-2. design append-safe journal persistence
-3. add support for loading more than the latest run
-4. add rollback-focused tests before or alongside behavior changes
+1. inspect `MainWindowViewModel` execute/rollback step
+2. improve rollback preview into a stronger confirmation/diff experience
+3. finish richer journal metadata, especially content hash coverage
+4. extend journal metadata only in ways that keep existing rollback behavior stable
 
 ## Key Files
 

@@ -61,6 +61,7 @@ Enums/
  DateSourceKind.cs
  DetectedLanguageContext.cs
  DuplicateHandlingMode.cs
+ ExecutionJournalStatus.cs
  ExecutionMode.cs
  FilenameLanguagePolicy.cs
  FileRenameMode.cs
@@ -70,6 +71,7 @@ Enums/
  PathSegmentKind.cs
  PlanOperationType.cs
  RiskLevel.cs
+ RollbackEntryStatus.cs
 Models/
  DateResolution.cs
  DuplicatePolicy.cs
@@ -100,7 +102,7 @@ Services/
  WindowsPathRules.cs
 
 [metadataReferences]
-<NUGET>/microsoft.netcore.app.ref/8.0.25/ref/net8.0/
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.25/ref/net8.0/
  Microsoft.CSharp.dll
  Microsoft.VisualBasic.Core.dll
  Microsoft.VisualBasic.dll
@@ -266,16 +268,16 @@ Services/
  WindowsBase.dll
 
 [analyzerReferences]
-<DOTNET>/sdk/10.0.201/Sdks/Microsoft.NET.Sdk/analyzers/
- Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
- Microsoft.CodeAnalysis.NetAnalyzers.dll
-<NUGET>/microsoft.netcore.app.ref/8.0.25/analyzers/dotnet/cs/
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.25/analyzers/dotnet/cs/
  Microsoft.Interop.ComInterfaceGenerator.dll
  Microsoft.Interop.JavaScript.JSImportGenerator.dll
  Microsoft.Interop.LibraryImportGenerator.dll
  Microsoft.Interop.SourceGeneration.dll
  System.Text.Json.SourceGeneration.dll
  System.Text.RegularExpressions.Generator.dll
+<DOTNET>/sdk/10.0.201/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
 
 [analyzerConfigFiles]
 <DOTNET>/sdk/10.0.201/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_8_default.globalconfig
