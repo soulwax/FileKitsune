@@ -32,6 +32,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private CancellationTokenSource? currentCancellationTokenSource;
     private bool initialized;
     private bool suppressDuplicateSelection;
+    private bool suppressAnalysisProfileSelection;
 
     public MainWindowViewModel(
         IAppSettingsStore appSettingsStore,
@@ -67,6 +68,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ExecutionModes = [];
         DuplicateHandlingModes = [];
         FilenameLanguagePolicies = [];
+        AnalysisProfiles = [];
         AppLanguages =
         [
             new("de-DE", "Deutsch"),
@@ -84,6 +86,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         selectedExecutionMode = ExecutionModes[0];
         selectedDuplicateHandlingMode = DuplicateHandlingModes[0];
         selectedFilenameLanguagePolicy = FilenameLanguagePolicies[1];
+        selectedAnalysisProfile = AnalysisProfiles[1];
         maxFolderDepth = 4;
         mergeSparseCategories = false;
         sparseCategoryThreshold = 2;
@@ -124,6 +127,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<OptionItem<DuplicateHandlingMode>> DuplicateHandlingModes { get; }
 
     public ObservableCollection<OptionItem<FilenameLanguagePolicy>> FilenameLanguagePolicies { get; }
+
+    public ObservableCollection<OptionItem<string>> AnalysisProfiles { get; }
 
     public IReadOnlyList<OptionItem<string>> AppLanguages { get; }
 
@@ -210,7 +215,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string geminiApiKey = string.Empty;
 
     [ObservableProperty]
-    private string geminiModel = "gemini-1.5-flash";
+    private string geminiModel = "gemini-3.1-flash-lite-preview";
 
     [ObservableProperty]
     private int geminiMaxRequestsPerMinute = 30;
@@ -277,6 +282,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private OptionItem<FilenameLanguagePolicy>? selectedFilenameLanguagePolicy;
+
+    [ObservableProperty]
+    private OptionItem<string>? selectedAnalysisProfile;
 
     [ObservableProperty]
     private int maxFolderDepth;
@@ -812,6 +820,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
         StrategyDisplayName = value?.Label ?? string.Empty;
     }
 
+    partial void OnSelectedAnalysisProfileChanged(OptionItem<string>? value)
+    {
+        if (suppressAnalysisProfileSelection || value is null)
+        {
+            return;
+        }
+
+        ApplyAnalysisProfile(value.Value, updateSelection: false);
+    }
+
     partial void OnSelectedAppLanguageChanged(OptionItem<string>? value)
     {
         localizationService.ApplyLanguage(value?.Value ?? "de-DE");
@@ -860,6 +878,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var selectedExecutionModeValue = SelectedExecutionMode?.Value ?? ExecutionMode.HeuristicsPlusGeminiReviewFirst;
         var selectedDuplicateHandlingModeValue = SelectedDuplicateHandlingMode?.Value ?? DuplicateHandlingMode.RequireReview;
         var selectedFilenameLanguagePolicyValue = SelectedFilenameLanguagePolicy?.Value ?? FilenameLanguagePolicy.PreferGerman;
+        var selectedAnalysisProfileValue = SelectedAnalysisProfile?.Value ?? "standard";
 
         ResetOptions(RenameModes,
         [
@@ -933,6 +952,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
             new(FilenameLanguagePolicy.FolderLanguageOnly, GetString("OptionFilenameLanguageFolderOnly"))
         ]);
 
+        ResetOptions(AnalysisProfiles,
+        [
+            new("fast", GetString("OptionAnalysisProfileFast")),
+            new("standard", GetString("OptionAnalysisProfileStandard")),
+            new("deep", GetString("OptionAnalysisProfileDeep")),
+            new("custom", GetString("OptionAnalysisProfileCustom"))
+        ]);
+
         SelectedRenameMode = RenameModes.First(option => option.Value == selectedRenameModeValue);
         SelectedFolderLanguageMode = FolderLanguageModes.First(option => option.Value == selectedFolderLanguageModeValue);
         SelectedConflictMode = ConflictModes.First(option => option.Value == selectedConflictModeValue);
@@ -944,6 +971,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             DuplicateHandlingModes.First(option => option.Value == selectedDuplicateHandlingModeValue);
         SelectedFilenameLanguagePolicy =
             FilenameLanguagePolicies.First(option => option.Value == selectedFilenameLanguagePolicyValue);
+        SelectedAnalysisProfile = AnalysisProfiles.First(option => option.Value == selectedAnalysisProfileValue);
     }
 
     private void RefreshLocalizedState()
@@ -1007,6 +1035,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
             _ => true
         };
     }
+
+    partial void OnMaxFileSizeKbChanged(int value) => SyncAnalysisProfileSelection();
+
+    partial void OnPreviewSampleSizeChanged(int value) => SyncAnalysisProfileSelection();
+
+    partial void OnMaxFilesToScanChanged(int value) => SyncAnalysisProfileSelection();
+
+    partial void OnUseGeminiChanged(bool value) => SyncAnalysisProfileSelection();
+
+    partial void OnEnableExactDuplicateDetectionChanged(bool value) => SyncAnalysisProfileSelection();
 
     private void SetSelection(Func<PlanOperationItemViewModel, bool> predicate)
     {
@@ -1246,7 +1284,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 Enabled = UseGemini,
                 ApiKey = GeminiApiKey.Trim(),
-                Model = string.IsNullOrWhiteSpace(GeminiModel) ? "gemini-1.5-flash" : GeminiModel.Trim(),
+                Model = string.IsNullOrWhiteSpace(GeminiModel) ? "gemini-3.1-flash-lite-preview" : GeminiModel.Trim(),
                 MaxRequestsPerMinute = Math.Max(1, GeminiMaxRequestsPerMinute),
                 RequestTimeoutSeconds = Math.Max(5, GeminiRequestTimeoutSeconds)
             }
@@ -1302,6 +1340,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         GeminiModel = settings.Gemini.Model;
         GeminiMaxRequestsPerMinute = settings.Gemini.MaxRequestsPerMinute;
         GeminiRequestTimeoutSeconds = settings.Gemini.RequestTimeoutSeconds;
+        SyncAnalysisProfileSelection();
     }
 
     private void UpdateProgress(WorkflowProgress progress)
@@ -1320,6 +1359,100 @@ public sealed partial class MainWindowViewModel : ObservableObject
         NeedsReviewCount = summary.RequiresReviewCount;
         GeminiAssistedCount = summary.GeminiAssistedCount;
         DuplicateCount = summary.DuplicateCount;
+    }
+
+    [RelayCommand]
+    private void ApplyFastAnalysisProfile() => ApplyAnalysisProfile("fast");
+
+    [RelayCommand]
+    private void ApplyStandardAnalysisProfile() => ApplyAnalysisProfile("standard");
+
+    [RelayCommand]
+    private void ApplyDeepAnalysisProfile() => ApplyAnalysisProfile("deep");
+
+    private void ApplyAnalysisProfile(string profile, bool updateSelection = true)
+    {
+        switch (profile)
+        {
+            case "fast":
+                MaxFileSizeKb = 256;
+                PreviewSampleSize = 150;
+                MaxFilesToScan = 1_000;
+                UseGemini = false;
+                EnableExactDuplicateDetection = false;
+                break;
+            case "deep":
+                MaxFileSizeKb = 1_024;
+                PreviewSampleSize = 1_200;
+                MaxFilesToScan = 10_000;
+                UseGemini = true;
+                EnableExactDuplicateDetection = true;
+                break;
+            default:
+                MaxFileSizeKb = 512;
+                PreviewSampleSize = 500;
+                MaxFilesToScan = 5_000;
+                UseGemini = true;
+                EnableExactDuplicateDetection = false;
+                profile = "standard";
+                break;
+        }
+
+        if (updateSelection)
+        {
+            suppressAnalysisProfileSelection = true;
+            SelectedAnalysisProfile = AnalysisProfiles.First(option => option.Value == profile);
+            suppressAnalysisProfileSelection = false;
+        }
+
+        StatusMessage = FormatString("StatusAnalysisProfileApplied", SelectedAnalysisProfile?.Label ?? profile);
+    }
+
+    private void SyncAnalysisProfileSelection()
+    {
+        if (AnalysisProfiles.Count == 0 || suppressAnalysisProfileSelection)
+        {
+            return;
+        }
+
+        var profile = DetermineAnalysisProfile();
+        var option = AnalysisProfiles.FirstOrDefault(item => item.Value == profile) ?? AnalysisProfiles[1];
+
+        suppressAnalysisProfileSelection = true;
+        SelectedAnalysisProfile = option;
+        suppressAnalysisProfileSelection = false;
+    }
+
+    private string DetermineAnalysisProfile()
+    {
+        if (MaxFileSizeKb == 256 &&
+            PreviewSampleSize == 150 &&
+            MaxFilesToScan == 1_000 &&
+            !UseGemini &&
+            !EnableExactDuplicateDetection)
+        {
+            return "fast";
+        }
+
+        if (MaxFileSizeKb == 512 &&
+            PreviewSampleSize == 500 &&
+            MaxFilesToScan == 5_000 &&
+            UseGemini &&
+            !EnableExactDuplicateDetection)
+        {
+            return "standard";
+        }
+
+        if (MaxFileSizeKb == 1_024 &&
+            PreviewSampleSize == 1_200 &&
+            MaxFilesToScan == 10_000 &&
+            UseGemini &&
+            EnableExactDuplicateDetection)
+        {
+            return "deep";
+        }
+
+        return "custom";
     }
 
     private void PopulateDuplicateGroups(OrganizationPlan plan)

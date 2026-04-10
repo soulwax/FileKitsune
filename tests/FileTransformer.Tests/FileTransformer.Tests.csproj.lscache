@@ -69,6 +69,7 @@ Application/
 Infrastructure/
  EnvironmentVariableCollection.cs
  GeminiOrganizationGuidanceParserTests.cs
+ GeminiPromptBuilderTests.cs
  GeminiResponseParserTests.cs
  LocalFileContentReaderTests.cs
  PersistenceStatusServiceTests.cs

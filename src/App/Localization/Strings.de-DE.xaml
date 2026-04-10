@@ -70,6 +70,12 @@
     <sys:String x:Key="GeminiGuidanceRulesTitle">Gemini-Hinweis für die Planungsregeln</sys:String>
     <sys:String x:Key="StrategyRecommendationUseButton">Empfehlung verwenden</sys:String>
     <sys:String x:Key="StrategyRecommendationEmpty">Erstellen Sie in Schritt 4 zuerst eine Vorschau, um Empfehlungskarten für diesen Ordner zu erhalten.</sys:String>
+    <sys:String x:Key="AnalysisProfileTitle">Analysemodus</sys:String>
+    <sys:String x:Key="AnalysisProfileHint">Wählen Sie eine schnelle Voreinstellung für die Analyse. Sie setzt Stichprobe, Dateigröße, Dateianzahl und Gemini-Nutzung auf sinnvolle Werte, ohne andere Regeln zu überschreiben.</sys:String>
+    <sys:String x:Key="OptionAnalysisProfileFast">Schnell</sys:String>
+    <sys:String x:Key="OptionAnalysisProfileStandard">Standard</sys:String>
+    <sys:String x:Key="OptionAnalysisProfileDeep">Tief</sys:String>
+    <sys:String x:Key="OptionAnalysisProfileCustom">Benutzerdefiniert</sys:String>
     <sys:String x:Key="RuleIncludePatterns">Einschlussmuster</sys:String>
     <sys:String x:Key="RuleExcludePatterns">Ausschlussmuster</sys:String>
     <sys:String x:Key="RuleReadableExtensions">Lesbare Erweiterungen</sys:String>
@@ -228,6 +234,7 @@
     <sys:String x:Key="StatusProgressClassify">{0} von {1} Dateien analysiert.</sys:String>
     <sys:String x:Key="StatusProgressDuplicates">{0} von {1} Dateien auf exakte Duplikate geprüft.</sys:String>
     <sys:String x:Key="StatusProgressExecute">Führe {0} von {1} aus: {2}</sys:String>
+    <sys:String x:Key="StatusAnalysisProfileApplied">Analysemodus angewendet: {0}</sys:String>
     <sys:String x:Key="DialogLoadFailedTitle">Laden fehlgeschlagen</sys:String>
     <sys:String x:Key="DialogLoadFailedBody">Die Benutzereinstellungen konnten nicht geladen werden: {0}</sys:String>
     <sys:String x:Key="DialogSaveFailedTitle">Speichern fehlgeschlagen</sys:String>

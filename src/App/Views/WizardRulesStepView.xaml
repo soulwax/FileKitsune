@@ -12,6 +12,32 @@
             <StackPanel Grid.Column="0">
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
                     <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource AnalysisProfileTitle}" />
+                        <TextBlock Margin="0,8,0,12"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{DynamicResource AnalysisProfileHint}" />
+                        <ComboBox ItemsSource="{Binding AnalysisProfiles}"
+                                  DisplayMemberPath="Label"
+                                  SelectedItem="{Binding SelectedAnalysisProfile}" />
+                        <UniformGrid Margin="0,12,0,0" Columns="3">
+                            <Button Margin="0,0,8,0"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{Binding ApplyFastAnalysisProfileCommand}"
+                                    Content="{DynamicResource OptionAnalysisProfileFast}" />
+                            <Button Margin="0,0,8,0"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{Binding ApplyStandardAnalysisProfileCommand}"
+                                    Content="{DynamicResource OptionAnalysisProfileStandard}" />
+                            <Button Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{Binding ApplyDeepAnalysisProfileCommand}"
+                                    Content="{DynamicResource OptionAnalysisProfileDeep}" />
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
+                    <StackPanel>
                         <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource GeneralSettings}" />
                         <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RuleIncludePatterns}" />
                         <TextBox Height="56" AcceptsReturn="True" Text="{Binding IncludePatternsText, UpdateSourceTrigger=PropertyChanged}" />

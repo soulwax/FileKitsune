@@ -6,7 +6,7 @@ public sealed class GeminiOptions
 
     public string ApiKey { get; set; } = string.Empty;
 
-    public string Model { get; set; } = "gemini-1.5-flash";
+    public string Model { get; set; } = "gemini-3.1-flash-lite-preview";
 
     public string EndpointBaseUrl { get; set; } = "https://generativelanguage.googleapis.com/v1beta";
 

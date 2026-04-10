@@ -70,6 +70,12 @@
     <sys:String x:Key="GeminiGuidanceRulesTitle">Gemini guidance for planner rules</sys:String>
     <sys:String x:Key="StrategyRecommendationUseButton">Use recommendation</sys:String>
     <sys:String x:Key="StrategyRecommendationEmpty">Build a preview in step 4 to unlock recommendation cards for this folder.</sys:String>
+    <sys:String x:Key="AnalysisProfileTitle">Analysis mode</sys:String>
+    <sys:String x:Key="AnalysisProfileHint">Choose a quick preset for analysis. It adjusts sample size, file size, file count, and Gemini usage without overwriting the rest of your rules.</sys:String>
+    <sys:String x:Key="OptionAnalysisProfileFast">Fast</sys:String>
+    <sys:String x:Key="OptionAnalysisProfileStandard">Standard</sys:String>
+    <sys:String x:Key="OptionAnalysisProfileDeep">Deep</sys:String>
+    <sys:String x:Key="OptionAnalysisProfileCustom">Custom</sys:String>
     <sys:String x:Key="RuleIncludePatterns">Include patterns</sys:String>
     <sys:String x:Key="RuleExcludePatterns">Exclude patterns</sys:String>
     <sys:String x:Key="RuleReadableExtensions">Readable extensions</sys:String>
@@ -228,6 +234,7 @@
     <sys:String x:Key="StatusProgressClassify">Analyzed {0} of {1} files.</sys:String>
     <sys:String x:Key="StatusProgressDuplicates">Checked {0} of {1} files for exact duplicates.</sys:String>
     <sys:String x:Key="StatusProgressExecute">Executing {0} of {1}: {2}</sys:String>
+    <sys:String x:Key="StatusAnalysisProfileApplied">Applied analysis mode: {0}</sys:String>
     <sys:String x:Key="DialogLoadFailedTitle">Load failed</sys:String>
     <sys:String x:Key="DialogLoadFailedBody">The user settings could not be loaded: {0}</sys:String>
     <sys:String x:Key="DialogSaveFailedTitle">Save failed</sys:String>

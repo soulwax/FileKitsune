@@ -7,16 +7,13 @@ public sealed class GeminiPromptBuilder
 {
     public string BuildPrompt(SemanticAnalysisRequest request, int maxPromptCharacters)
     {
-        var content = request.Content.Text;
-        if (content.Length > maxPromptCharacters)
-        {
-            content = content[..maxPromptCharacters];
-        }
+        var content = BuildFrontLoadedSnippet(request.Content.Text, Math.Max(160, maxPromptCharacters / 3));
 
         var builder = new StringBuilder();
         builder.AppendLine("You classify files for a Windows desktop file organizer.");
         builder.AppendLine("Inputs may be German, English, or mixed German-English (including Denglisch).");
         builder.AppendLine("Do not assume exactly one language per file. Focus on semantic intent, not language purity.");
+        builder.AppendLine("Prefer category understanding from the earliest useful paragraphs or pages. Do not ask for more text.");
         builder.AppendLine("Use concise explanations. Do not translate original file contents.");
         builder.AppendLine("Return ONLY a JSON object with these fields:");
         builder.AppendLine("category, projectTopic, detectedLanguageContext, confidence, suggestedFolderPathFragment, explanation");
@@ -33,6 +30,42 @@ public sealed class GeminiPromptBuilder
         builder.AppendLine();
         builder.AppendLine("Extracted text snippet:");
         builder.AppendLine(content);
-        return builder.ToString();
+        var prompt = builder.ToString();
+        return prompt.Length <= maxPromptCharacters
+            ? prompt
+            : prompt[..maxPromptCharacters];
+    }
+
+    private static string BuildFrontLoadedSnippet(string text, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var normalized = text.Replace("\r\n", "\n").Replace('\r', '\n').Trim();
+        var paragraphs = normalized
+            .Split(["\n\n"], StringSplitOptions.RemoveEmptyEntries)
+            .Select(paragraph => string.Join(' ', paragraph
+                .Split(['\n', '\t', ' '], StringSplitOptions.RemoveEmptyEntries)))
+            .Where(paragraph => !string.IsNullOrWhiteSpace(paragraph))
+            .Take(3)
+            .ToList();
+
+        if (paragraphs.Count == 0)
+        {
+            var compact = string.Join(' ', normalized
+                .Split(['\n', '\t', ' '], StringSplitOptions.RemoveEmptyEntries)
+                .Take(80));
+
+            return compact.Length <= maxLength
+                ? compact
+                : compact[..maxLength];
+        }
+
+        var snippet = string.Join(Environment.NewLine + Environment.NewLine, paragraphs);
+        return snippet.Length <= maxLength
+            ? snippet
+            : snippet[..maxLength];
     }
 }
