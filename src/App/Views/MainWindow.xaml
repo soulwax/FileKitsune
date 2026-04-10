@@ -57,62 +57,25 @@
             <Setter Property="BorderThickness" Value="1" />
         </Style>
 
-        <Style x:Key="FolderStepViewStyle" TargetType="{x:Type views:WizardFolderStepView}">
-            <Setter Property="Visibility" Value="Visible" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Folder}">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+        <DataTemplate x:Key="FolderStepTemplate">
+            <views:WizardFolderStepView />
+        </DataTemplate>
 
-        <Style x:Key="StrategyStepViewStyle" TargetType="{x:Type views:WizardStrategyStepView}">
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+        <DataTemplate x:Key="StrategyStepTemplate">
+            <views:WizardStrategyStepView />
+        </DataTemplate>
 
-        <Style x:Key="RulesStepViewStyle" TargetType="{x:Type views:WizardRulesStepView}">
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+        <DataTemplate x:Key="RulesStepTemplate">
+            <views:WizardRulesStepView />
+        </DataTemplate>
 
-        <Style x:Key="PreviewStepViewStyle" TargetType="{x:Type views:WizardPreviewStepView}">
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+        <DataTemplate x:Key="PreviewStepTemplate">
+            <views:WizardPreviewStepView />
+        </DataTemplate>
 
-        <Style x:Key="ExecuteStepViewStyle" TargetType="{x:Type views:WizardExecuteStepView}">
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+        <DataTemplate x:Key="ExecuteStepTemplate">
+            <views:WizardExecuteStepView />
+        </DataTemplate>
     </Window.Resources>
 
     <Grid Margin="18">
@@ -154,7 +117,7 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="280" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel>
@@ -369,13 +332,27 @@
         <Border Grid.Row="1" Margin="0,20,0,20" Style="{StaticResource CardBorderStyle}" Padding="20">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
-                <Grid>
-                    <views:WizardFolderStepView Style="{StaticResource FolderStepViewStyle}" />
-                    <views:WizardStrategyStepView Style="{StaticResource StrategyStepViewStyle}" />
-                    <views:WizardRulesStepView Style="{StaticResource RulesStepViewStyle}" />
-                    <views:WizardPreviewStepView Style="{StaticResource PreviewStepViewStyle}" />
-                    <views:WizardExecuteStepView Style="{StaticResource ExecuteStepViewStyle}" />
-                </Grid>
+                <ContentControl Content="{Binding}">
+                    <ContentControl.Style>
+                        <Style TargetType="ContentControl">
+                            <Setter Property="ContentTemplate" Value="{StaticResource FolderStepTemplate}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource StrategyStepTemplate}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource RulesStepTemplate}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource PreviewStepTemplate}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource ExecuteStepTemplate}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ContentControl.Style>
+                </ContentControl>
             </ScrollViewer>
         </Border>
 
