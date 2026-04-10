@@ -37,7 +37,7 @@ public sealed class GeminiPromptBuilderTests
                         new string('x', 1200))
                 }
             },
-            700);
+            1_600);
 
         Assert.Contains("First paragraph with the actual topic", prompt, StringComparison.Ordinal);
         Assert.Contains("Second paragraph still relevant", prompt, StringComparison.Ordinal);

@@ -7,8 +7,6 @@ public sealed class GeminiPromptBuilder
 {
     public string BuildPrompt(SemanticAnalysisRequest request, int maxPromptCharacters)
     {
-        var content = BuildFrontLoadedSnippet(request.Content.Text, Math.Max(160, maxPromptCharacters / 3));
-
         var builder = new StringBuilder();
         builder.AppendLine("You classify files for a Windows desktop file organizer.");
         builder.AppendLine("Inputs may be German, English, or mixed German-English (including Denglisch).");
@@ -29,11 +27,18 @@ public sealed class GeminiPromptBuilder
         builder.AppendLine($"- Size bytes: {request.File.SizeBytes}");
         builder.AppendLine();
         builder.AppendLine("Extracted text snippet:");
-        builder.AppendLine(content);
-        var prompt = builder.ToString();
-        return prompt.Length <= maxPromptCharacters
-            ? prompt
-            : prompt[..maxPromptCharacters];
+
+        var prefix = builder.ToString();
+        var contentBudget = Math.Max(0, maxPromptCharacters - prefix.Length);
+        if (contentBudget == 0)
+        {
+            return prefix.Length <= maxPromptCharacters
+                ? prefix
+                : prefix[..maxPromptCharacters];
+        }
+
+        var content = BuildFrontLoadedSnippet(request.Content.Text, contentBudget);
+        return $"{prefix}{content}";
     }
 
     private static string BuildFrontLoadedSnippet(string text, int maxLength)

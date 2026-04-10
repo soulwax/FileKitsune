@@ -1,37 +1,50 @@
 <UserControl x:Class="FileTransformer.App.Views.WizardFolderStepView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <StackPanel Margin="6">
-        <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
-            <StackPanel>
-                <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource RootFolder}" />
-                <TextBlock Margin="0,8,0,12"
-                           Foreground="{StaticResource MutedTextBrush}"
-                           TextWrapping="Wrap"
-                           Text="{DynamicResource RootFolderStepHint}" />
-                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource UiLanguageLabel}" />
-                <ComboBox ItemsSource="{Binding AppLanguages}"
-                          DisplayMemberPath="Label"
-                          SelectedItem="{Binding SelectedAppLanguage}" />
-                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RootFolder}" />
-                <TextBox Margin="0,4,0,10"
-                         VerticalContentAlignment="Center"
-                         Text="{Binding RootDirectory, UpdateSourceTrigger=PropertyChanged}" />
-                <Button HorizontalAlignment="Left"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        Command="{Binding BrowseRootCommand}"
-                        Content="{DynamicResource Browse}" />
-            </StackPanel>
-        </Border>
+    <Grid Margin="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.35*" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
         <Border Style="{StaticResource CardBorderStyle}">
             <StackPanel>
-                <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource WizardStepFolderTitle}" />
-                <TextBlock Margin="0,8,0,0"
-                           Foreground="{StaticResource MutedTextBrush}"
-                           TextWrapping="Wrap"
-                           Text="{DynamicResource WizardStepFolderBody}" />
+                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{DynamicResource RootFolder}" />
+                <TextBlock Margin="0,8,0,16"
+                           Style="{StaticResource HintTextStyle}"
+                           Text="{DynamicResource RootFolderStepHint}" />
+
+                <TextBlock Style="{StaticResource FieldLabelTextStyle}" Text="{DynamicResource RootFolder}" />
+                <Grid Margin="0,4,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox Margin="0"
+                             MinHeight="42"
+                             VerticalContentAlignment="Center"
+                             Text="{Binding RootDirectory, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Grid.Column="2"
+                            Margin="0"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding BrowseRootCommand}"
+                            Content="{DynamicResource Browse}" />
+                </Grid>
             </StackPanel>
         </Border>
-    </StackPanel>
+
+        <Border Grid.Column="2" Style="{StaticResource CompactCardBorderStyle}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{DynamicResource UiLanguageLabel}" />
+                <TextBlock Margin="0,8,0,12"
+                           Style="{StaticResource HintTextStyle}"
+                           Text="{DynamicResource WizardStepFolderBody}" />
+                <ComboBox ItemsSource="{Binding AppLanguages}"
+                          DisplayMemberPath="Label"
+                          SelectedItem="{Binding SelectedAppLanguage}" />
+            </StackPanel>
+        </Border>
+    </Grid>
 </UserControl>

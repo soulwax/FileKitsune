@@ -76,6 +76,8 @@
     <sys:String x:Key="OptionAnalysisProfileStandard">Standard</sys:String>
     <sys:String x:Key="OptionAnalysisProfileDeep">Tief</sys:String>
     <sys:String x:Key="OptionAnalysisProfileCustom">Benutzerdefiniert</sys:String>
+    <sys:String x:Key="AdvancedNamingRules">Erweiterte Benennung</sys:String>
+    <sys:String x:Key="FileFilterRules">Dateifilter und Erweiterungen</sys:String>
     <sys:String x:Key="RuleIncludePatterns">Einschlussmuster</sys:String>
     <sys:String x:Key="RuleExcludePatterns">Ausschlussmuster</sys:String>
     <sys:String x:Key="RuleReadableExtensions">Lesbare Erweiterungen</sys:String>
