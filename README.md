@@ -24,6 +24,7 @@ The app is usable today and currently provides:
 - rollback preview now includes an at-a-glance impact summary before undo
 - rollback confirmation dialogs now reuse preview counts so the final confirm step shows likely restores versus skips
 - local content extraction for text-like files, `.docx`, and `.pdf`
+- large readable files are sampled from both the beginning and end instead of only taking a leading slice
 - optional remote persistence via Nile/Postgres when `NILEDB_URL` or `POSTGRES_URL` is configured
 - automatic local SQLite fallback/cache for settings and journals when remote persistence is unavailable or offline mode is enabled
 - visible persistence status in the execute step so users can see whether shared storage or local fallback is active
@@ -34,6 +35,7 @@ The app is usable today and currently provides:
 
 - scans a chosen root folder without modifying anything
 - reads lightweight content from readable text-like files, `.docx`, and `.pdf`
+- samples large readable documents so late-file context is not lost entirely
 - classifies files using deterministic heuristics with optional Gemini enrichment
 - harmonizes project/workstream context across related files when shared signals are strong enough
 - falls back cleanly to deterministic local planning when Gemini is unavailable, unusable, or throws
@@ -155,7 +157,7 @@ The app is still evolving. Notable gaps:
 - saved-run selection exists for full historical rollback and folder-scoped undo
 - rollback preview exists for saved runs and now includes an impact summary, but there is still no dedicated diff-style confirmation flow
 - append-safer journaling exists on the backend, rollback status is recorded per entry, and execution journals now include content hashes
-- richer journal metadata is still incomplete around broader file provenance/details
+- richer journal metadata is better now, but a future checkpoint model could still improve partial-failure recovery further
 - PDF extraction is implemented for text-based PDFs with safe fallback on invalid/unreadable files
 - scanned/image-only PDFs still fall back without OCR
 - OCR and image-first analysis are not implemented yet

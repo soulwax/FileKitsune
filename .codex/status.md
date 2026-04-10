@@ -19,7 +19,9 @@
 - Rollback confirmation dialogs now reuse preview counts for selected runs and folder-scoped undo.
 - Journal entries now persist rollback status and last rollback attempt details.
 - Execution journals now persist content hashes for executed files.
+- Execution journals now also persist source/destination relative paths plus file-name provenance fields.
 - Local content extraction now supports text-like files, DOCX, and text-based PDFs.
+- Large readable documents now sample from both the beginning and end instead of only the leading chunk.
 - Invalid or unreadable PDFs now fail safely with tested fallback behavior.
 - Optional Postgres/Nile-backed shared persistence now exists for settings snapshots and journals.
 - Local SQLite caching/fallback now keeps the app usable when remote persistence is offline or unavailable.
@@ -32,17 +34,17 @@
 ## Still Open
 
 - rollback preview and confirmation are now impact-aware, but they are still not a fuller diff-style confirmation flow
-- richer journal metadata is still incomplete beyond the now-persisted content hash
+- OCR/image-first handling is still missing for scanned PDFs and image-led folders
 - duplicate behavior could still become more domain-aware, but the naive alphabetical canonical choice is gone
 
 ## Recommended Next Slice
 
 Trust-polish follow-up:
 
-1. improve rollback preview into a richer confirmation/diff flow
-2. finish any remaining journal metadata polish beyond content hashes
-3. deepen duplicate rollback and large-file hashing coverage
-4. deepen cross-file clustering so Gemini guidance affects more than preset/depth advice
+1. run manual UX tests on the wizard, rollback history, and Gemini-guided planning
+2. only if needed, improve rollback preview into a richer confirmation/diff flow
+3. only if needed, add OCR/image-first handling for scanned PDFs
+4. tune duplicate/project heuristics based on real folders rather than synthetic guesses
 
 ## Last Known Green Commands
 

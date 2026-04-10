@@ -25,7 +25,9 @@ The app already has:
 - duplicate-routed moves are covered by execution+rollback tests
 - journal entries persist rollback status and last rollback attempt details
 - execution journal entries now persist content hashes
+- execution journal entries now also persist source/destination relative paths plus file-name provenance fields
 - local content extraction for text-like files, DOCX, and text-based PDFs
+- large readable documents are now sampled from both the beginning and end
 - invalid/unreadable PDFs already fall back safely and are covered by tests
 - optional Postgres/Nile-backed shared persistence for settings snapshots and journals
 - local SQLite cache/fallback for offline or unavailable remote persistence
@@ -48,8 +50,8 @@ The app already has:
 Continue the final trust-polish slice:
 
 1. inspect `MainWindowViewModel` execute/rollback step
-2. improve rollback preview/confirmation from impact summary into a stronger confirmation/diff experience
-3. deepen cross-file clustering so Gemini guidance affects more than preset/depth advice
+2. if manual testing exposes confusion, improve rollback preview/confirmation into a stronger diff-style experience
+3. if real folders need it, add OCR/image-first handling for scanned PDFs
 4. only add more AI behavior if it still preserves deterministic fallback and preview-first trust
 
 ## Key Files

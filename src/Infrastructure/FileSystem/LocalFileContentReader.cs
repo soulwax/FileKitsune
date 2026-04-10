@@ -168,7 +168,7 @@ public sealed class LocalFileContentReader : IFileContentReader
             return (text, false);
         }
 
-        const string separator = $"{Environment.NewLine}...{Environment.NewLine}";
+        var separator = $"{Environment.NewLine}...{Environment.NewLine}";
         var availableCharacters = MaxExtractedCharacters - separator.Length;
         if (availableCharacters <= 0)
         {

@@ -75,7 +75,7 @@ Validated baseline:
 - [x] TXT/text-like extraction
 - [x] DOCX extraction
 - [x] PDF extraction
-- [ ] Sampling for large PDFs/documents
+- [x] Sampling for large PDFs/documents
 - [x] Fallback tests for unreadable documents
 
 ## 6. Gemini Integration
@@ -100,7 +100,7 @@ Validated baseline:
 
 - [x] Add journal versioning
 - [x] Persist content hash on journal entries
-- [ ] Persist richer journal entry metadata: broader provenance/details beyond hash, size, and timestamps already present
+- [x] Persist richer journal entry metadata: broader provenance/details beyond hash, size, and timestamps already present
 - [x] Persist rollback status and last rollback attempt message on journal entries
 - [x] Save execution journal header before mutation starts
 - [x] Append successful operations during execution
@@ -132,8 +132,9 @@ Validated baseline:
 Highest-value next work:
 
 - [ ] improve rollback preview/confirmation from impact summary into a clearer diff-style confirmation experience
-- [ ] finish richer journal metadata and completion semantics
-- [ ] deepen duplicate rollback coverage and large-file hashing tests
+- [ ] add OCR/image-first handling for scanned PDFs and image-led folders
+- [ ] decide whether a fuller rollback diff surface is worth the additional UI complexity
+- [ ] consider any last domain-specific duplicate canonical heuristics after manual testing
 
 Why this is next:
 
