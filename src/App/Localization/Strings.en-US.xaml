@@ -40,7 +40,7 @@
     <sys:String x:Key="WizardLabel">Wizard</sys:String>
     <sys:String x:Key="WizardBackButton">Back</sys:String>
     <sys:String x:Key="WizardNextButton">Next</sys:String>
-    <sys:String x:Key="SafetyGuardrailsTitle">Safety guardrails</sys:String>
+    <sys:String x:Key="SafetyGuardrailsTitle">Safety rules</sys:String>
     <sys:String x:Key="SafetyGuardrailsBody">Preview-first, in-root moves only, no deletions, no silent overwrites.</sys:String>
     <sys:String x:Key="RootFolderStepHint">Choose the folder you want to analyze and reorganize. The wizard keeps all later actions scoped to this root.</sys:String>
     <sys:String x:Key="WizardStepFolderTitle">Step 1: Folder selection</sys:String>

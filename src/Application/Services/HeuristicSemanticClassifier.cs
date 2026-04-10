@@ -105,6 +105,12 @@ public sealed partial class HeuristicSemanticClassifier
                 evidence.Add(request.File.Extension.Trim('.'));
             }
 
+            if (category == "research" && IsEbookExtension(request.File.Extension))
+            {
+                score += 3;
+                evidence.Add(request.File.Extension.Trim('.'));
+            }
+
             scores[category] = score;
             evidenceByCategory[category] = evidence;
         }
@@ -248,6 +254,17 @@ public sealed partial class HeuristicSemanticClassifier
         extension.Equals(".mp3", StringComparison.OrdinalIgnoreCase) ||
         extension.Equals(".flac", StringComparison.OrdinalIgnoreCase) ||
         extension.Equals(".als", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsEbookExtension(string extension) =>
+        extension.Equals(".epub", StringComparison.OrdinalIgnoreCase) ||
+        extension.Equals(".mobi", StringComparison.OrdinalIgnoreCase) ||
+        extension.Equals(".azw", StringComparison.OrdinalIgnoreCase) ||
+        extension.Equals(".azw3", StringComparison.OrdinalIgnoreCase) ||
+        extension.Equals(".fb2", StringComparison.OrdinalIgnoreCase) ||
+        extension.Equals(".djvu", StringComparison.OrdinalIgnoreCase) ||
+        extension.Equals(".djv", StringComparison.OrdinalIgnoreCase) ||
+        extension.Equals(".cbz", StringComparison.OrdinalIgnoreCase) ||
+        extension.Equals(".cbr", StringComparison.OrdinalIgnoreCase);
 
     private static bool LooksLikeDate(string value) =>
         DateOnly.TryParse(value, out _) ||

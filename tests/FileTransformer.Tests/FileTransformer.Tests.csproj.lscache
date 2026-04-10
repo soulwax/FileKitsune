@@ -59,6 +59,7 @@ TemporaryDependencyNodeTargetIdentifier=net8.0
 Application/
  DestinationPathBuilderTests.cs
  DuplicateDetectionServiceTests.cs
+ HeuristicSemanticClassifierTests.cs
  OrganizationWorkflowServiceTests.cs
  PathSafetyServiceTests.cs
  PlanExecutionServiceTests.cs

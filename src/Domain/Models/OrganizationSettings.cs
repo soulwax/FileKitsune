@@ -43,7 +43,16 @@ public sealed class OrganizationSettings
         ".c",
         ".h",
         ".pdf",
-        ".docx"
+        ".docx",
+        ".epub",
+        ".mobi",
+        ".azw",
+        ".azw3",
+        ".fb2",
+        ".djvu",
+        ".djv",
+        ".cbz",
+        ".cbr"
     ];
 
     public bool RemoveEmptyFolders { get; set; }

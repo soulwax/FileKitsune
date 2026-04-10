@@ -156,7 +156,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string supportedExtensionsText =
-        ".txt; .md; .json; .xml; .csv; .cs; .xaml; .ts; .js; .py; .pdf; .docx";
+        ".txt; .md; .json; .xml; .csv; .cs; .xaml; .ts; .js; .py; .pdf; .docx; .epub; .mobi; .azw; .azw3; .fb2; .djvu; .cbz; .cbr";
 
     [ObservableProperty]
     private int maxFileSizeKb = 512;
