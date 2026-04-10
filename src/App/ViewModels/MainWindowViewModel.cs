@@ -802,7 +802,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
             MaxFolderDepth);
     }
 
-    partial void OnSelectedPlanFilterChanged(OptionItem<PlanFilterMode>? value) => PlanView.Refresh();
+    partial void OnSelectedPlanFilterChanged(OptionItem<PlanFilterMode>? value)
+    {
+        PlanView?.Refresh();
+    }
 
     partial void OnSelectedStrategyPresetChanged(OptionItem<OrganizationStrategyPreset>? value)
     {

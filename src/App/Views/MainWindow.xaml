@@ -7,10 +7,10 @@
         xmlns:views="clr-namespace:FileTransformer.App.Views"
         mc:Ignorable="d"
         Title="{DynamicResource AppTitle}"
-        Width="1480"
-        Height="900"
-        MinWidth="1200"
-        MinHeight="780">
+        Width="1360"
+        Height="860"
+        MinWidth="980"
+        MinHeight="720">
     <Window.Resources>
         <Style x:Key="WizardStepTitleStyle" TargetType="TextBlock">
             <Setter Property="Text" Value="{DynamicResource WizardStepFolderTitle}" />
@@ -56,6 +56,63 @@
             <Setter Property="BorderBrush" Value="#26FFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
+
+        <Style x:Key="FolderStepViewStyle" TargetType="{x:Type views:WizardFolderStepView}">
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Folder}">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="StrategyStepViewStyle" TargetType="{x:Type views:WizardStrategyStepView}">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="RulesStepViewStyle" TargetType="{x:Type views:WizardRulesStepView}">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PreviewStepViewStyle" TargetType="{x:Type views:WizardPreviewStepView}">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ExecuteStepViewStyle" TargetType="{x:Type views:WizardExecuteStepView}">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <Grid Margin="18">
@@ -97,7 +154,7 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="340" />
+                    <ColumnDefinition Width="300" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel>
@@ -143,8 +200,8 @@
                                            TextWrapping="Wrap"
                                            Style="{StaticResource WizardStepBodyStyle}" />
                                 <ProgressBar Minimum="1"
-                                             Maximum="{Binding TotalWizardSteps}"
-                                             Value="{Binding CurrentStepNumber}"
+                                             Maximum="{Binding TotalWizardSteps, Mode=OneWay}"
+                                             Value="{Binding CurrentStepNumber, Mode=OneWay}"
                                              Height="10" />
                                 <TextBlock Margin="0,12,0,0"
                                            Foreground="{StaticResource MutedTextBrush}"
@@ -309,27 +366,17 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Margin="0,20,0,20" Style="{StaticResource CardBorderStyle}" Padding="24">
-            <TabControl SelectedIndex="{Binding CurrentStepIndex, Mode=TwoWay}"
-                        TabStripPlacement="None"
-                        Background="Transparent"
-                        BorderThickness="0">
-                <TabItem>
-                    <views:WizardFolderStepView />
-                </TabItem>
-                <TabItem>
-                    <views:WizardStrategyStepView />
-                </TabItem>
-                <TabItem>
-                    <views:WizardRulesStepView />
-                </TabItem>
-                <TabItem>
-                    <views:WizardPreviewStepView />
-                </TabItem>
-                <TabItem>
-                    <views:WizardExecuteStepView />
-                </TabItem>
-            </TabControl>
+        <Border Grid.Row="1" Margin="0,20,0,20" Style="{StaticResource CardBorderStyle}" Padding="20">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <Grid>
+                    <views:WizardFolderStepView Style="{StaticResource FolderStepViewStyle}" />
+                    <views:WizardStrategyStepView Style="{StaticResource StrategyStepViewStyle}" />
+                    <views:WizardRulesStepView Style="{StaticResource RulesStepViewStyle}" />
+                    <views:WizardPreviewStepView Style="{StaticResource PreviewStepViewStyle}" />
+                    <views:WizardExecuteStepView Style="{StaticResource ExecuteStepViewStyle}" />
+                </Grid>
+            </ScrollViewer>
         </Border>
 
         <Border Grid.Row="2"

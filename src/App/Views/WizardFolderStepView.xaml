@@ -1,36 +1,30 @@
 <UserControl x:Class="FileTransformer.App.Views.WizardFolderStepView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Margin="6">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="16" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-
-        <Border Style="{StaticResource CardBorderStyle}">
+    <StackPanel Margin="6">
+        <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
             <StackPanel>
                 <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource RootFolder}" />
                 <TextBlock Margin="0,8,0,12"
                            Foreground="{StaticResource MutedTextBrush}"
+                           TextWrapping="Wrap"
                            Text="{DynamicResource RootFolderStepHint}" />
                 <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource UiLanguageLabel}" />
                 <ComboBox ItemsSource="{Binding AppLanguages}"
                           DisplayMemberPath="Label"
                           SelectedItem="{Binding SelectedAppLanguage}" />
-                <DockPanel>
-                    <Button DockPanel.Dock="Right"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            Command="{Binding BrowseRootCommand}"
-                            Content="{DynamicResource Browse}" />
-                    <TextBox Margin="0"
-                             VerticalContentAlignment="Center"
-                             Text="{Binding RootDirectory, UpdateSourceTrigger=PropertyChanged}" />
-                </DockPanel>
+                <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource RootFolder}" />
+                <TextBox Margin="0,4,0,10"
+                         VerticalContentAlignment="Center"
+                         Text="{Binding RootDirectory, UpdateSourceTrigger=PropertyChanged}" />
+                <Button HorizontalAlignment="Left"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding BrowseRootCommand}"
+                        Content="{DynamicResource Browse}" />
             </StackPanel>
         </Border>
 
-        <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}">
+        <Border Style="{StaticResource CardBorderStyle}">
             <StackPanel>
                 <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource WizardStepFolderTitle}" />
                 <TextBlock Margin="0,8,0,0"
@@ -39,5 +33,5 @@
                            Text="{DynamicResource WizardStepFolderBody}" />
             </StackPanel>
         </Border>
-    </Grid>
+    </StackPanel>
 </UserControl>
