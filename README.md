@@ -12,6 +12,7 @@ The app is usable today and currently provides:
 - strategy presets plus recommendation cards after preview
 - Gemini-backed organization guidance for strategy and folder-depth tradeoffs, with explicit one-click application
 - cross-file project clustering that can converge mixed files on shared project/workstream labels
+- Gemini fallback behavior is covered so malformed/unavailable responses degrade back to local heuristics and no-guidance planning
 - exact duplicate detection with size pre-filtering and SHA-256 hashing
 - duplicate canonical selection now prefers cleaner paths, then older files, then richer metadata
 - duplicate hashing now has explicit large-file test coverage
@@ -35,6 +36,7 @@ The app is usable today and currently provides:
 - reads lightweight content from readable text-like files, `.docx`, and `.pdf`
 - classifies files using deterministic heuristics with optional Gemini enrichment
 - harmonizes project/workstream context across related files when shared signals are strong enough
+- falls back cleanly to deterministic local planning when Gemini is unavailable, unusable, or throws
 - proposes move, rename, move-and-rename, skip, and duplicate-review outcomes
 - lets you filter and select executable operations before execution
 - journals executed operations so saved runs can be undone later

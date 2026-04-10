@@ -26,6 +26,7 @@
 - Gemini secrets stay local and are not synced to shared persistence.
 - The execute step now shows whether persistence is local-only, shared-online, or running on fallback.
 - Gemini organization guidance can now be applied explicitly to strategy preset and maximum folder depth.
+- Gemini fallback behavior is now covered at both classification and organization-guidance levels.
 - Build and tests are green.
 
 ## Still Open

@@ -32,6 +32,7 @@ The app already has:
 - Gemini API keys remain local and are not synced remotely
 - the execute step already surfaces the current persistence mode to the user
 - the strategy step already lets the user apply Gemini’s preferred preset and maximum folder depth explicitly
+- Gemini fallback behavior is covered so malformed/unavailable responses fall back to heuristics and no-guidance planning
 
 ## Preserve These Constraints
 
@@ -49,7 +50,7 @@ Continue the final trust-polish slice:
 1. inspect `MainWindowViewModel` execute/rollback step
 2. improve rollback preview/confirmation from impact summary into a stronger confirmation/diff experience
 3. deepen cross-file clustering so Gemini guidance affects more than preset/depth advice
-4. extend duplicate behavior only if there is still a product gap, not just a testing gap
+4. only add more AI behavior if it still preserves deterministic fallback and preview-first trust
 
 ## Key Files
 

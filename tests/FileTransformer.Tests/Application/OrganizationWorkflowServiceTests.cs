@@ -152,6 +152,69 @@ public sealed class OrganizationWorkflowServiceTests
         Assert.All(plan.Operations, operation => Assert.Contains("Project Atlas", operation.ProposedRelativePath, StringComparison.OrdinalIgnoreCase));
     }
 
+    [Fact]
+    public async Task BuildPlanAsync_FallsBackWhenGeminiOrganizationAdvisorThrows()
+    {
+        var scanner = new FakeFileScanner(
+        [
+            new ScannedFile
+            {
+                FullPath = @"C:\Root\incoming\notes.txt",
+                RelativePath = @"incoming\notes.txt",
+                RelativeDirectoryPath = "incoming",
+                FileName = "notes.txt",
+                Extension = ".txt",
+                ModifiedUtc = new DateTimeOffset(2025, 02, 01, 8, 0, 0, TimeSpan.Zero)
+            }
+        ]);
+
+        var reader = new FakeContentReader(new FileContentSnapshot
+        {
+            Text = "Meeting notes for project alpha",
+            IsTextReadable = true,
+            ExtractionSource = "text"
+        });
+
+        var coordinator = new SemanticClassifierCoordinator(
+            new HeuristicSemanticClassifier(),
+            new NullGeminiClassifier(),
+            NullLogger<SemanticClassifierCoordinator>.Instance);
+
+        var service = new OrganizationWorkflowService(
+            scanner,
+            reader,
+            coordinator,
+            new ThrowingGeminiOrganizationAdvisor(),
+            new DateResolutionService(),
+            new DuplicateDetectionService(new NullFileHashProvider(), NullLogger<DuplicateDetectionService>.Instance),
+            new ProjectClusterService(),
+            new ProtectionPolicyService(),
+            new DestinationPathBuilder(new NamingPolicyService(), new ReviewDecisionService()),
+            new PathSafetyService(),
+            NullLogger<OrganizationWorkflowService>.Instance);
+
+        var plan = await service.BuildPlanAsync(
+            new AppSettings
+            {
+                Organization = new OrganizationSettings
+                {
+                    RootDirectory = @"C:\Root",
+                    PreviewSampleSize = 10,
+                    UseGeminiWhenAvailable = true
+                },
+                Gemini = new GeminiOptions
+                {
+                    Enabled = true,
+                    ApiKey = "test-key"
+                }
+            },
+            progress: null,
+            CancellationToken.None);
+
+        Assert.Single(plan.Operations);
+        Assert.Null(plan.Guidance);
+    }
+
     private sealed class FakeFileScanner : IFileScanner
     {
         private readonly IReadOnlyList<ScannedFile> files;
@@ -212,6 +275,16 @@ public sealed class OrganizationWorkflowServiceTests
             OrganizationSettings settings,
             GeminiOptions options,
             CancellationToken cancellationToken) => Task.FromResult<OrganizationGuidance?>(null);
+    }
+
+    private sealed class ThrowingGeminiOrganizationAdvisor : IGeminiOrganizationAdvisor
+    {
+        public Task<OrganizationGuidance?> AdviseAsync(
+            IReadOnlyList<FileAnalysisContext> contexts,
+            OrganizationSettings settings,
+            GeminiOptions options,
+            CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("Malformed Gemini organization guidance.");
     }
 
     private sealed class NullFileHashProvider : IFileHashProvider

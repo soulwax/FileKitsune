@@ -47,75 +47,269 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="StepBadgeBorderStyle" TargetType="Border">
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Background" Value="#14FFFFFF" />
+            <Setter Property="BorderBrush" Value="#26FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
     </Window.Resources>
 
     <Grid Margin="18">
+        <Grid.Resources>
+            <Style x:Key="InactiveStepNumberStyle" TargetType="Border" BasedOn="{StaticResource StepBadgeBorderStyle}">
+                <Setter Property="Width" Value="34" />
+                <Setter Property="Height" Value="34" />
+                <Setter Property="CornerRadius" Value="17" />
+                <Setter Property="Background" Value="#18FFFFFF" />
+                <Setter Property="BorderBrush" Value="#30FFFFFF" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0,0,12,0" />
+            </Style>
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource CardBorderStyle}" Padding="20">
+        <Ellipse Width="520"
+                 Height="520"
+                 HorizontalAlignment="Right"
+                 VerticalAlignment="Top"
+                 Margin="0,-180,-120,0"
+                 Fill="#26FFFFFF"
+                 IsHitTestVisible="False" />
+        <Ellipse Width="360"
+                 Height="360"
+                 HorizontalAlignment="Left"
+                 VerticalAlignment="Bottom"
+                 Margin="-140,0,0,-120"
+                 Fill="#1FFFFFFF"
+                 IsHitTestVisible="False" />
+
+        <Border Style="{StaticResource CardBorderStyle}"
+                Padding="24"
+                Background="{StaticResource HeroPanelBrush}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="340" />
                 </Grid.ColumnDefinitions>
 
                 <StackPanel>
-                    <TextBlock FontSize="28" FontWeight="SemiBold" Text="{DynamicResource AppTitle}" />
-                    <TextBlock Margin="0,6,0,12"
-                               Foreground="{StaticResource MutedTextBrush}"
-                               Text="{DynamicResource AppSubtitle}" />
-                    <ProgressBar Height="10"
-                                 Minimum="0"
-                                 Maximum="{Binding ProgressMaximum}"
-                                 Value="{Binding ProgressValue}"
-                                 IsIndeterminate="{Binding IsProgressIndeterminate}" />
-                    <TextBlock Margin="0,8,0,0"
-                               Foreground="{StaticResource MutedTextBrush}"
-                               Text="{Binding StatusMessage}" />
-
-                    <Border Margin="0,18,0,0"
-                            Padding="16"
-                            Background="{StaticResource SurfaceAltBrush}"
-                            CornerRadius="14">
-                        <StackPanel>
-                            <TextBlock FontSize="13" FontWeight="SemiBold" Text="{DynamicResource WizardLabel}" />
-                            <TextBlock Margin="0,4,0,0"
-                                       FontSize="24"
-                                       FontWeight="SemiBold"
-                                       Style="{StaticResource WizardStepTitleStyle}" />
-                            <TextBlock Margin="0,6,0,10"
-                                       Foreground="{StaticResource MutedTextBrush}"
-                                       TextWrapping="Wrap"
-                                       Style="{StaticResource WizardStepBodyStyle}" />
-                            <ProgressBar Minimum="1"
-                                         Maximum="{Binding TotalWizardSteps}"
-                                         Value="{Binding CurrentStepNumber}"
-                                         Height="8" />
-                        </StackPanel>
+                    <Border Background="{StaticResource AccentSoftBrush}"
+                            BorderBrush="#30FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="999"
+                            Padding="12,6"
+                            HorizontalAlignment="Left">
+                        <TextBlock FontWeight="SemiBold"
+                                   Foreground="{StaticResource AccentStrongBrush}"
+                                   Text="{DynamicResource WizardLabel}" />
                     </Border>
+                    <TextBlock Margin="0,14,0,0"
+                               FontSize="34"
+                               FontWeight="SemiBold"
+                               Text="{DynamicResource AppTitle}" />
+                    <TextBlock Margin="0,8,0,16"
+                               FontSize="16"
+                               Foreground="{StaticResource MutedTextBrush}"
+                               TextWrapping="Wrap"
+                               Text="{DynamicResource AppSubtitle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="18"
+                                Padding="18">
+                            <StackPanel>
+                                <TextBlock FontSize="13" FontWeight="SemiBold" Text="{DynamicResource WizardLabel}" />
+                                <TextBlock Margin="0,6,0,0"
+                                           FontSize="26"
+                                           FontWeight="SemiBold"
+                                           Style="{StaticResource WizardStepTitleStyle}" />
+                                <TextBlock Margin="0,6,0,14"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Style="{StaticResource WizardStepBodyStyle}" />
+                                <ProgressBar Minimum="1"
+                                             Maximum="{Binding TotalWizardSteps}"
+                                             Value="{Binding CurrentStepNumber}"
+                                             Height="10" />
+                                <TextBlock Margin="0,12,0,0"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           Text="{Binding StatusMessage}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2"
+                                Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="18"
+                                Padding="18">
+                            <StackPanel>
+                                <TextBlock FontSize="13"
+                                           FontWeight="SemiBold"
+                                           Text="{DynamicResource SafetyGuardrailsTitle}" />
+                                <TextBlock Margin="0,8,0,14"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="{DynamicResource SafetyGuardrailsBody}" />
+                                <ProgressBar Height="8"
+                                             Minimum="0"
+                                             Maximum="{Binding ProgressMaximum}"
+                                             Value="{Binding ProgressValue}"
+                                             IsIndeterminate="{Binding IsProgressIndeterminate}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
                 </StackPanel>
 
                 <Border Grid.Column="1"
-                        Margin="20,0,0,0"
-                        Padding="16,10"
-                        Background="{StaticResource AccentSoftBrush}"
-                        CornerRadius="14">
+                        Margin="24,0,0,0"
+                        Padding="18"
+                        Background="{StaticResource AccentPanelBrush}"
+                        BorderBrush="#40FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="22">
                     <StackPanel>
-                        <TextBlock FontSize="13" FontWeight="SemiBold" Text="{DynamicResource SafetyGuardrailsTitle}" />
-                        <TextBlock Margin="0,4,0,0"
-                                   Width="250"
-                                   TextWrapping="Wrap"
-                                   Text="{DynamicResource SafetyGuardrailsBody}" />
+                        <TextBlock FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource AccentStrongBrush}"
+                                   Text="{DynamicResource WizardLabel}" />
+
+                        <Border>
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource StepBadgeBorderStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Folder}">
+                                            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource HighlightBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <DockPanel>
+                                <Border Style="{StaticResource InactiveStepNumberStyle}">
+                                    <TextBlock HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontWeight="SemiBold"
+                                               Text="1" />
+                                </Border>
+                                <StackPanel>
+                                    <TextBlock FontWeight="SemiBold"
+                                               Text="{DynamicResource WizardStepFolderTitle}" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                               Text="{DynamicResource WizardStepFolderBody}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <Border>
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource StepBadgeBorderStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
+                                            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource HighlightBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <DockPanel>
+                                <Border Style="{StaticResource InactiveStepNumberStyle}">
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold" Text="2" />
+                                </Border>
+                                <StackPanel>
+                                    <TextBlock FontWeight="SemiBold" Text="{DynamicResource WizardStepStrategyTitle}" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource WizardStepStrategyBody}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <Border>
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource StepBadgeBorderStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
+                                            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource HighlightBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <DockPanel>
+                                <Border Style="{StaticResource InactiveStepNumberStyle}">
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold" Text="3" />
+                                </Border>
+                                <StackPanel>
+                                    <TextBlock FontWeight="SemiBold" Text="{DynamicResource WizardStepRulesTitle}" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource WizardStepRulesBody}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <Border>
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource StepBadgeBorderStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
+                                            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource HighlightBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <DockPanel>
+                                <Border Style="{StaticResource InactiveStepNumberStyle}">
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold" Text="4" />
+                                </Border>
+                                <StackPanel>
+                                    <TextBlock FontWeight="SemiBold" Text="{DynamicResource WizardStepPreviewTitle}" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource WizardStepPreviewBody}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <Border Margin="0">
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource StepBadgeBorderStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
+                                            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource HighlightBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <DockPanel>
+                                <Border Style="{StaticResource InactiveStepNumberStyle}">
+                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold" Text="5" />
+                                </Border>
+                                <StackPanel>
+                                    <TextBlock FontWeight="SemiBold" Text="{DynamicResource WizardStepExecuteTitle}" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource WizardStepExecuteBody}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Margin="0,18,0,18" Style="{StaticResource CardBorderStyle}">
+        <Border Grid.Row="1" Margin="0,20,0,20" Style="{StaticResource CardBorderStyle}" Padding="24">
             <TabControl SelectedIndex="{Binding CurrentStepIndex, Mode=TwoWay}"
                         TabStripPlacement="None"
                         Background="Transparent"
@@ -138,7 +332,9 @@
             </TabControl>
         </Border>
 
-        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}">
+        <Border Grid.Row="2"
+                Style="{StaticResource CardBorderStyle}"
+                Background="{StaticResource HeroPanelBrush}">
             <DockPanel>
                 <Button DockPanel.Dock="Right"
                         Style="{StaticResource PrimaryButtonStyle}"
@@ -149,10 +345,13 @@
                         Command="{Binding BackCommand}"
                         Content="{DynamicResource WizardBackButton}" />
                 <StackPanel>
-                    <TextBlock FontSize="13"
+                    <TextBlock FontSize="12"
                                FontWeight="SemiBold"
+                               Foreground="{StaticResource MutedTextBrush}"
                                Text="{DynamicResource WizardLabel}" />
                     <TextBlock Margin="0,4,0,0"
+                               FontSize="18"
+                               FontWeight="SemiBold"
                                Style="{StaticResource WizardStepTitleStyle}" />
                 </StackPanel>
             </DockPanel>

@@ -89,7 +89,7 @@ Validated baseline:
 - [x] Enrich project clustering and cross-file grouping further
 - [x] Let Gemini influence strategy/depth tradeoffs through explicit user-applied guidance
 - [x] Surface Gemini structure guidance in both Strategy and Rules steps
-- [ ] Add more Gemini fallback tests around unavailable/partial responses
+- [x] Add more Gemini fallback tests around unavailable/partial responses
 
 ## 7. Contextual Grouping
 
@@ -125,7 +125,7 @@ Validated baseline:
 - [x] Add duplicate hashing tests
 - [x] Add duplicate rollback tests
 - [x] Add PDF extraction tests
-- [ ] Add Gemini fallback/unavailable tests
+- [x] Add Gemini fallback/unavailable tests
 
 ## 10. Current Best Next Slice
 

@@ -63,6 +63,7 @@ Application/
  PathSafetyServiceTests.cs
  PlanExecutionServiceTests.cs
  RollbackServiceTests.cs
+ SemanticClassifierCoordinatorTests.cs
  StrategyRecommendationServiceTests.cs
 Infrastructure/
  EnvironmentVariableCollection.cs
