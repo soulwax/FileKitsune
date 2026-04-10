@@ -44,6 +44,9 @@ public sealed partial class HeuristicSemanticClassifier
         "miscellaneous",
         "archive",
         "archiv",
+        "incoming",
+        "input",
+        "review",
         "desktop",
         "download",
         "downloads"

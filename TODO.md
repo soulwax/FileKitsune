@@ -22,6 +22,8 @@ Completed and usable today:
 - [x] Show expected rollback readiness/conflict states in the rollback preview
 - [x] preview-first execution model
 - [x] settings persistence including UI language and Gemini settings
+- [x] optional remote Postgres/Nile persistence with local SQLite fallback for offline/unavailable mode
+- [x] shared persistence/offline status exposed in the UI
 
 Validated baseline:
 
@@ -64,17 +66,17 @@ Validated baseline:
 - [x] Surface duplicates in preview
 - [x] Expose duplicate handling mode in the Rules step
 - [x] Support routing duplicates to a dedicated folder in planning
-- [ ] Improve canonical file selection beyond alphabetical path order
-- [ ] Add dedicated duplicate tests for large files and rollback behavior
-- [ ] Strengthen duplicate journaling expectations in rollback scenarios
+- [x] Improve canonical file selection beyond alphabetical path order
+- [x] Add dedicated duplicate tests for large files and rollback behavior
+- [x] Strengthen duplicate journaling expectations in rollback scenarios
 
 ## 5. Content Extraction
 
 - [x] TXT/text-like extraction
 - [x] DOCX extraction
-- [ ] PDF extraction
+- [x] PDF extraction
 - [ ] Sampling for large PDFs/documents
-- [ ] Fallback tests for unreadable documents
+- [x] Fallback tests for unreadable documents
 
 ## 6. Gemini Integration
 
@@ -82,27 +84,34 @@ Validated baseline:
 - [x] Keep heuristic fallback working
 - [x] Support DPAPI-backed stored credentials
 - [x] Support `.env` / environment fallback when no stored key exists
+- [x] Keep Gemini secrets local even when shared persistence is enabled
 - [x] Use Gemini only as advisory enrichment
-- [ ] Enrich project clustering and cross-file grouping further
+- [x] Enrich project clustering and cross-file grouping further
+- [x] Let Gemini influence strategy/depth tradeoffs through explicit user-applied guidance
+- [x] Surface Gemini structure guidance in both Strategy and Rules steps
 - [ ] Add more Gemini fallback tests around unavailable/partial responses
 
 ## 7. Contextual Grouping
 
-- [ ] Group related files across types into stronger project clusters
-- [ ] Feed those clusters into recommendations and destination planning
+- [x] Group related files across types into stronger project clusters
+- [x] Feed those clusters into destination planning
 
 ## 8. Rollback Upgrade
 
 - [x] Add journal versioning
-- [ ] Persist richer journal entry metadata: hash, size, timestamps
+- [x] Persist content hash on journal entries
+- [ ] Persist richer journal entry metadata: broader provenance/details beyond hash, size, and timestamps already present
 - [x] Persist rollback status and last rollback attempt message on journal entries
 - [x] Save execution journal header before mutation starts
 - [x] Append successful operations during execution
-- [ ] Mark runs complete after execution
+- [x] Mark runs complete after execution
 - [x] Support historical run selection in backend services/store
 - [x] Support historical run selection for folder-scoped undo in the UI
 - [x] Support historical run selection for full-run rollback in the UI
+- [x] Cache journals in SQLite and optionally sync them to Postgres/Nile
 - [x] Add rollback preview
+- [x] Add rollback impact summary to the rollback preview
+- [x] Make rollback confirmation dialogs preview-aware
 - [x] Handle missing files, conflicts, and repeated rollback cleanly
 - [x] Make rollback idempotent by design and by tests
 
@@ -113,23 +122,24 @@ Validated baseline:
 - [x] Cover partial rollback
 - [x] Cover rollback conflict handling
 - [x] Cover repeated rollback/idempotency
-- [ ] Add duplicate hashing tests
-- [ ] Add duplicate rollback tests
-- [ ] Add PDF extraction tests
+- [x] Add duplicate hashing tests
+- [x] Add duplicate rollback tests
+- [x] Add PDF extraction tests
 - [ ] Add Gemini fallback/unavailable tests
 
 ## 10. Current Best Next Slice
 
 Highest-value next work:
 
-- [ ] improve rollback preview into a clearer diff-style confirmation experience
+- [ ] improve rollback preview/confirmation from impact summary into a clearer diff-style confirmation experience
 - [ ] finish richer journal metadata and completion semantics
+- [ ] deepen duplicate rollback coverage and large-file hashing tests
 
 Why this is next:
 
 - the wizard, rules, localization, and recommendations are already useful
 - duplicate detection already exists in a usable form
-- rollback is now the largest trust gap still visible to users
+- rollback and duplicate trust details are now the largest gaps still visible to users
 
 ## Non-Negotiables
 

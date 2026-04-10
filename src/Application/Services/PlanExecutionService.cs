@@ -10,17 +10,20 @@ public sealed class PlanExecutionService
 {
     // TODO: Add duplicate-detection policies before execution when the planner grows beyond v1.
     private readonly IFileOperations fileOperations;
+    private readonly IFileHashProvider fileHashProvider;
     private readonly IExecutionJournalStore executionJournalStore;
     private readonly PathSafetyService pathSafetyService;
     private readonly ILogger<PlanExecutionService> logger;
 
     public PlanExecutionService(
         IFileOperations fileOperations,
+        IFileHashProvider fileHashProvider,
         IExecutionJournalStore executionJournalStore,
         PathSafetyService pathSafetyService,
         ILogger<PlanExecutionService> logger)
     {
         this.fileOperations = fileOperations;
+        this.fileHashProvider = fileHashProvider;
         this.executionJournalStore = executionJournalStore;
         this.pathSafetyService = pathSafetyService;
         this.logger = logger;
@@ -91,6 +94,7 @@ public sealed class PlanExecutionService
                     var destinationDirectory = Path.GetDirectoryName(destinationFullPath) ?? plan.Settings.RootDirectory;
                     await fileOperations.EnsureDirectoryAsync(destinationDirectory, cancellationToken);
                     await fileOperations.MoveFileAsync(sourceFullPath, destinationFullPath, cancellationToken);
+                    var contentHash = await TryComputeHashAsync(destinationFullPath, cancellationToken);
 
                     journal.Entries.Add(new ExecutionJournalEntry
                     {
@@ -100,6 +104,7 @@ public sealed class PlanExecutionService
                         Outcome = "Moved",
                         Notes = operation.Reason,
                         DestinationExistedBeforeMove = destinationExistedBeforeMove,
+                        ContentHash = contentHash,
                         FileSizeBytes = fileInfo?.Length,
                         SourceCreatedUtc = fileInfo is null ? null : new DateTimeOffset(fileInfo.CreationTimeUtc),
                         SourceModifiedUtc = fileInfo is null ? null : new DateTimeOffset(fileInfo.LastWriteTimeUtc)
@@ -164,6 +169,19 @@ public sealed class PlanExecutionService
         catch
         {
             return null;
+        }
+    }
+
+    private async Task<string> TryComputeHashAsync(string path, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await fileHashProvider.ComputeHashAsync(path, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Hash computation failed for executed file {File}", path);
+            return string.Empty;
         }
     }
 

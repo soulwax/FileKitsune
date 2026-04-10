@@ -20,7 +20,12 @@ public sealed class PlanExecutionServiceTests
             ]);
 
         var journalStore = new InMemoryJournalStore();
-        var service = new PlanExecutionService(fileOperations, journalStore, new PathSafetyService(), NullLogger<PlanExecutionService>.Instance);
+        var service = new PlanExecutionService(
+            fileOperations,
+            new FakeHashProvider(),
+            journalStore,
+            new PathSafetyService(),
+            NullLogger<PlanExecutionService>.Instance);
         var operation = CreateOperation("source.txt", @"Invoices\2025\source.txt");
         var plan = CreatePlan(ConflictHandlingMode.Skip, operation);
 
@@ -41,7 +46,12 @@ public sealed class PlanExecutionServiceTests
             ]);
 
         var journalStore = new InMemoryJournalStore();
-        var service = new PlanExecutionService(fileOperations, journalStore, new PathSafetyService(), NullLogger<PlanExecutionService>.Instance);
+        var service = new PlanExecutionService(
+            fileOperations,
+            new FakeHashProvider(),
+            journalStore,
+            new PathSafetyService(),
+            NullLogger<PlanExecutionService>.Instance);
         var operation = CreateOperation("source.txt", @"Invoices\2025\source.txt");
         var plan = CreatePlan(ConflictHandlingMode.AppendCounter, operation);
 
@@ -65,7 +75,12 @@ public sealed class PlanExecutionServiceTests
         {
             var fileOperations = new FakeFileOperations(existingFiles: [sourcePath]);
             var journalStore = new InMemoryJournalStore();
-            var service = new PlanExecutionService(fileOperations, journalStore, new PathSafetyService(), NullLogger<PlanExecutionService>.Instance);
+            var service = new PlanExecutionService(
+                fileOperations,
+                new FakeHashProvider(),
+                journalStore,
+                new PathSafetyService(),
+                NullLogger<PlanExecutionService>.Instance);
             var operation = CreateOperation(sourceName, destinationRelativePath);
             var plan = CreatePlan(rootDirectory, ConflictHandlingMode.AppendCounter, operation);
 
@@ -74,6 +89,73 @@ public sealed class PlanExecutionServiceTests
             Assert.Equal(1, outcome.SuccessfulOperations);
             Assert.NotNull(journalStore.LastSavedJournal);
             Assert.Equal(3, journalStore.SaveCount);
+            Assert.Equal(ExecutionJournalStatus.Completed, journalStore.LastSavedJournal!.Status);
+            Assert.Single(journalStore.LastSavedJournal.Entries);
+            Assert.Equal(destinationFullPath, journalStore.LastSavedJournal.Entries[0].DestinationFullPath);
+            Assert.Equal($"HASH::{destinationFullPath}", journalStore.LastSavedJournal.Entries[0].ContentHash);
+        }
+        finally
+        {
+            if (File.Exists(sourcePath))
+            {
+                File.Delete(sourcePath);
+            }
+
+            if (File.Exists(destinationFullPath))
+            {
+                File.Delete(destinationFullPath);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_DuplicateRoutedMove_CanBeRolledBackFromJournal()
+    {
+        var sourcePath = Path.GetTempFileName();
+        var rootDirectory = Path.GetDirectoryName(sourcePath)!;
+        var sourceName = Path.GetFileName(sourcePath);
+        var destinationRelativePath = Path.Combine("Zu prüfende Duplikate", "ABCDEF12", sourceName);
+        var destinationFullPath = Path.Combine(rootDirectory, destinationRelativePath);
+
+        try
+        {
+            var fileOperations = new FakeFileOperations(existingFiles: [sourcePath]);
+            var journalStore = new InMemoryJournalStore();
+            var executionService = new PlanExecutionService(
+                fileOperations,
+                new FakeHashProvider(),
+                journalStore,
+                new PathSafetyService(),
+                NullLogger<PlanExecutionService>.Instance);
+            var rollbackService = new RollbackService(
+                journalStore,
+                fileOperations,
+                NullLogger<RollbackService>.Instance);
+
+            var operation = new PlanOperation
+            {
+                OperationType = PlanOperationType.Move,
+                CurrentRelativePath = sourceName,
+                ProposedRelativePath = destinationRelativePath,
+                AllowedToExecute = true,
+                FileName = sourceName,
+                DuplicateDetected = true,
+                DuplicateOfRelativePath = @"Docs\canonical.txt",
+                Reason = "Exact duplicate routed away from the main structure."
+            };
+            var plan = CreatePlan(rootDirectory, ConflictHandlingMode.AppendCounter, operation);
+
+            var executeOutcome = await executionService.ExecuteAsync(plan, [operation.Id], progress: null, CancellationToken.None);
+            var rollbackOutcome = await rollbackService.RollbackLatestAsync(CancellationToken.None);
+
+            Assert.Equal(1, executeOutcome.SuccessfulOperations);
+            Assert.Equal(1, rollbackOutcome.SuccessfulOperations);
+            Assert.Contains(fileOperations.Moves, move =>
+                move.Source == sourcePath &&
+                move.Destination == destinationFullPath);
+            Assert.Contains(fileOperations.Moves, move =>
+                move.Source == destinationFullPath &&
+                move.Destination == sourcePath);
             Assert.Equal(ExecutionJournalStatus.Completed, journalStore.LastSavedJournal!.Status);
             Assert.Single(journalStore.LastSavedJournal.Entries);
             Assert.Equal(destinationFullPath, journalStore.LastSavedJournal.Entries[0].DestinationFullPath);
@@ -168,5 +250,11 @@ public sealed class PlanExecutionServiceTests
 
         public Task<IReadOnlyList<ExecutionJournal>> LoadAllAsync(CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<ExecutionJournal>>(LastSavedJournal is null ? [] : [LastSavedJournal]);
+    }
+
+    private sealed class FakeHashProvider : IFileHashProvider
+    {
+        public Task<string> ComputeHashAsync(string fullPath, CancellationToken cancellationToken) =>
+            Task.FromResult($"HASH::{fullPath}");
     }
 }

@@ -18,6 +18,7 @@ namespace FileTransformer.App.ViewModels;
 public sealed partial class MainWindowViewModel : ObservableObject
 {
     private readonly IAppSettingsStore appSettingsStore;
+    private readonly IPersistenceStatusService persistenceStatusService;
     private readonly OrganizationWorkflowService organizationWorkflowService;
     private readonly PlanExecutionService planExecutionService;
     private readonly RollbackService rollbackService;
@@ -34,6 +35,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public MainWindowViewModel(
         IAppSettingsStore appSettingsStore,
+        IPersistenceStatusService persistenceStatusService,
         OrganizationWorkflowService organizationWorkflowService,
         PlanExecutionService planExecutionService,
         RollbackService rollbackService,
@@ -45,6 +47,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ILogger<MainWindowViewModel> logger)
     {
         this.appSettingsStore = appSettingsStore;
+        this.persistenceStatusService = persistenceStatusService;
         this.organizationWorkflowService = organizationWorkflowService;
         this.planExecutionService = planExecutionService;
         this.rollbackService = rollbackService;
@@ -153,7 +156,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string supportedExtensionsText =
-        ".txt; .md; .json; .xml; .csv; .cs; .xaml; .ts; .js; .py; .docx";
+        ".txt; .md; .json; .xml; .csv; .cs; .xaml; .ts; .js; .py; .pdf; .docx";
 
     [ObservableProperty]
     private int maxFileSizeKb = 512;
@@ -336,10 +339,40 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private bool hasRollbackPreviewEntries;
 
     [ObservableProperty]
+    private int rollbackPreviewReadyCount;
+
+    [ObservableProperty]
+    private int rollbackPreviewMissingDestinationCount;
+
+    [ObservableProperty]
+    private int rollbackPreviewOriginalPathOccupiedCount;
+
+    [ObservableProperty]
+    private string persistenceModeLabel = string.Empty;
+
+    [ObservableProperty]
+    private string persistencePrimaryStore = string.Empty;
+
+    [ObservableProperty]
+    private string persistenceSecondaryStore = string.Empty;
+
+    [ObservableProperty]
+    private string persistenceDetail = string.Empty;
+
+    [ObservableProperty]
     private PlanOperationItemViewModel? selectedOperation;
 
     [ObservableProperty]
     private bool hasStrategyRecommendations;
+
+    [ObservableProperty]
+    private bool hasGeminiOrganizationGuidance;
+
+    [ObservableProperty]
+    private string geminiOrganizationGuidanceTitle = string.Empty;
+
+    [ObservableProperty]
+    private string geminiOrganizationGuidanceBody = string.Empty;
 
     [ObservableProperty]
     private OptionItem<string>? selectedAppLanguage;
@@ -371,6 +404,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var settings = await appSettingsStore.LoadAsync(CancellationToken.None);
             ApplySettings(settings);
             await RefreshRollbackHistoryAsync(CancellationToken.None);
+            await RefreshPersistenceStatusAsync(CancellationToken.None);
             logger.LogInformation("Settings loaded from user profile.");
         }
         catch (Exception exception)
@@ -396,6 +430,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             await PersistSettingsAsync(CancellationToken.None);
+            await RefreshPersistenceStatusAsync(CancellationToken.None);
             StatusMessage = GetString("StatusSettingsSaved");
             logger.LogInformation("User settings saved.");
         }
@@ -418,6 +453,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ResetProgress();
         PlanOperations.Clear();
         StrategyRecommendations.Clear();
+        HasGeminiOrganizationGuidance = false;
+        GeminiOrganizationGuidanceTitle = string.Empty;
+        GeminiOrganizationGuidanceBody = string.Empty;
         HasStrategyRecommendations = false;
         DuplicateGroups.Clear();
         HasDuplicateGroups = false;
@@ -581,6 +619,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
 
             await RefreshRollbackHistoryAsync(CancellationToken.None, outcome.Journal?.JournalId);
+            await RefreshPersistenceStatusAsync(CancellationToken.None);
             dialogService.ShowInformation(GetString("DialogExecutionFinishedTitle"), outcome.Summary);
         }
         catch (OperationCanceledException)
@@ -604,9 +643,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task RollbackLatestAsync()
     {
+        var journals = await rollbackService.LoadHistoryAsync(CancellationToken.None);
+        var latestJournal = journals.FirstOrDefault();
+        var confirmationBody = latestJournal is null
+            ? GetString("DialogRollbackLatestBody")
+            : await BuildRollbackConfirmationBodyAsync(latestJournal.JournalId);
+
         if (!dialogService.Confirm(
                 GetString("DialogRollbackLatestTitle"),
-                GetString("DialogRollbackLatestBody")))
+                confirmationBody))
         {
             return;
         }
@@ -624,6 +669,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
 
             await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal?.JournalId);
+            await RefreshPersistenceStatusAsync(CancellationToken.None);
             dialogService.ShowInformation(GetString("DialogRollbackFinishedTitle"), outcome.Summary);
         }
         catch (Exception exception)
@@ -646,9 +692,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        var confirmationBody = await BuildRollbackConfirmationBodyAsync(SelectedRollbackJournal.JournalId, SelectedRollbackJournal.Label);
         if (!dialogService.Confirm(
                 GetString("DialogRollbackSelectedTitle"),
-                FormatString("DialogRollbackSelectedBody", SelectedRollbackJournal.Label)))
+                confirmationBody))
         {
             return;
         }
@@ -666,6 +713,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
 
             await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal.JournalId);
+            await RefreshPersistenceStatusAsync(CancellationToken.None);
             dialogService.ShowInformation(GetString("DialogRollbackFinishedTitle"), outcome.Summary);
         }
         catch (Exception exception)
@@ -682,9 +730,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task RollbackFolderAsync(string folderName)
     {
+        var confirmationBody = await BuildRollbackFolderConfirmationBodyAsync(folderName);
         if (!dialogService.Confirm(
                 GetString("DialogUndoFolderTitle"),
-                FormatString("DialogUndoFolderBody", folderName)))
+                confirmationBody))
         {
             return;
         }
@@ -704,6 +753,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
 
             await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal?.JournalId);
+            await RefreshPersistenceStatusAsync(CancellationToken.None);
             dialogService.ShowInformation(GetString("DialogUndoFinishedTitle"), outcome.Summary);
         }
         catch (Exception exception)
@@ -735,6 +785,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SelectedStrategyPreset = StrategyPresets.FirstOrDefault(option => option.Value == preset) ?? SelectedStrategyPreset;
     }
 
+    [RelayCommand]
+    private void ApplyGeminiGuidance()
+    {
+        if (currentPlan?.Guidance is not { GeminiUsed: true } guidance)
+        {
+            return;
+        }
+
+        SelectedStrategyPreset = StrategyPresets.FirstOrDefault(option => option.Value == guidance.PreferredPreset)
+                                 ?? SelectedStrategyPreset;
+        MaxFolderDepth = Math.Clamp(guidance.SuggestedMaxDepth, 2, 5);
+        StatusMessage = FormatString(
+            "StatusGeminiGuidanceApplied",
+            GetStrategyDisplayName(guidance.PreferredPreset),
+            MaxFolderDepth);
+    }
+
     partial void OnSelectedPlanFilterChanged(OptionItem<PlanFilterMode>? value) => PlanView.Refresh();
 
     partial void OnSelectedStrategyPresetChanged(OptionItem<OrganizationStrategyPreset>? value)
@@ -747,6 +814,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         localizationService.ApplyLanguage(value?.Value ?? "de-DE");
         RefreshLocalizedOptionCollections();
         RefreshLocalizedState();
+        RefreshPersistenceStatusAfterLocalization();
+        RefreshRollbackStateAfterLocalization();
     }
 
     partial void OnCurrentStepChanged(WizardStep value)
@@ -769,6 +838,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             SelectedRollbackJournalSummary = string.Empty;
             RollbackPreviewEntries.Clear();
             HasRollbackPreviewEntries = false;
+            ResetRollbackPreviewSummary();
             PopulateRollbackFolderGroups(null);
             return;
         }
@@ -876,6 +946,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void RefreshLocalizedState()
     {
         StrategyDisplayName = SelectedStrategyPreset?.Label ?? string.Empty;
+        PersistenceModeLabel = LocalizePersistenceModeLabel(PersistenceModeLabel);
 
         if (!IsBusy && currentPlan is null && string.IsNullOrWhiteSpace(StatusMessage))
         {
@@ -973,6 +1044,108 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private async Task PersistSettingsAsync(CancellationToken cancellationToken)
     {
         await appSettingsStore.SaveAsync(BuildSettings(), cancellationToken);
+    }
+
+    private async Task RefreshPersistenceStatusAsync(CancellationToken cancellationToken)
+    {
+        var snapshot = await persistenceStatusService.GetStatusAsync(cancellationToken);
+        PersistenceModeLabel = snapshot.Mode switch
+        {
+            PersistenceStatusMode.LocalOnly => GetString("PersistenceModeLocalOnly"),
+            PersistenceStatusMode.SharedOnline => GetString("PersistenceModeSharedOnline"),
+            PersistenceStatusMode.SharedFallback => GetString("PersistenceModeSharedFallback"),
+            _ => snapshot.Mode.ToString()
+        };
+        PersistencePrimaryStore = FormatString("PersistencePrimaryStore", snapshot.PrimaryStore);
+        PersistenceSecondaryStore = FormatString("PersistenceSecondaryStore", snapshot.SecondaryStore);
+        PersistenceDetail = string.IsNullOrWhiteSpace(snapshot.DetailKey)
+            ? string.Empty
+            : GetString(snapshot.DetailKey);
+    }
+
+    private string LocalizePersistenceModeLabel(string currentLabel) =>
+        currentLabel switch
+        {
+            "Local only" or "Nur lokal" => GetString("PersistenceModeLocalOnly"),
+            "Shared online" or "Geteilt online" => GetString("PersistenceModeSharedOnline"),
+            "Shared fallback" or "Geteilter Fallback" => GetString("PersistenceModeSharedFallback"),
+            _ => currentLabel
+        };
+
+    private async void RefreshPersistenceStatusAfterLocalization()
+    {
+        try
+        {
+            await RefreshPersistenceStatusAsync(CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            logger.LogDebug(exception, "Refreshing persistence status after localization failed.");
+        }
+    }
+
+    private async void RefreshRollbackStateAfterLocalization()
+    {
+        if (!HasRollbackHistory)
+        {
+            return;
+        }
+
+        try
+        {
+            await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal?.JournalId);
+        }
+        catch (Exception exception)
+        {
+            logger.LogDebug(exception, "Refreshing rollback state after localization failed.");
+        }
+    }
+
+    private async Task<string> BuildRollbackConfirmationBodyAsync(Guid journalId, string? label = null)
+    {
+        var preview = await rollbackService.PreviewRollbackAsync(journalId, CancellationToken.None);
+        if (preview.Journal is null || preview.Entries.Count == 0)
+        {
+            return label is null
+                ? GetString("DialogRollbackLatestBody")
+                : FormatString("DialogRollbackSelectedBody", label);
+        }
+
+        var resolvedLabel = label ?? FormatString(
+            "RollbackHistoryItemLabel",
+            preview.Journal.CreatedAtUtc.ToLocalTime(),
+            preview.Entries.Count,
+            GetJournalStatusLabel(preview.Journal.Status));
+
+        return FormatString(
+            "DialogRollbackBodyWithImpact",
+            resolvedLabel,
+            preview.ReadyCount,
+            preview.MissingDestinationCount,
+            preview.OriginalPathOccupiedCount,
+            Environment.NewLine);
+    }
+
+    private async Task<string> BuildRollbackFolderConfirmationBodyAsync(string folderName)
+    {
+        if (SelectedRollbackJournal is null)
+        {
+            return FormatString("DialogUndoFolderBody", folderName);
+        }
+
+        var preview = await rollbackService.PreviewRollbackFolderAsync(SelectedRollbackJournal.JournalId, folderName, CancellationToken.None);
+        if (preview.Journal is null || preview.Entries.Count == 0)
+        {
+            return FormatString("DialogUndoFolderBody", folderName);
+        }
+
+        return FormatString(
+            "DialogUndoFolderBodyWithImpact",
+            folderName,
+            preview.ReadyCount,
+            preview.MissingDestinationCount,
+            preview.OriginalPathOccupiedCount,
+            Environment.NewLine);
     }
 
     private AppSettings BuildSettings()
@@ -1318,6 +1491,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             SelectedRollbackJournalSummary = string.Empty;
             RollbackPreviewEntries.Clear();
             HasRollbackPreviewEntries = false;
+            ResetRollbackPreviewSummary();
             PopulateRollbackFolderGroups(null);
         }
     }
@@ -1330,6 +1504,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (preview.Journal is null || preview.Entries.Count == 0)
         {
             HasRollbackPreviewEntries = false;
+            ResetRollbackPreviewSummary();
             return;
         }
 
@@ -1350,6 +1525,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         HasRollbackPreviewEntries = RollbackPreviewEntries.Count > 0;
+        RollbackPreviewReadyCount = preview.ReadyCount;
+        RollbackPreviewMissingDestinationCount = preview.MissingDestinationCount;
+        RollbackPreviewOriginalPathOccupiedCount = preview.OriginalPathOccupiedCount;
+    }
+
+    private void ResetRollbackPreviewSummary()
+    {
+        RollbackPreviewReadyCount = 0;
+        RollbackPreviewMissingDestinationCount = 0;
+        RollbackPreviewOriginalPathOccupiedCount = 0;
     }
 
     private string GetJournalStatusLabel(ExecutionJournalStatus status) =>
@@ -1373,6 +1558,25 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void PopulateStrategyRecommendations(OrganizationPlan plan)
     {
         StrategyRecommendations.Clear();
+
+        if (plan.Guidance is { GeminiUsed: true } guidance)
+        {
+            HasGeminiOrganizationGuidance = true;
+            GeminiOrganizationGuidanceTitle = FormatString(
+                "GeminiGuidanceTitle",
+                GetStrategyDisplayName(guidance.PreferredPreset));
+            GeminiOrganizationGuidanceBody = FormatString(
+                "GeminiGuidanceBody",
+                GetStructureBiasLabel(guidance.StructureBias),
+                guidance.SuggestedMaxDepth,
+                guidance.Reasoning);
+        }
+        else
+        {
+            HasGeminiOrganizationGuidance = false;
+            GeminiOrganizationGuidanceTitle = string.Empty;
+            GeminiOrganizationGuidanceBody = string.Empty;
+        }
 
         foreach (var recommendation in strategyRecommendationService.Recommend(plan))
         {
@@ -1418,6 +1622,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         return fullPath[rootDirectory.Length..].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
     }
+
+    private string GetStrategyDisplayName(OrganizationStrategyPreset preset) =>
+        StrategyPresets.FirstOrDefault(option => option.Value == preset)?.Label
+        ?? preset.ToString();
+
+    private string GetStructureBiasLabel(OrganizationStructureBias bias) =>
+        bias switch
+        {
+            OrganizationStructureBias.Shallower => GetString("GeminiGuidanceBiasShallower"),
+            OrganizationStructureBias.Deeper => GetString("GeminiGuidanceBiasDeeper"),
+            _ => GetString("GeminiGuidanceBiasBalanced")
+        };
 
     private static List<string> ParseList(string value) =>
         value.Split(['\r', '\n', ';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)

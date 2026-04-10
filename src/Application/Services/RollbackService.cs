@@ -210,7 +210,10 @@ public sealed class RollbackService
             Entries = entries
                 .OrderByDescending(item => item.ExecutedAtUtc)
                 .Select(CreatePreviewEntry)
-                .ToList()
+                .ToList(),
+            ReadyCount = entries.Count(entry => !fileOperations.FileExists(entry.SourceFullPath) && fileOperations.FileExists(entry.DestinationFullPath)),
+            MissingDestinationCount = entries.Count(entry => !fileOperations.FileExists(entry.DestinationFullPath)),
+            OriginalPathOccupiedCount = entries.Count(entry => fileOperations.FileExists(entry.SourceFullPath))
         };
     }
 

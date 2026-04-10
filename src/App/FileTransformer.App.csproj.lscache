@@ -317,6 +317,7 @@ Views/
  communitytoolkit.mvvm/8.4.0/lib/net8.0/CommunityToolkit.Mvvm.dll
  documentformat.openxml.framework/3.0.2/lib/net8.0/DocumentFormat.OpenXml.Framework.dll
  documentformat.openxml/3.0.2/lib/net8.0/DocumentFormat.OpenXml.dll
+ microsoft.data.sqlite.core/8.0.8/lib/net8.0/Microsoft.Data.Sqlite.dll
  microsoft.extensions.configuration.abstractions/8.0.0/lib/net8.0/Microsoft.Extensions.Configuration.Abstractions.dll
  microsoft.extensions.configuration.binder/8.0.2/lib/net8.0/Microsoft.Extensions.Configuration.Binder.dll
  microsoft.extensions.configuration.commandline/8.0.0/lib/net8.0/Microsoft.Extensions.Configuration.CommandLine.dll
@@ -345,11 +346,20 @@ Views/
  microsoft.extensions.options.configurationextensions/8.0.0/lib/net8.0/Microsoft.Extensions.Options.ConfigurationExtensions.dll
  microsoft.extensions.options/8.0.2/lib/net8.0/Microsoft.Extensions.Options.dll
  microsoft.extensions.primitives/8.0.0/lib/net8.0/Microsoft.Extensions.Primitives.dll
+ npgsql/8.0.4/lib/net8.0/Npgsql.dll
  serilog.extensions.hosting/8.0.0/lib/net8.0/Serilog.Extensions.Hosting.dll
  serilog.extensions.logging/8.0.0/lib/net8.0/Serilog.Extensions.Logging.dll
  serilog.formatting.compact/2.0.0/lib/net7.0/Serilog.Formatting.Compact.dll
  serilog.sinks.file/5.0.0/lib/net5.0/Serilog.Sinks.File.dll
  serilog/3.1.1/lib/net7.0/Serilog.dll
+ sqlitepclraw.bundle_e_sqlite3/2.1.6/lib/netstandard2.0/SQLitePCLRaw.batteries_v2.dll
+ sqlitepclraw.core/2.1.6/lib/netstandard2.0/SQLitePCLRaw.core.dll
+ sqlitepclraw.provider.e_sqlite3/2.1.6/lib/net6.0-windows7.0/SQLitePCLRaw.provider.e_sqlite3.dll
+ uglytoad.pdfpig.core/1.7.0-custom-5/lib/net6.0/UglyToad.PdfPig.Core.dll
+ uglytoad.pdfpig.fonts/1.7.0-custom-5/lib/net6.0/UglyToad.PdfPig.Fonts.dll
+ uglytoad.pdfpig.tokenization/1.7.0-custom-5/lib/net6.0/UglyToad.PdfPig.Tokenization.dll
+ uglytoad.pdfpig.tokens/1.7.0-custom-5/lib/net6.0/UglyToad.PdfPig.Tokens.dll
+ uglytoad.pdfpig/1.7.0-custom-5/lib/net6.0/UglyToad.PdfPig.dll
 
 [analyzerReferences]
 <DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.25/analyzers/dotnet/cs/

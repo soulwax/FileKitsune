@@ -22,8 +22,10 @@ public sealed class OrganizationWorkflowService
     private readonly IFileScanner fileScanner;
     private readonly IFileContentReader fileContentReader;
     private readonly SemanticClassifierCoordinator semanticClassifierCoordinator;
+    private readonly IGeminiOrganizationAdvisor geminiOrganizationAdvisor;
     private readonly DateResolutionService dateResolutionService;
     private readonly DuplicateDetectionService duplicateDetectionService;
+    private readonly ProjectClusterService projectClusterService;
     private readonly ProtectionPolicyService protectionPolicyService;
     private readonly DestinationPathBuilder destinationPathBuilder;
     private readonly PathSafetyService pathSafetyService;
@@ -33,8 +35,10 @@ public sealed class OrganizationWorkflowService
         IFileScanner fileScanner,
         IFileContentReader fileContentReader,
         SemanticClassifierCoordinator semanticClassifierCoordinator,
+        IGeminiOrganizationAdvisor geminiOrganizationAdvisor,
         DateResolutionService dateResolutionService,
         DuplicateDetectionService duplicateDetectionService,
+        ProjectClusterService projectClusterService,
         ProtectionPolicyService protectionPolicyService,
         DestinationPathBuilder destinationPathBuilder,
         PathSafetyService pathSafetyService,
@@ -43,8 +47,10 @@ public sealed class OrganizationWorkflowService
         this.fileScanner = fileScanner;
         this.fileContentReader = fileContentReader;
         this.semanticClassifierCoordinator = semanticClassifierCoordinator;
+        this.geminiOrganizationAdvisor = geminiOrganizationAdvisor;
         this.dateResolutionService = dateResolutionService;
         this.duplicateDetectionService = duplicateDetectionService;
+        this.projectClusterService = projectClusterService;
         this.protectionPolicyService = protectionPolicyService;
         this.destinationPathBuilder = destinationPathBuilder;
         this.pathSafetyService = pathSafetyService;
@@ -151,6 +157,10 @@ public sealed class OrganizationWorkflowService
             }
         }
 
+        projectClusterService.EnrichClusters(contexts);
+
+        var guidance = await BuildOrganizationGuidanceAsync(contexts, settings, appSettings.Gemini, cancellationToken);
+
         var groupedContexts = contexts
             .GroupBy(context => context.PlanningGroupKey, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.ToList(), StringComparer.OrdinalIgnoreCase);
@@ -187,8 +197,34 @@ public sealed class OrganizationWorkflowService
             Settings = settings,
             StrategyPreset = strategyDefinition.Preset,
             Operations = operations,
-            Summary = BuildSummary(operations)
+            Summary = BuildSummary(operations),
+            Guidance = guidance
         };
+    }
+
+    private async Task<OrganizationGuidance?> BuildOrganizationGuidanceAsync(
+        IReadOnlyList<FileAnalysisContext> contexts,
+        OrganizationSettings settings,
+        GeminiOptions geminiOptions,
+        CancellationToken cancellationToken)
+    {
+        if (settings.ReviewPolicy.ExecutionMode == ExecutionMode.HeuristicsOnly ||
+            !settings.UseGeminiWhenAvailable ||
+            !geminiOptions.Enabled ||
+            string.IsNullOrWhiteSpace(geminiOptions.ApiKey))
+        {
+            return null;
+        }
+
+        try
+        {
+            return await geminiOrganizationAdvisor.AdviseAsync(contexts, settings, geminiOptions, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Gemini organization guidance failed.");
+            return null;
+        }
     }
 
     private static FileAnalysisContext SelectGroupLeader(IReadOnlyList<FileAnalysisContext> group)

@@ -8,6 +8,17 @@ namespace FileTransformer.Application.Services;
 
 public sealed class DuplicateDetectionService
 {
+    private static readonly string[] LowerPriorityPathSegments =
+    [
+        "review",
+        "duplicate",
+        "duplik",
+        "misc",
+        "tmp",
+        "temp",
+        "unsorted"
+    ];
+
     private readonly IFileHashProvider fileHashProvider;
     private readonly ILogger<DuplicateDetectionService> logger;
 
@@ -69,7 +80,13 @@ public sealed class DuplicateDetectionService
 
             foreach (var hashGroup in hashes.GroupBy(item => item.Hash, StringComparer.Ordinal))
             {
-                var ordered = hashGroup.OrderBy(item => item.File.RelativePath, StringComparer.OrdinalIgnoreCase).ToList();
+                var ordered = hashGroup
+                    .OrderByDescending(item => GetPathQualityScore(item.File))
+                    .ThenBy(item => item.File.CreatedUtc == default ? DateTimeOffset.MaxValue : item.File.CreatedUtc)
+                    .ThenBy(item => item.File.ModifiedUtc == default ? DateTimeOffset.MaxValue : item.File.ModifiedUtc)
+                    .ThenByDescending(item => GetMetadataRichnessScore(item.File))
+                    .ThenBy(item => item.File.RelativePath, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
                 if (ordered.Count <= 1)
                 {
                     continue;
@@ -90,4 +107,34 @@ public sealed class DuplicateDetectionService
 
         return matches;
     }
+
+    private static int GetPathQualityScore(ScannedFile file)
+    {
+        var depth = GetPathDepth(file.RelativePath);
+        var score = 100 - depth * 10;
+
+        foreach (var segment in GetPathSegments(file.RelativePath))
+        {
+            if (LowerPriorityPathSegments.Any(marker => segment.Contains(marker, StringComparison.OrdinalIgnoreCase)))
+            {
+                score -= 25;
+            }
+        }
+
+        return score;
+    }
+
+    private static int GetMetadataRichnessScore(ScannedFile file)
+    {
+        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.FileName);
+        var alphaNumericCount = fileNameWithoutExtension.Count(char.IsLetterOrDigit);
+        var separatorPenalty = fileNameWithoutExtension.Count(character => character is '_' or '-' or '.');
+        return alphaNumericCount - separatorPenalty;
+    }
+
+    private static int GetPathDepth(string relativePath) =>
+        GetPathSegments(relativePath).Length;
+
+    private static string[] GetPathSegments(string relativePath) =>
+        relativePath.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
 }

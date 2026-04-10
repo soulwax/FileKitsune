@@ -101,6 +101,36 @@ public sealed class StrategyRecommendationService
                         : "The preview has enough research-like signals to support a library-style structure.")
             };
 
+        if (plan.Guidance is { GeminiUsed: true } guidance)
+        {
+            recommendations = recommendations
+                .Select(recommendation =>
+                {
+                    var confidence = recommendation.Confidence;
+                    var reason = recommendation.Reason;
+
+                    if (recommendation.Preset == guidance.PreferredPreset)
+                    {
+                        confidence = Math.Min(0.98d, confidence + 0.12d);
+                        reason = $"{reason} Gemini also prefers this preset and suggests a {DescribeBias(guidance.StructureBias)} structure with depth {guidance.SuggestedMaxDepth}.";
+                    }
+                    else if (recommendation.Preset is OrganizationStrategyPreset.HybridProjectDate &&
+                             guidance.StructureBias == OrganizationStructureBias.Balanced)
+                    {
+                        confidence = Math.Min(0.98d, confidence + 0.03d);
+                    }
+
+                    return new StrategyRecommendation
+                    {
+                        Preset = recommendation.Preset,
+                        DisplayName = recommendation.DisplayName,
+                        Reason = reason,
+                        Confidence = confidence
+                    };
+                })
+                .ToArray();
+        }
+
         return recommendations
             .OrderByDescending(recommendation => recommendation.Confidence)
             .ThenBy(recommendation => recommendation.DisplayName, StringComparer.OrdinalIgnoreCase)
@@ -144,4 +174,12 @@ public sealed class StrategyRecommendationService
 
         return count / total;
     }
+
+    private static string DescribeBias(OrganizationStructureBias bias) =>
+        bias switch
+        {
+            OrganizationStructureBias.Shallower => "shallower",
+            OrganizationStructureBias.Deeper => "deeper",
+            _ => "balanced"
+        };
 }

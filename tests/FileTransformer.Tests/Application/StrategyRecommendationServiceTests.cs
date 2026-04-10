@@ -17,7 +17,15 @@ public sealed class StrategyRecommendationServiceTests
             CreateOperation("Project Atlas", DateSourceKind.FileName, "research", ".pdf"),
             CreateOperation("Project Atlas", DateSourceKind.ModifiedTime, "teaching", ".md"),
             CreateOperation("Project Atlas", DateSourceKind.ContentDerived, "research", ".txt")
-        ]);
+        ],
+        new OrganizationGuidance
+        {
+            GeminiUsed = true,
+            PreferredPreset = OrganizationStrategyPreset.ProjectFirst,
+            StructureBias = OrganizationStructureBias.Shallower,
+            SuggestedMaxDepth = 3,
+            Reasoning = "Projects dominate and a flatter structure keeps related items together."
+        });
 
         var recommendations = service.Recommend(plan, maxCount: 3);
 
@@ -44,7 +52,7 @@ public sealed class StrategyRecommendationServiceTests
         Assert.Equal(OrganizationStrategyPreset.ArchiveCleanup, recommendations[0].Preset);
     }
 
-    private static OrganizationPlan CreatePlan(IReadOnlyList<PlanOperation> operations) =>
+    private static OrganizationPlan CreatePlan(IReadOnlyList<PlanOperation> operations, OrganizationGuidance? guidance = null) =>
         new()
         {
             Settings = new OrganizationSettings
@@ -58,7 +66,8 @@ public sealed class StrategyRecommendationServiceTests
                 DuplicateCount = operations.Count(operation => operation.DuplicateDetected),
                 RequiresReviewCount = operations.Count(operation => operation.RequiresReview),
                 SkipCount = operations.Count(operation => operation.OperationType == PlanOperationType.Skip)
-            }
+            },
+            Guidance = guidance
         };
 
     private static PlanOperation CreateOperation(

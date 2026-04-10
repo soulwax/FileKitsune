@@ -42,6 +42,7 @@ public sealed class OrganizationSettings
         ".cpp",
         ".c",
         ".h",
+        ".pdf",
         ".docx"
     ];
 

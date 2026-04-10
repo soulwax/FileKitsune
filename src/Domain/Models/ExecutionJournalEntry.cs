@@ -18,6 +18,8 @@ public sealed class ExecutionJournalEntry
 
     public bool DestinationExistedBeforeMove { get; set; }
 
+    public string ContentHash { get; set; } = string.Empty;
+
     public long? FileSizeBytes { get; set; }
 
     public DateTimeOffset? SourceCreatedUtc { get; set; }

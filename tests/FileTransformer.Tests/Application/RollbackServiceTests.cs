@@ -151,9 +151,43 @@ public sealed class RollbackServiceTests
         var preview = await service.PreviewRollbackAsync(journal.JournalId, CancellationToken.None);
 
         Assert.Equal(3, preview.Entries.Count);
+        Assert.Equal(1, preview.ReadyCount);
+        Assert.Equal(1, preview.MissingDestinationCount);
+        Assert.Equal(1, preview.OriginalPathOccupiedCount);
         Assert.Contains(preview.Entries, entry => entry.SourceFullPath == @"C:\Root\ready.txt" && entry.PreviewStatus == RollbackPreviewStatus.Ready);
         Assert.Contains(preview.Entries, entry => entry.SourceFullPath == @"C:\Root\occupied.txt" && entry.PreviewStatus == RollbackPreviewStatus.OriginalPathOccupied);
         Assert.Contains(preview.Entries, entry => entry.SourceFullPath == @"C:\Root\missing.txt" && entry.PreviewStatus == RollbackPreviewStatus.MissingDestination);
+    }
+
+    [Fact]
+    public async Task PreviewRollbackFolderAsync_FiltersCountsToSelectedFolder()
+    {
+        var journal = CreateJournal(
+            rootDirectory: @"C:\Root",
+            entries:
+            [
+                CreateEntry(@"C:\Root\ready.txt", @"C:\Root\Invoices\ready.txt"),
+                CreateEntry(@"C:\Root\occupied.txt", @"C:\Root\Invoices\occupied.txt"),
+                CreateEntry(@"C:\Root\elsewhere.txt", @"C:\Root\Research\elsewhere.txt")
+            ]);
+
+        var fileOperations = new FakeFileOperations(existingFiles:
+        [
+            @"C:\Root\Invoices\ready.txt",
+            @"C:\Root\Invoices\occupied.txt",
+            @"C:\Root\occupied.txt",
+            @"C:\Root\Research\elsewhere.txt"
+        ]);
+        var journalStore = new InMemoryJournalStore([journal]);
+        var service = new RollbackService(journalStore, fileOperations, NullLogger<RollbackService>.Instance);
+
+        var preview = await service.PreviewRollbackFolderAsync(journal.JournalId, "Invoices", CancellationToken.None);
+
+        Assert.Equal(2, preview.Entries.Count);
+        Assert.Equal(1, preview.ReadyCount);
+        Assert.Equal(0, preview.MissingDestinationCount);
+        Assert.Equal(1, preview.OriginalPathOccupiedCount);
+        Assert.DoesNotContain(preview.Entries, entry => entry.SourceFullPath == @"C:\Root\elsewhere.txt");
     }
 
     [Fact]

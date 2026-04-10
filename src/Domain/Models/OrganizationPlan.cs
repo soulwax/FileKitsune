@@ -13,4 +13,6 @@ public sealed class OrganizationPlan
     public required IReadOnlyList<PlanOperation> Operations { get; init; }
 
     public required PlanSummary Summary { get; init; }
+
+    public OrganizationGuidance? Guidance { get; init; }
 }

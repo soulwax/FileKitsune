@@ -68,6 +68,7 @@ Enums/
  FolderLanguageMode.cs
  OrganizationDimension.cs
  OrganizationStrategyPreset.cs
+ OrganizationStructureBias.cs
  PathSegmentKind.cs
  PlanOperationType.cs
  RiskLevel.cs
@@ -79,6 +80,7 @@ Models/
  ExecutionJournalEntry.cs
  FileContentSnapshot.cs
  NamingPolicy.cs
+ OrganizationGuidance.cs
  OrganizationPlan.cs
  OrganizationPolicy.cs
  OrganizationSettings.cs

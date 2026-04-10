@@ -13,10 +13,21 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFileTransformerInfrastructure(this IServiceCollection services)
     {
         services.AddSingleton<AppStoragePaths>();
+        services.AddSingleton<PersistenceOptionsResolver>();
+        services.AddSingleton<IPersistenceStatusService, PersistenceStatusService>();
+        services.AddSingleton<IGeminiOrganizationAdvisor, GeminiOrganizationAdvisor>();
         services.AddSingleton<GeminiPromptBuilder>();
+        services.AddSingleton<GeminiOrganizationGuidancePromptBuilder>();
         services.AddSingleton<GeminiResponseParser>();
-        services.AddSingleton<IAppSettingsStore, ProtectedAppSettingsStore>();
-        services.AddSingleton<IExecutionJournalStore, JsonExecutionJournalStore>();
+        services.AddSingleton<GeminiOrganizationGuidanceParser>();
+        services.AddSingleton<ProtectedAppSettingsStore>();
+        services.AddSingleton<SqliteAppSettingsStore>();
+        services.AddSingleton<PostgresAppSettingsStore>();
+        services.AddSingleton<IAppSettingsStore, ResilientAppSettingsStore>();
+        services.AddSingleton<JsonExecutionJournalStore>();
+        services.AddSingleton<SqliteExecutionJournalStore>();
+        services.AddSingleton<PostgresExecutionJournalStore>();
+        services.AddSingleton<IExecutionJournalStore, ResilientExecutionJournalStore>();
         services.AddSingleton<IFileScanner, LocalFileScanner>();
         services.AddSingleton<IFileContentReader, LocalFileContentReader>();
         services.AddSingleton<IFileOperations, LocalFileOperations>();

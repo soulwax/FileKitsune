@@ -62,13 +62,17 @@ Abstractions/
  IFileHashProvider.cs
  IFileOperations.cs
  IFileScanner.cs
+ IGeminiOrganizationAdvisor.cs
  IGeminiSemanticClassifier.cs
+ IPersistenceStatusService.cs
 Models/
  AppSettings.cs
  DuplicateMatch.cs
  ExecutionOutcome.cs
  FileAnalysisContext.cs
  GeminiOptions.cs
+ PersistenceStatusMode.cs
+ PersistenceStatusSnapshot.cs
  RollbackPreview.cs
  RollbackPreviewEntry.cs
  RollbackPreviewStatus.cs
@@ -87,6 +91,7 @@ Services/
  OrganizationWorkflowService.cs
  PathSafetyService.cs
  PlanExecutionService.cs
+ ProjectClusterService.cs
  ProtectionPolicyService.cs
  ReviewDecisionService.cs
  RollbackService.cs

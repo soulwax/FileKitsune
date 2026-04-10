@@ -12,13 +12,26 @@ The app already has:
 - localized wizard text, option labels, dialogs, and status updates
 - strategy presets and recommendation cards
 - exact duplicate detection using size pre-filtering and SHA-256
+- duplicate canonical selection now prefers cleaner paths, then older files, then richer metadata
+- duplicate hashing now has explicit size-prefilter and large-file test coverage
 - duplicate review surfaced in preview
 - latest-run rollback in the UI
 - backend rollback history loading and append-safer journaling
 - saved-run selection in the execute step for full rollback and folder-scoped undo
 - rollback preview tab for the selected saved run
 - rollback preview now includes expected readiness/conflict states
+- rollback preview now also includes an impact summary before undo
+- rollback confirmation dialogs now show preview-aware restore/skip counts
+- duplicate-routed moves are covered by execution+rollback tests
 - journal entries persist rollback status and last rollback attempt details
+- execution journal entries now persist content hashes
+- local content extraction for text-like files, DOCX, and text-based PDFs
+- invalid/unreadable PDFs already fall back safely and are covered by tests
+- optional Postgres/Nile-backed shared persistence for settings snapshots and journals
+- local SQLite cache/fallback for offline or unavailable remote persistence
+- Gemini API keys remain local and are not synced remotely
+- the execute step already surfaces the current persistence mode to the user
+- the strategy step already lets the user apply Gemini’s preferred preset and maximum folder depth explicitly
 
 ## Preserve These Constraints
 
@@ -31,12 +44,12 @@ The app already has:
 
 ## Highest-Value Next Task
 
-Continue the rollback slice in the UI and journal model:
+Continue the final trust-polish slice:
 
 1. inspect `MainWindowViewModel` execute/rollback step
-2. improve rollback preview into a stronger confirmation/diff experience
-3. finish richer journal metadata, especially content hash coverage
-4. extend journal metadata only in ways that keep existing rollback behavior stable
+2. improve rollback preview/confirmation from impact summary into a stronger confirmation/diff experience
+3. deepen cross-file clustering so Gemini guidance affects more than preset/depth advice
+4. extend duplicate behavior only if there is still a product gap, not just a testing gap
 
 ## Key Files
 
@@ -50,6 +63,7 @@ Continue the rollback slice in the UI and journal model:
 ## Validation Baseline
 
 ```powershell
+dotnet restore FileTransformer.sln
 dotnet build FileTransformer.sln -c Debug --no-restore
-dotnet test FileTransformer.sln -c Debug
+dotnet test tests/FileTransformer.Tests/FileTransformer.Tests.csproj -c Debug
 ```

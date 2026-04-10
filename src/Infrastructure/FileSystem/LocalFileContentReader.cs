@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using FileTransformer.Application.Abstractions;
 using FileTransformer.Domain.Models;
 using Microsoft.Extensions.Logging;
+using UglyToad.PdfPig;
 
 namespace FileTransformer.Infrastructure.FileSystem;
 
@@ -43,9 +44,12 @@ public sealed class LocalFileContentReader : IFileContentReader
 
         try
         {
-            return file.Extension.Equals(".docx", StringComparison.OrdinalIgnoreCase)
-                ? await ReadDocxAsync(file.FullPath, cancellationToken)
-                : await ReadTextAsync(file.FullPath, cancellationToken);
+            return file.Extension.ToLowerInvariant() switch
+            {
+                ".docx" => await ReadDocxAsync(file.FullPath, cancellationToken),
+                ".pdf" => await ReadPdfAsync(file.FullPath, cancellationToken),
+                _ => await ReadTextAsync(file.FullPath, cancellationToken)
+            };
         }
         catch (Exception exception)
         {
@@ -76,6 +80,61 @@ public sealed class LocalFileContentReader : IFileContentReader
             IsTruncated = truncated,
             ExtractionSource = "text"
         };
+    }
+
+    private static Task<FileContentSnapshot> ReadPdfAsync(string fullPath, CancellationToken cancellationToken)
+    {
+        return Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var document = PdfDocument.Open(fullPath);
+            var builder = new StringBuilder();
+
+            foreach (var page in document.GetPages())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var text = page.Text;
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    continue;
+                }
+
+                if (builder.Length > 0)
+                {
+                    builder.AppendLine();
+                }
+
+                builder.Append(text.Trim());
+                if (builder.Length >= MaxExtractedCharacters)
+                {
+                    break;
+                }
+            }
+
+            var extractedText = builder.ToString().Trim();
+            if (string.IsNullOrWhiteSpace(extractedText))
+            {
+                return new FileContentSnapshot
+                {
+                    ExtractionSource = "pdf-empty",
+                    IsTextReadable = false
+                };
+            }
+
+            var truncated = extractedText.Length > MaxExtractedCharacters;
+            if (truncated)
+            {
+                extractedText = extractedText[..MaxExtractedCharacters];
+            }
+
+            return new FileContentSnapshot
+            {
+                Text = extractedText,
+                IsTextReadable = true,
+                IsTruncated = truncated,
+                ExtractionSource = "pdf"
+            };
+        }, cancellationToken);
     }
 
     private static Task<FileContentSnapshot> ReadDocxAsync(string fullPath, CancellationToken cancellationToken)

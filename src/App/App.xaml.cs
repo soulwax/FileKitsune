@@ -36,6 +36,7 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton<PathSafetyService>();
         builder.Services.AddSingleton<DateResolutionService>();
         builder.Services.AddSingleton<DuplicateDetectionService>();
+        builder.Services.AddSingleton<ProjectClusterService>();
         builder.Services.AddSingleton<ProtectionPolicyService>();
         builder.Services.AddSingleton<NamingPolicyService>();
         builder.Services.AddSingleton<ReviewDecisionService>();
