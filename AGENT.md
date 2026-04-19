@@ -21,7 +21,7 @@ Already implemented:
 - advisory strategy recommendations after preview
 - exact duplicate detection with size pre-filtering and SHA-256
 - duplicate review surfaced in preview
-- latest-run rollback
+- historical rollback selection, folder-scoped undo, and diff-style rollback preview
 
 ## Non-Negotiables
 
@@ -41,12 +41,12 @@ Already implemented:
 
 ## Highest-Value Next Work
 
-1. Harden rollback journaling.
-2. Add historical rollback selection and rollback preview.
-3. Add dedicated rollback tests.
+1. Add OCR/image-first handling for scanned PDFs and image-led folders.
+2. Finish resource-driven Application-layer progress/status text.
+3. Continue rollback checkpoint hardening for partial-failure recovery.
 
 ## Secondary Next Work
 
 1. Improve duplicate canonical selection.
-2. Add PDF extraction.
-3. Expand Gemini-assisted contextual grouping.
+2. Tune duplicate/project heuristics with real folder samples.
+3. Expand semantic enrichment without weakening deterministic safety.

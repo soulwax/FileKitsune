@@ -70,6 +70,10 @@
                                        Foreground="{StaticResource MutedTextBrush}"
                                        TextWrapping="Wrap"
                                        Text="{Binding SelectedRollbackJournalSummary}" />
+                            <Button Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{Binding PreviewSelectedRollbackRunCommand}"
+                                    Content="{DynamicResource RollbackPreviewSelectedRunButton}"
+                                    IsEnabled="{Binding HasSelectedRollbackJournal}" />
                         </StackPanel>
                         <Button Style="{StaticResource SecondaryButtonStyle}"
                                 Command="{Binding RollbackLatestCommand}"
@@ -88,12 +92,27 @@
                             <ItemsControl ItemsSource="{Binding RollbackFolderGroups}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Button Margin="0,4,0,0"
-                                                Style="{StaticResource SecondaryButtonStyle}"
-                                                Command="{Binding DataContext.RollbackFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding FolderName}"
-                                                Content="{Binding Label}"
-                                                IsEnabled="{Binding DataContext.IsBusy, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource InverseBooleanConverter}}" />
+                                        <Border Margin="0,8,0,0"
+                                                Style="{StaticResource SoftPanelBorderStyle}">
+                                            <StackPanel>
+                                                <TextBlock FontWeight="SemiBold"
+                                                           Text="{Binding Label}" />
+                                                <StackPanel Margin="0,10,0,0"
+                                                            Orientation="Horizontal">
+                                                    <Button Style="{StaticResource SecondaryButtonStyle}"
+                                                            Command="{Binding DataContext.PreviewRollbackFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                            CommandParameter="{Binding FolderName}"
+                                                            Content="{DynamicResource RollbackPreviewFolderButton}"
+                                                            IsEnabled="{Binding DataContext.IsBusy, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource InverseBooleanConverter}}" />
+                                                    <Button Margin="8,0,0,0"
+                                                            Style="{StaticResource SecondaryButtonStyle}"
+                                                            Command="{Binding DataContext.RollbackFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                            CommandParameter="{Binding FolderName}"
+                                                            Content="{DynamicResource RollbackFolderUndoButton}"
+                                                            IsEnabled="{Binding DataContext.IsBusy, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource InverseBooleanConverter}}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
@@ -162,6 +181,21 @@
                             <StackPanel>
                                 <TextBlock FontSize="16"
                                            FontWeight="SemiBold"
+                                           Text="{DynamicResource RollbackPreviewScopeTitle}" />
+                                <TextBlock Margin="0,12,0,0"
+                                           FontWeight="SemiBold"
+                                           Text="{Binding RollbackPreviewScopeLabel}" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding RollbackPreviewScopeBody}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock FontSize="16"
+                                           FontWeight="SemiBold"
                                            Text="{DynamicResource RollbackPreviewSummaryTitle}" />
                                 <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
                                     <TextBlock Text="{DynamicResource RollbackPreviewSummaryReadyLabel}" />
@@ -178,7 +212,89 @@
                             </StackPanel>
                         </Border>
 
+                        <TextBlock FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Text="{DynamicResource RollbackPreviewDiffTitle}" />
+                        <ItemsControl Margin="0,12,0,12"
+                                      ItemsSource="{Binding RollbackPreviewSections}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,0,0,12"
+                                            Style="{StaticResource SoftPanelBorderStyle}">
+                                        <StackPanel>
+                                            <DockPanel LastChildFill="False">
+                                                <TextBlock DockPanel.Dock="Left"
+                                                           FontSize="15"
+                                                           FontWeight="SemiBold"
+                                                           Text="{Binding Title}" />
+                                                <TextBlock DockPanel.Dock="Right"
+                                                           Foreground="{StaticResource MutedTextBrush}"
+                                                           Text="{Binding CountLabel}" />
+                                            </DockPanel>
+                                            <TextBlock Margin="0,6,0,12"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       TextWrapping="Wrap"
+                                                       Text="{Binding Description}" />
+                                            <ItemsControl ItemsSource="{Binding Entries}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Margin="0,0,0,8"
+                                                                Padding="12"
+                                                                Background="{StaticResource SurfaceBrush}"
+                                                                BorderBrush="{StaticResource LineBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="12">
+                                                            <StackPanel>
+                                                                <DockPanel LastChildFill="False">
+                                                                    <TextBlock DockPanel.Dock="Left"
+                                                                               FontWeight="SemiBold"
+                                                                               Text="{Binding PreviewStatus}" />
+                                                                    <TextBlock DockPanel.Dock="Right"
+                                                                               Foreground="{StaticResource MutedTextBrush}"
+                                                                               Text="{Binding ExecutedAtLocal, StringFormat={}{0:g}}" />
+                                                                </DockPanel>
+                                                                <TextBlock Margin="0,10,0,0"
+                                                                           Foreground="{StaticResource MutedTextBrush}"
+                                                                           Text="{DynamicResource RollbackPreviewCurrentColumn}" />
+                                                                <TextBlock Text="{Binding DestinationRelativePath}"
+                                                                           TextWrapping="Wrap" />
+                                                                <TextBlock Margin="0,8,0,0"
+                                                                           Foreground="{StaticResource MutedTextBrush}"
+                                                                           Text="{DynamicResource RollbackPreviewRestoreToColumn}" />
+                                                                <TextBlock Text="{Binding SourceRelativePath}"
+                                                                           TextWrapping="Wrap" />
+                                                                <TextBlock Margin="0,8,0,0"
+                                                                           Foreground="{StaticResource MutedTextBrush}"
+                                                                           Text="{DynamicResource RollbackPreviewExpectedColumn}" />
+                                                                <TextBlock Text="{Binding PreviewMessage}"
+                                                                           TextWrapping="Wrap"
+                                                                           Visibility="{Binding HasPreviewMessage, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                                <TextBlock Margin="0,8,0,0"
+                                                                           Foreground="{StaticResource MutedTextBrush}"
+                                                                           Text="{DynamicResource RollbackPreviewReasonColumn}"
+                                                                           Visibility="{Binding HasNotes, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                                <TextBlock Text="{Binding Notes}"
+                                                                           TextWrapping="Wrap"
+                                                                           Visibility="{Binding HasNotes, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                                       Text="{Binding RemainingLabel}"
+                                                       Visibility="{Binding HasRemainingLabel, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Text="{DynamicResource RollbackPreviewAuditTitle}" />
                         <DataGrid AutoGenerateColumns="False"
+                                  Margin="0,12,0,0"
                                   CanUserAddRows="False"
                                   CanUserDeleteRows="False"
                                   HeadersVisibility="Column"

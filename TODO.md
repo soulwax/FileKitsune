@@ -131,16 +131,16 @@ Validated baseline:
 
 Highest-value next work:
 
-- [ ] improve rollback preview/confirmation from impact summary into a clearer diff-style confirmation experience
+- [x] improve rollback preview/confirmation from impact summary into a clearer diff-style confirmation experience
 - [ ] add OCR/image-first handling for scanned PDFs and image-led folders
-- [ ] decide whether a fuller rollback diff surface is worth the additional UI complexity
 - [ ] consider any last domain-specific duplicate canonical heuristics after manual testing
+- [ ] make Application-layer progress/status text fully resource-driven end-to-end
 
 Why this is next:
 
 - the wizard, rules, localization, and recommendations are already useful
 - duplicate detection already exists in a usable form
-- rollback and duplicate trust details are now the largest gaps still visible to users
+- OCR, localization cleanup, and duplicate trust details are now the largest gaps still visible to users
 
 ## Non-Negotiables
 

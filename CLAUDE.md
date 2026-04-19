@@ -9,7 +9,7 @@ Current repo reality:
 - German is the default UI and naming direction
 - strategy recommendations are implemented
 - exact duplicate detection already uses SHA-256 with size pre-filtering
-- rollback still only supports the latest run
+- rollback now supports saved-run selection, folder-scoped undo, and diff-style preview/confirmation
 
 ## Most Important Constraints
 
@@ -21,12 +21,12 @@ Current repo reality:
 
 ## Best Next Slice
 
-Focus on rollback hardening:
+Focus on trust-polish gaps after rollback UX:
 
-1. richer journals
-2. append-safe execution journaling
-3. historical rollback selection
-4. rollback tests
+1. OCR/image-first handling for scanned PDFs and image-led folders
+2. fully resource-drive remaining Application-layer progress text
+3. continue richer rollback checkpoints for partial-failure recovery
+4. tune duplicate heuristics with real folder samples
 
 ## Useful Seams
 

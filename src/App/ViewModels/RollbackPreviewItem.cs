@@ -1,3 +1,5 @@
+using FileTransformer.Application.Models;
+
 namespace FileTransformer.App.ViewModels;
 
 public sealed class RollbackPreviewItem
@@ -15,4 +17,10 @@ public sealed class RollbackPreviewItem
     public string PreviewStatus { get; init; } = string.Empty;
 
     public string PreviewMessage { get; init; } = string.Empty;
+
+    public RollbackPreviewStatus PreviewStatusKind { get; init; }
+
+    public bool HasPreviewMessage => !string.IsNullOrWhiteSpace(PreviewMessage);
+
+    public bool HasNotes => !string.IsNullOrWhiteSpace(Notes);
 }

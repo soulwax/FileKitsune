@@ -17,6 +17,8 @@ namespace FileTransformer.App.ViewModels;
 
 public sealed partial class MainWindowViewModel : ObservableObject
 {
+    private const int RollbackPreviewSectionSampleLimit = 4;
+    private const int RollbackConfirmationSampleLimit = 2;
     private readonly IAppSettingsStore appSettingsStore;
     private readonly IPersistenceStatusService persistenceStatusService;
     private readonly OrganizationWorkflowService organizationWorkflowService;
@@ -145,6 +147,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<RollbackJournalItem> RollbackHistory { get; } = [];
 
     public ObservableCollection<RollbackPreviewItem> RollbackPreviewEntries { get; } = [];
+
+    public ObservableCollection<RollbackPreviewSectionItem> RollbackPreviewSections { get; } = [];
 
     public ICollectionView PlanView { get; }
 
@@ -354,6 +358,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private int rollbackPreviewOriginalPathOccupiedCount;
+
+    [ObservableProperty]
+    private string rollbackPreviewScopeLabel = string.Empty;
+
+    [ObservableProperty]
+    private string rollbackPreviewScopeBody = string.Empty;
+
+    [ObservableProperty]
+    private bool isRollbackPreviewScopedToFolder;
 
     [ObservableProperty]
     private string persistenceModeLabel = string.Empty;
@@ -775,6 +788,49 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private async Task PreviewSelectedRollbackRunAsync()
+    {
+        if (SelectedRollbackJournal is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await LoadRollbackJournalSelectionAsync(SelectedRollbackJournal.JournalId);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Loading rollback preview for selected journal failed.");
+            dialogService.ShowError(GetString("DialogRollbackPreviewFailedTitle"), exception.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task PreviewRollbackFolderAsync(string folderName)
+    {
+        if (SelectedRollbackJournal is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var preview = await rollbackService.PreviewRollbackFolderAsync(SelectedRollbackJournal.JournalId, folderName, CancellationToken.None);
+            ApplyRollbackPreview(
+                preview,
+                FormatString("RollbackPreviewScopeFolderLabel", folderName),
+                FormatString("RollbackPreviewScopeFolderBody", folderName),
+                scopedToFolder: true);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Loading rollback preview for folder {Folder} failed.", folderName);
+            dialogService.ShowError(GetString("DialogRollbackPreviewFailedTitle"), exception.Message);
+        }
+    }
+
     [RelayCommand(CanExecute = nameof(CanMoveBack))]
     private void Back()
     {
@@ -857,9 +913,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (value is null)
         {
             SelectedRollbackJournalSummary = string.Empty;
-            RollbackPreviewEntries.Clear();
-            HasRollbackPreviewEntries = false;
-            ResetRollbackPreviewSummary();
+            ResetRollbackPreview();
             PopulateRollbackFolderGroups(null);
             return;
         }
@@ -1158,13 +1212,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
             preview.Entries.Count,
             GetJournalStatusLabel(preview.Journal.Status));
 
-        return FormatString(
-            "DialogRollbackBodyWithImpact",
-            resolvedLabel,
-            preview.ReadyCount,
-            preview.MissingDestinationCount,
-            preview.OriginalPathOccupiedCount,
-            Environment.NewLine);
+        return BuildRollbackImpactConfirmationBody(
+            FormatString("DialogRollbackImpactIntro", resolvedLabel),
+            preview);
     }
 
     private async Task<string> BuildRollbackFolderConfirmationBodyAsync(string folderName)
@@ -1180,13 +1230,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return FormatString("DialogUndoFolderBody", folderName);
         }
 
-        return FormatString(
-            "DialogUndoFolderBodyWithImpact",
-            folderName,
-            preview.ReadyCount,
-            preview.MissingDestinationCount,
-            preview.OriginalPathOccupiedCount,
-            Environment.NewLine);
+        return BuildRollbackImpactConfirmationBody(
+            FormatString("DialogRollbackFolderImpactIntro", folderName),
+            preview);
     }
 
     private AppSettings BuildSettings()
@@ -1611,7 +1657,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             var journal = await rollbackService.LoadJournalAsync(journalId, CancellationToken.None);
             PopulateRollbackFolderGroups(journal);
-            await PopulateRollbackPreviewEntriesAsync(journalId);
+            var preview = await rollbackService.PreviewRollbackAsync(journalId, CancellationToken.None);
+            ApplyRollbackPreview(
+                preview,
+                journal is null
+                    ? string.Empty
+                    : FormatString(
+                        "RollbackPreviewScopeRunLabel",
+                        FormatString(
+                            "RollbackHistoryItemLabel",
+                            journal.CreatedAtUtc.ToLocalTime(),
+                            journal.Entries.Count,
+                            GetJournalStatusLabel(journal.Status))),
+                GetString("RollbackPreviewScopeRunBody"),
+                scopedToFolder: false);
             SelectedRollbackJournalSummary = journal is null
                 ? string.Empty
                 : FormatString(
@@ -1625,45 +1684,205 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             logger.LogWarning(exception, "Loading rollback journal selection failed.");
             SelectedRollbackJournalSummary = string.Empty;
-            RollbackPreviewEntries.Clear();
-            HasRollbackPreviewEntries = false;
-            ResetRollbackPreviewSummary();
+            ResetRollbackPreview();
             PopulateRollbackFolderGroups(null);
         }
     }
 
-    private async Task PopulateRollbackPreviewEntriesAsync(Guid journalId)
+    private void ApplyRollbackPreview(
+        RollbackPreview preview,
+        string scopeLabel,
+        string scopeBody,
+        bool scopedToFolder)
     {
         RollbackPreviewEntries.Clear();
-        var preview = await rollbackService.PreviewRollbackAsync(journalId, CancellationToken.None);
+        RollbackPreviewSections.Clear();
+        RollbackPreviewScopeLabel = scopeLabel;
+        RollbackPreviewScopeBody = scopeBody;
+        IsRollbackPreviewScopedToFolder = scopedToFolder;
 
         if (preview.Journal is null || preview.Entries.Count == 0)
         {
-            HasRollbackPreviewEntries = false;
             ResetRollbackPreviewSummary();
+            HasRollbackPreviewEntries = false;
             return;
         }
 
-        foreach (var entry in preview.Entries
-                     .OrderByDescending(item => item.ExecutedAtUtc)
-                     .ThenBy(item => item.DestinationFullPath, StringComparer.OrdinalIgnoreCase))
-        {
-            RollbackPreviewEntries.Add(new RollbackPreviewItem
+        var items = preview.Entries
+            .OrderByDescending(item => item.ExecutedAtUtc)
+            .ThenBy(item => item.DestinationFullPath, StringComparer.OrdinalIgnoreCase)
+            .Select(entry => new RollbackPreviewItem
             {
                 ExecutedAtLocal = entry.ExecutedAtUtc.ToLocalTime(),
                 SourceRelativePath = GetRelativePathWithinRoot(preview.Journal.RootDirectory, entry.SourceFullPath),
                 DestinationRelativePath = GetRelativePathWithinRoot(preview.Journal.RootDirectory, entry.DestinationFullPath),
                 Outcome = entry.Outcome,
                 Notes = entry.Notes,
+                PreviewStatusKind = entry.PreviewStatus,
                 PreviewStatus = GetRollbackPreviewStatusLabel(entry.PreviewStatus),
                 PreviewMessage = entry.PreviewMessage
-            });
+            })
+            .ToList();
+
+        foreach (var item in items)
+        {
+            RollbackPreviewEntries.Add(item);
         }
 
+        PopulateRollbackPreviewSections(items);
         HasRollbackPreviewEntries = RollbackPreviewEntries.Count > 0;
         RollbackPreviewReadyCount = preview.ReadyCount;
         RollbackPreviewMissingDestinationCount = preview.MissingDestinationCount;
         RollbackPreviewOriginalPathOccupiedCount = preview.OriginalPathOccupiedCount;
+    }
+
+    private void PopulateRollbackPreviewSections(IReadOnlyList<RollbackPreviewItem> items)
+    {
+        RollbackPreviewSections.Clear();
+        AddRollbackPreviewSection(
+            items,
+            RollbackPreviewStatus.Ready,
+            "RollbackPreviewSectionReadyTitle",
+            "RollbackPreviewSectionReadyBody");
+        AddRollbackPreviewSection(
+            items,
+            RollbackPreviewStatus.MissingDestination,
+            "RollbackPreviewSectionMissingTitle",
+            "RollbackPreviewSectionMissingBody");
+        AddRollbackPreviewSection(
+            items,
+            RollbackPreviewStatus.OriginalPathOccupied,
+            "RollbackPreviewSectionBlockedTitle",
+            "RollbackPreviewSectionBlockedBody");
+    }
+
+    private void AddRollbackPreviewSection(
+        IReadOnlyList<RollbackPreviewItem> items,
+        RollbackPreviewStatus status,
+        string titleKey,
+        string descriptionKey)
+    {
+        var matches = items
+            .Where(item => item.PreviewStatusKind == status)
+            .ToList();
+
+        if (matches.Count == 0)
+        {
+            return;
+        }
+
+        RollbackPreviewSections.Add(new RollbackPreviewSectionItem
+        {
+            Title = GetString(titleKey),
+            Description = GetString(descriptionKey),
+            CountLabel = FormatString("RollbackPreviewSectionCountLabel", matches.Count),
+            Entries = matches.Take(RollbackPreviewSectionSampleLimit).ToList(),
+            RemainingLabel = matches.Count > RollbackPreviewSectionSampleLimit
+                ? FormatString("RollbackPreviewSectionRemainingLabel", matches.Count - RollbackPreviewSectionSampleLimit)
+                : string.Empty
+        });
+    }
+
+    private string BuildRollbackImpactConfirmationBody(string intro, RollbackPreview preview)
+    {
+        var lines = new List<string>
+        {
+            intro,
+            string.Empty,
+            FormatString("DialogRollbackImpactReadyLine", preview.ReadyCount),
+            FormatString("DialogRollbackImpactMissingLine", preview.MissingDestinationCount),
+            FormatString("DialogRollbackImpactBlockedLine", preview.OriginalPathOccupiedCount)
+        };
+
+        var exampleSections = BuildRollbackImpactExampleSections(preview);
+        if (exampleSections.Count > 0)
+        {
+            lines.Add(string.Empty);
+            lines.Add(GetString("DialogRollbackImpactExamplesTitle"));
+            lines.AddRange(exampleSections);
+        }
+
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    private List<string> BuildRollbackImpactExampleSections(RollbackPreview preview)
+    {
+        var orderedEntries = preview.Entries
+            .OrderByDescending(item => item.ExecutedAtUtc)
+            .ThenBy(item => item.DestinationFullPath, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var rootDirectory = preview.Journal?.RootDirectory;
+
+        if (string.IsNullOrWhiteSpace(rootDirectory))
+        {
+            return [];
+        }
+
+        var sections = new List<string>();
+        AppendRollbackImpactExampleSection(
+            sections,
+            orderedEntries,
+            rootDirectory,
+            RollbackPreviewStatus.Ready,
+            "DialogRollbackImpactReadyExamplesTitle");
+        AppendRollbackImpactExampleSection(
+            sections,
+            orderedEntries,
+            rootDirectory,
+            RollbackPreviewStatus.MissingDestination,
+            "DialogRollbackImpactMissingExamplesTitle");
+        AppendRollbackImpactExampleSection(
+            sections,
+            orderedEntries,
+            rootDirectory,
+            RollbackPreviewStatus.OriginalPathOccupied,
+            "DialogRollbackImpactBlockedExamplesTitle");
+
+        return sections;
+    }
+
+    private void AppendRollbackImpactExampleSection(
+        List<string> sections,
+        IReadOnlyList<RollbackPreviewEntry> entries,
+        string rootDirectory,
+        RollbackPreviewStatus status,
+        string titleKey)
+    {
+        var matches = entries
+            .Where(entry => entry.PreviewStatus == status)
+            .ToList();
+
+        if (matches.Count == 0)
+        {
+            return;
+        }
+
+        sections.Add(GetString(titleKey));
+
+        foreach (var entry in matches.Take(RollbackConfirmationSampleLimit))
+        {
+            sections.Add(FormatString(
+                "DialogRollbackImpactExampleLine",
+                GetRelativePathWithinRoot(rootDirectory, entry.DestinationFullPath),
+                GetRelativePathWithinRoot(rootDirectory, entry.SourceFullPath)));
+        }
+
+        var remainingCount = matches.Count - RollbackConfirmationSampleLimit;
+        if (remainingCount > 0)
+        {
+            sections.Add(FormatString("DialogRollbackImpactMoreExamplesLine", remainingCount));
+        }
+    }
+
+    private void ResetRollbackPreview()
+    {
+        RollbackPreviewEntries.Clear();
+        RollbackPreviewSections.Clear();
+        RollbackPreviewScopeLabel = string.Empty;
+        RollbackPreviewScopeBody = string.Empty;
+        IsRollbackPreviewScopedToFolder = false;
+        HasRollbackPreviewEntries = false;
+        ResetRollbackPreviewSummary();
     }
 
     private void ResetRollbackPreviewSummary()

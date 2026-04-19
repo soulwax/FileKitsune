@@ -21,8 +21,9 @@ The app is usable today and currently provides:
 - saved-run selection in the execute step for both full-run rollback and folder-scoped undo
 - rollback preview tab for the selected saved run
 - rollback preview now shows expected statuses like ready, missing destination, or original-path conflict
-- rollback preview now includes an at-a-glance impact summary before undo
-- rollback confirmation dialogs now reuse preview counts so the final confirm step shows likely restores versus skips
+- rollback preview now includes an at-a-glance impact summary plus grouped diff-style path samples before undo
+- rollback preview can be scoped to a selected top-level folder before running folder-only undo
+- rollback confirmation dialogs now include preview-aware counts and concrete example path restores/skips
 - local content extraction for text-like files, `.docx`, and `.pdf`
 - large readable files are sampled from both the beginning and end instead of only taking a leading slice
 - optional remote persistence via Nile/Postgres when `NILEDB_URL` or `POSTGRES_URL` is configured
@@ -155,7 +156,7 @@ dotnet run --project src/App/FileTransformer.App.csproj
 The app is still evolving. Notable gaps:
 
 - saved-run selection exists for full historical rollback and folder-scoped undo
-- rollback preview exists for saved runs and now includes an impact summary, but there is still no dedicated diff-style confirmation flow
+- rollback preview exists for saved runs and now includes grouped diff-style path samples and folder-scoped preview
 - append-safer journaling exists on the backend, rollback status is recorded per entry, and execution journals now include content hashes
 - richer journal metadata is better now, but a future checkpoint model could still improve partial-failure recovery further
 - PDF extraction is implemented for text-based PDFs with safe fallback on invalid/unreadable files

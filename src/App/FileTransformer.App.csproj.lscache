@@ -90,6 +90,7 @@ ViewModels/
  RollbackFolderItem.cs
  RollbackJournalItem.cs
  RollbackPreviewItem.cs
+ RollbackPreviewSectionItem.cs
  WizardStep.cs
 Views/
  MainWindow.xaml.cs
