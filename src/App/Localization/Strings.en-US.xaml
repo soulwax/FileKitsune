@@ -203,6 +203,9 @@
     <sys:String x:Key="RollbackPreviewStatusReady">Ready</sys:String>
     <sys:String x:Key="RollbackPreviewStatusMissingDestination">Missing destination</sys:String>
     <sys:String x:Key="RollbackPreviewStatusOriginalPathOccupied">Original path occupied</sys:String>
+    <sys:String x:Key="RollbackPreviewMessageReady">Ready to restore.</sys:String>
+    <sys:String x:Key="RollbackPreviewMessageMissingDestination">File no longer exists at the rollback source location.</sys:String>
+    <sys:String x:Key="RollbackPreviewMessageOriginalPathOccupied">Original path is already occupied and would be skipped.</sys:String>
     <sys:String x:Key="RollbackStatusStarted">Started</sys:String>
     <sys:String x:Key="RollbackStatusCompleted">Completed</sys:String>
     <sys:String x:Key="RollbackStatusCanceled">Canceled</sys:String>
@@ -249,6 +252,10 @@
     <sys:String x:Key="StatusCanceled">Operation canceled.</sys:String>
     <sys:String x:Key="StatusScanFailed">Scan failed.</sys:String>
     <sys:String x:Key="StatusExecuting">Executing approved operations...</sys:String>
+    <sys:String x:Key="StatusExecutionOutcome">Executed {0} operation(s), skipped {1}, failed {2}.</sys:String>
+    <sys:String x:Key="StatusRollbackOutcome">Rolled back {0} operation(s), skipped {1}, failed {2}.</sys:String>
+    <sys:String x:Key="StatusRollbackNoJournal">No rollback journal was found.</sys:String>
+    <sys:String x:Key="StatusRollbackNoFolderOperations">No operations found for folder "{0}".</sys:String>
     <sys:String x:Key="StatusGeminiGuidanceApplied">Applied Gemini guidance: strategy {0}, maximum depth {1}.</sys:String>
     <sys:String x:Key="StatusProgressScan">Discovered {0} files.</sys:String>
     <sys:String x:Key="StatusProgressClassify">Analyzed {0} of {1} files.</sys:String>

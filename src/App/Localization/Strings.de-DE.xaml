@@ -203,6 +203,9 @@
     <sys:String x:Key="RollbackPreviewStatusReady">Bereit</sys:String>
     <sys:String x:Key="RollbackPreviewStatusMissingDestination">Ziel fehlt</sys:String>
     <sys:String x:Key="RollbackPreviewStatusOriginalPathOccupied">Originalpfad belegt</sys:String>
+    <sys:String x:Key="RollbackPreviewMessageReady">Direkt wiederherstellbar.</sys:String>
+    <sys:String x:Key="RollbackPreviewMessageMissingDestination">Die Datei liegt nicht mehr am Rollback-Quellort.</sys:String>
+    <sys:String x:Key="RollbackPreviewMessageOriginalPathOccupied">Der Originalpfad ist bereits belegt und würde übersprungen.</sys:String>
     <sys:String x:Key="RollbackStatusStarted">Gestartet</sys:String>
     <sys:String x:Key="RollbackStatusCompleted">Abgeschlossen</sys:String>
     <sys:String x:Key="RollbackStatusCanceled">Abgebrochen</sys:String>
@@ -249,6 +252,10 @@
     <sys:String x:Key="StatusCanceled">Vorgang abgebrochen.</sys:String>
     <sys:String x:Key="StatusScanFailed">Scan fehlgeschlagen.</sys:String>
     <sys:String x:Key="StatusExecuting">Führe freigegebene Operationen aus...</sys:String>
+    <sys:String x:Key="StatusExecutionOutcome">{0} Operation(en) ausgeführt, {1} übersprungen, {2} fehlgeschlagen.</sys:String>
+    <sys:String x:Key="StatusRollbackOutcome">{0} Operation(en) zurückgesetzt, {1} übersprungen, {2} fehlgeschlagen.</sys:String>
+    <sys:String x:Key="StatusRollbackNoJournal">Kein Rollback-Journal gefunden.</sys:String>
+    <sys:String x:Key="StatusRollbackNoFolderOperations">Keine Operationen für den Ordner "{0}" gefunden.</sys:String>
     <sys:String x:Key="StatusGeminiGuidanceApplied">Gemini-Hinweise übernommen: Strategie {0}, maximale Tiefe {1}.</sys:String>
     <sys:String x:Key="StatusProgressScan">{0} Dateien gefunden.</sys:String>
     <sys:String x:Key="StatusProgressClassify">{0} von {1} Dateien analysiert.</sys:String>

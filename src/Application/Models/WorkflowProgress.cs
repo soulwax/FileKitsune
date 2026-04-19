@@ -9,4 +9,8 @@ public sealed class WorkflowProgress
     public int Total { get; init; }
 
     public string Message { get; init; } = string.Empty;
+
+    public string MessageResourceKey { get; init; } = string.Empty;
+
+    public object[] MessageArguments { get; init; } = [];
 }

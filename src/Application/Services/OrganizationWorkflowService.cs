@@ -65,7 +65,13 @@ public sealed class OrganizationWorkflowService
         var settings = appSettings.Organization;
         var strategyDefinition = StrategyPresetCatalog.Resolve(settings.OrganizationPolicy);
 
-        progress?.Report(new WorkflowProgress { Stage = "scan", Message = "Scanning files...", Processed = 0, Total = 0 });
+        progress?.Report(new WorkflowProgress
+        {
+            Stage = "scan",
+            Processed = 0,
+            Total = 0,
+            MessageResourceKey = "StatusScanning"
+        });
         var scannedFiles = await fileScanner.ScanAsync(settings, progress, cancellationToken);
 
         var selectedFiles = scannedFiles
@@ -141,7 +147,8 @@ public sealed class OrganizationWorkflowService
                     Stage = "classify",
                     Processed = current,
                     Total = selectedFiles.Count,
-                    Message = $"Analyzed {current} of {selectedFiles.Count} files."
+                    MessageResourceKey = "StatusProgressClassify",
+                    MessageArguments = [current, selectedFiles.Count]
                 });
             }
         });

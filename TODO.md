@@ -47,7 +47,7 @@ Validated baseline:
 - [x] Default UI language to German
 - [x] Localize view-model supplied option labels
 - [x] Localize view-model dialogs and status messages
-- [ ] Make Application-layer progress/status text fully resource-driven end-to-end
+- [x] Make Application-layer progress/status text fully resource-driven end-to-end
 
 ## 3. Strategy Presets And Recommendations
 
@@ -134,7 +134,6 @@ Highest-value next work:
 - [x] improve rollback preview/confirmation from impact summary into a clearer diff-style confirmation experience
 - [ ] add OCR/image-first handling for scanned PDFs and image-led folders
 - [ ] consider any last domain-specific duplicate canonical heuristics after manual testing
-- [ ] make Application-layer progress/status text fully resource-driven end-to-end
 
 Why this is next:
 

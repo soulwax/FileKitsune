@@ -27,6 +27,7 @@ public sealed class RollbackServiceTests
         var outcome = await service.RollbackLatestAsync(CancellationToken.None);
 
         Assert.Equal(1, outcome.SuccessfulOperations);
+        Assert.Equal("StatusRollbackOutcome", outcome.SummaryResourceKey);
         Assert.Single(fileOperations.Moves);
         Assert.Contains(fileOperations.Moves, move =>
             move.Source == @"C:\Root\Invoices\2025\source.txt" &&
@@ -212,6 +213,20 @@ public sealed class RollbackServiceTests
         Assert.Equal(RollbackEntryStatus.Restored, savedJournal.Entries[0].RollbackStatus);
         Assert.False(string.IsNullOrWhiteSpace(savedJournal.Entries[0].RollbackMessage));
         Assert.NotNull(savedJournal.Entries[0].LastRollbackAttemptedAtUtc);
+    }
+
+    [Fact]
+    public async Task RollbackLatestAsync_UsesNoJournalSummaryResourceKey()
+    {
+        var journalStore = new InMemoryJournalStore([]);
+        var service = new RollbackService(
+            journalStore,
+            new FakeFileOperations(existingFiles: []),
+            NullLogger<RollbackService>.Instance);
+
+        var outcome = await service.RollbackLatestAsync(CancellationToken.None);
+
+        Assert.Equal("StatusRollbackNoJournal", outcome.SummaryResourceKey);
     }
 
     private static ExecutionJournal CreateJournal(

@@ -101,7 +101,9 @@ public sealed class RollbackService
         {
             return new ExecutionOutcome
             {
-                Summary = $"No operations found for folder \"{folderPrefix}\"."
+                Summary = $"No operations found for folder \"{folderPrefix}\".",
+                SummaryResourceKey = "StatusRollbackNoFolderOperations",
+                SummaryArguments = [folderPrefix]
             };
         }
 
@@ -111,7 +113,8 @@ public sealed class RollbackService
     private static ExecutionOutcome CreateNoJournalOutcome() =>
         new()
         {
-            Summary = "No rollback journal was found."
+            Summary = "No rollback journal was found.",
+            SummaryResourceKey = "StatusRollbackNoJournal"
         };
 
     private async Task<ExecutionOutcome> RollbackEntriesAsync(
@@ -193,6 +196,8 @@ public sealed class RollbackService
             SkippedOperations = skippedCount,
             FailedOperations = failedCount,
             Summary = $"Rolled back {successCount} operation(s), skipped {skippedCount}, failed {failedCount}.",
+            SummaryResourceKey = "StatusRollbackOutcome",
+            SummaryArguments = [successCount, skippedCount, failedCount],
             Messages = messages
         };
     }

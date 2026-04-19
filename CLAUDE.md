@@ -24,9 +24,9 @@ Current repo reality:
 Focus on trust-polish gaps after rollback UX:
 
 1. OCR/image-first handling for scanned PDFs and image-led folders
-2. fully resource-drive remaining Application-layer progress text
-3. continue richer rollback checkpoints for partial-failure recovery
-4. tune duplicate heuristics with real folder samples
+2. continue richer rollback checkpoints for partial-failure recovery
+3. tune duplicate heuristics with real folder samples
+4. keep assistant docs and roadmap notes aligned with shipped behavior
 
 ## Useful Seams
 

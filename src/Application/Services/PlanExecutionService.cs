@@ -69,7 +69,8 @@ public sealed class PlanExecutionService
                     Stage = "execute",
                     Processed = index,
                     Total = operations.Count,
-                    Message = operation.CurrentRelativePath
+                    MessageResourceKey = "StatusProgressExecute",
+                    MessageArguments = [index + 1, operations.Count, operation.CurrentRelativePath]
                 });
 
                 var sourceFullPath = pathSafetyService.CombineWithinRoot(plan.Settings.RootDirectory, operation.CurrentRelativePath);
@@ -159,6 +160,8 @@ public sealed class PlanExecutionService
             SkippedOperations = skippedCount,
             FailedOperations = failedCount,
             Summary = $"Executed {successCount} operation(s), skipped {skippedCount}, failed {failedCount}.",
+            SummaryResourceKey = "StatusExecutionOutcome",
+            SummaryArguments = [successCount, skippedCount, failedCount],
             Journal = journal.Entries.Count > 0 ? journal : null,
             Messages = messages
         };

@@ -1,4 +1,5 @@
 using FileTransformer.Application.Abstractions;
+using FileTransformer.Application.Models;
 using FileTransformer.Application.Services;
 using FileTransformer.Domain.Enums;
 using FileTransformer.Domain.Models;
@@ -32,6 +33,7 @@ public sealed class PlanExecutionServiceTests
         var outcome = await service.ExecuteAsync(plan, [operation.Id], progress: null, CancellationToken.None);
 
         Assert.Equal(1, outcome.SkippedOperations);
+        Assert.Equal("StatusExecutionOutcome", outcome.SummaryResourceKey);
         Assert.Empty(fileOperations.Moves);
     }
 
@@ -178,6 +180,48 @@ public sealed class PlanExecutionServiceTests
         }
     }
 
+    [Fact]
+    public async Task ExecuteAsync_ReportsLocalizedProgressKey()
+    {
+        var sourcePath = Path.GetTempFileName();
+        var rootDirectory = Path.GetDirectoryName(sourcePath)!;
+        var sourceName = Path.GetFileName(sourcePath);
+        var destinationRelativePath = Path.Combine("Invoices", "2025", sourceName);
+        var progressReports = new List<WorkflowProgress>();
+
+        try
+        {
+            var fileOperations = new FakeFileOperations(existingFiles: [sourcePath]);
+            var journalStore = new InMemoryJournalStore();
+            var service = new PlanExecutionService(
+                fileOperations,
+                new FakeHashProvider(),
+                journalStore,
+                new PathSafetyService(),
+                NullLogger<PlanExecutionService>.Instance);
+            var operation = CreateOperation(sourceName, destinationRelativePath);
+            var plan = CreatePlan(rootDirectory, ConflictHandlingMode.AppendCounter, operation);
+            var progress = new CollectingProgress(progressReports);
+
+            await service.ExecuteAsync(plan, [operation.Id], progress, CancellationToken.None);
+
+            var report = Assert.Single(progressReports);
+            Assert.Equal("execute", report.Stage);
+            Assert.Equal("StatusProgressExecute", report.MessageResourceKey);
+            Assert.Equal(3, report.MessageArguments.Length);
+            Assert.Equal(1, report.MessageArguments[0]);
+            Assert.Equal(1, report.MessageArguments[1]);
+            Assert.Equal(sourceName, report.MessageArguments[2]);
+        }
+        finally
+        {
+            if (File.Exists(sourcePath))
+            {
+                File.Delete(sourcePath);
+            }
+        }
+    }
+
     private static PlanOperation CreateOperation(string currentRelativePath, string proposedRelativePath) =>
         new()
         {
@@ -260,5 +304,10 @@ public sealed class PlanExecutionServiceTests
     {
         public Task<string> ComputeHashAsync(string fullPath, CancellationToken cancellationToken) =>
             Task.FromResult($"HASH::{fullPath}");
+    }
+
+    private sealed class CollectingProgress(List<WorkflowProgress> reports) : IProgress<WorkflowProgress>
+    {
+        public void Report(WorkflowProgress value) => reports.Add(value);
     }
 }

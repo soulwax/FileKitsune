@@ -73,7 +73,8 @@ public sealed class DuplicateDetectionService
                         Stage = "duplicates",
                         Processed = processed,
                         Total = total,
-                        Message = $"Checked {processed} of {total} files for exact duplicates."
+                        MessageResourceKey = "StatusProgressDuplicates",
+                        MessageArguments = [processed, total]
                     });
                 }
             }

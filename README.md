@@ -162,7 +162,6 @@ The app is still evolving. Notable gaps:
 - PDF extraction is implemented for text-based PDFs with safe fallback on invalid/unreadable files
 - scanned/image-only PDFs still fall back without OCR
 - OCR and image-first analysis are not implemented yet
-- some Application-layer progress messages are still generated in English and should be made fully resource-driven end-to-end
 - duplicate canonical selection still needs strengthening
 
 ## Storage Locations

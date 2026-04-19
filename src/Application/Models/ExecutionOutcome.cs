@@ -14,6 +14,10 @@ public sealed class ExecutionOutcome
 
     public string Summary { get; init; } = string.Empty;
 
+    public string SummaryResourceKey { get; init; } = string.Empty;
+
+    public object[] SummaryArguments { get; init; } = [];
+
     public ExecutionJournal? Journal { get; init; }
 
     public List<string> Messages { get; init; } = [];

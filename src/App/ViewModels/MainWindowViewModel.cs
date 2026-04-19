@@ -631,8 +631,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 new Progress<WorkflowProgress>(UpdateProgress),
                 currentCancellationTokenSource.Token);
 
-            StatusMessage = outcome.Summary;
-            logger.LogInformation(outcome.Summary);
+            var outcomeSummary = FormatExecutionOutcomeSummary(outcome);
+            StatusMessage = outcomeSummary;
+            logger.LogInformation(outcomeSummary);
 
             foreach (var message in outcome.Messages)
             {
@@ -641,7 +642,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             await RefreshRollbackHistoryAsync(CancellationToken.None, outcome.Journal?.JournalId);
             await RefreshPersistenceStatusAsync(CancellationToken.None);
-            dialogService.ShowInformation(GetString("DialogExecutionFinishedTitle"), outcome.Summary);
+            dialogService.ShowInformation(GetString("DialogExecutionFinishedTitle"), outcomeSummary);
         }
         catch (OperationCanceledException)
         {
@@ -681,8 +682,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             IsBusy = true;
             var outcome = await rollbackService.RollbackLatestAsync(CancellationToken.None);
-            StatusMessage = outcome.Summary;
-            logger.LogInformation(outcome.Summary);
+            var outcomeSummary = FormatExecutionOutcomeSummary(outcome);
+            StatusMessage = outcomeSummary;
+            logger.LogInformation(outcomeSummary);
 
             foreach (var message in outcome.Messages)
             {
@@ -691,7 +693,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal?.JournalId);
             await RefreshPersistenceStatusAsync(CancellationToken.None);
-            dialogService.ShowInformation(GetString("DialogRollbackFinishedTitle"), outcome.Summary);
+            dialogService.ShowInformation(GetString("DialogRollbackFinishedTitle"), outcomeSummary);
         }
         catch (Exception exception)
         {
@@ -725,8 +727,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             IsBusy = true;
             var outcome = await rollbackService.RollbackAsync(SelectedRollbackJournal.JournalId, CancellationToken.None);
-            StatusMessage = outcome.Summary;
-            logger.LogInformation(outcome.Summary);
+            var outcomeSummary = FormatExecutionOutcomeSummary(outcome);
+            StatusMessage = outcomeSummary;
+            logger.LogInformation(outcomeSummary);
 
             foreach (var message in outcome.Messages)
             {
@@ -735,7 +738,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal.JournalId);
             await RefreshPersistenceStatusAsync(CancellationToken.None);
-            dialogService.ShowInformation(GetString("DialogRollbackFinishedTitle"), outcome.Summary);
+            dialogService.ShowInformation(GetString("DialogRollbackFinishedTitle"), outcomeSummary);
         }
         catch (Exception exception)
         {
@@ -765,8 +768,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var outcome = SelectedRollbackJournal is null
                 ? await rollbackService.RollbackFolderAsync(folderName, CancellationToken.None)
                 : await rollbackService.RollbackFolderAsync(SelectedRollbackJournal.JournalId, folderName, CancellationToken.None);
-            StatusMessage = outcome.Summary;
-            logger.LogInformation(outcome.Summary);
+            var outcomeSummary = FormatExecutionOutcomeSummary(outcome);
+            StatusMessage = outcomeSummary;
+            logger.LogInformation(outcomeSummary);
 
             foreach (var message in outcome.Messages)
             {
@@ -775,7 +779,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal?.JournalId);
             await RefreshPersistenceStatusAsync(CancellationToken.None);
-            dialogService.ShowInformation(GetString("DialogUndoFinishedTitle"), outcome.Summary);
+            dialogService.ShowInformation(GetString("DialogUndoFinishedTitle"), outcomeSummary);
         }
         catch (Exception exception)
         {
@@ -1046,6 +1050,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private string FormatProgressMessage(WorkflowProgress progress)
     {
+        if (!string.IsNullOrWhiteSpace(progress.MessageResourceKey))
+        {
+            return FormatString(progress.MessageResourceKey, progress.MessageArguments);
+        }
+
         return progress.Stage switch
         {
             "scan" when progress.Processed > 0 => FormatString("StatusProgressScan", progress.Processed),
@@ -1055,6 +1064,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
             "execute" => FormatString("StatusProgressExecute", progress.Processed + 1, progress.Total, progress.Message),
             _ => string.IsNullOrWhiteSpace(progress.Message) ? GetString("StatusReady") : progress.Message
         };
+    }
+
+    private string FormatExecutionOutcomeSummary(ExecutionOutcome outcome)
+    {
+        if (!string.IsNullOrWhiteSpace(outcome.SummaryResourceKey))
+        {
+            return FormatString(outcome.SummaryResourceKey, outcome.SummaryArguments);
+        }
+
+        return outcome.Summary;
     }
 
     private string GetString(string resourceKey) => localizationService.GetString(resourceKey);
@@ -1720,7 +1739,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 Notes = entry.Notes,
                 PreviewStatusKind = entry.PreviewStatus,
                 PreviewStatus = GetRollbackPreviewStatusLabel(entry.PreviewStatus),
-                PreviewMessage = entry.PreviewMessage
+                PreviewMessage = GetRollbackPreviewMessage(entry.PreviewStatus)
             })
             .ToList();
 
@@ -1908,6 +1927,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
             RollbackPreviewStatus.MissingDestination => GetString("RollbackPreviewStatusMissingDestination"),
             RollbackPreviewStatus.OriginalPathOccupied => GetString("RollbackPreviewStatusOriginalPathOccupied"),
             _ => status.ToString()
+        };
+
+    private string GetRollbackPreviewMessage(RollbackPreviewStatus status) =>
+        status switch
+        {
+            RollbackPreviewStatus.Ready => GetString("RollbackPreviewMessageReady"),
+            RollbackPreviewStatus.MissingDestination => GetString("RollbackPreviewMessageMissingDestination"),
+            RollbackPreviewStatus.OriginalPathOccupied => GetString("RollbackPreviewMessageOriginalPathOccupied"),
+            _ => string.Empty
         };
 
     private void PopulateStrategyRecommendations(OrganizationPlan plan)

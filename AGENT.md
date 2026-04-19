@@ -42,11 +42,11 @@ Already implemented:
 ## Highest-Value Next Work
 
 1. Add OCR/image-first handling for scanned PDFs and image-led folders.
-2. Finish resource-driven Application-layer progress/status text.
-3. Continue rollback checkpoint hardening for partial-failure recovery.
+2. Continue rollback checkpoint hardening for partial-failure recovery.
+3. Improve duplicate canonical selection with real-folder feedback.
 
 ## Secondary Next Work
 
-1. Improve duplicate canonical selection.
-2. Tune duplicate/project heuristics with real folder samples.
-3. Expand semantic enrichment without weakening deterministic safety.
+1. Tune duplicate/project heuristics with real folder samples.
+2. Expand semantic enrichment without weakening deterministic safety.
+3. Keep assistant docs aligned with implemented behavior.
