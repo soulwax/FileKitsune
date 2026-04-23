@@ -90,6 +90,13 @@
                 <Setter Property="BorderThickness" Value="1" />
             </Style>
 
+            <Style x:Key="ActionCardBorderStyle" TargetType="Border" BasedOn="{StaticResource CardBorderStyle}">
+                <Setter Property="Background" Value="{StaticResource AccentPanelBrush}" />
+                <Setter Property="BorderBrush" Value="#FFBFD9CB" />
+                <Setter Property="CornerRadius" Value="24" />
+                <Setter Property="Padding" Value="18" />
+            </Style>
+
             <Style x:Key="PillBorderStyle" TargetType="Border">
                 <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
                 <Setter Property="CornerRadius" Value="999" />
@@ -159,6 +166,19 @@
                 <Setter Property="Background" Value="{StaticResource SurfaceTintBrush}" />
                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
                 <Setter Property="BorderThickness" Value="1" />
+            </Style>
+
+            <Style x:Key="HeroActionButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+                <Setter Property="Padding" Value="22,16" />
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="MinHeight" Value="56" />
+                <Setter Property="Margin" Value="0,0,12,0" />
+            </Style>
+
+            <Style x:Key="ProminentSecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+                <Setter Property="Padding" Value="18,12" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="MinHeight" Value="52" />
             </Style>
 
             <Style TargetType="TextBox">

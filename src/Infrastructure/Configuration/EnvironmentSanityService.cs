@@ -8,7 +8,7 @@ namespace FileTransformer.Infrastructure.Configuration;
 
 public sealed class EnvironmentSanityService : IEnvironmentSanityService
 {
-    private const string DefaultGeminiModel = "gemini-2.0-flash";
+    private const string DefaultGeminiModel = "gemini-3.1-flash-lite-preview";
     private const string DefaultGeminiEndpoint = "https://generativelanguage.googleapis.com/v1beta";
     private static readonly TimeSpan GeminiPingCooldown = TimeSpan.FromHours(24);
     private readonly AppEnvironmentResolver environmentResolver;

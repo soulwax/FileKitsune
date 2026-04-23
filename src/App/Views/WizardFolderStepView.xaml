@@ -15,10 +15,10 @@
 
         <Border Style="{StaticResource CardBorderStyle}">
             <StackPanel>
-                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{DynamicResource RootFolder}" />
+                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="{DynamicResource FolderActionTitle}" />
                 <TextBlock Margin="0,8,0,16"
                            Style="{StaticResource HintTextStyle}"
-                           Text="{DynamicResource RootFolderStepHint}" />
+                           Text="{DynamicResource FolderActionHint}" />
 
                 <TextBlock Style="{StaticResource FieldLabelTextStyle}" Text="{DynamicResource RootFolder}" />
                 <Grid Margin="0,4,0,0">
@@ -28,15 +28,20 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBox Margin="0"
-                             MinHeight="42"
+                             MinHeight="48"
                              VerticalContentAlignment="Center"
                              Text="{Binding RootDirectory, UpdateSourceTrigger=PropertyChanged}" />
                     <Button Grid.Column="2"
                             Margin="0"
-                            Style="{StaticResource PrimaryButtonStyle}"
+                            Style="{StaticResource HeroActionButtonStyle}"
                             Command="{Binding BrowseRootCommand}"
                             Content="{DynamicResource Browse}" />
                 </Grid>
+                <Border Margin="0,8,0,0"
+                        Style="{StaticResource SoftPanelBorderStyle}">
+                    <TextBlock Style="{StaticResource HintTextStyle}"
+                               Text="{DynamicResource RootFolderStepHint}" />
+                </Border>
             </StackPanel>
         </Border>
 
@@ -71,10 +76,10 @@
 
                 <Grid Margin="0,10,0,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="210" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="12" />
-                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="210" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
@@ -89,41 +94,41 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="GEMINI_API_KEY" />
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EnvGeminiApiKey, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="0" Grid.Column="1" MinHeight="42" Text="{Binding EnvGeminiApiKey, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" Text="GEMINI_MODEL" />
-                    <TextBox Grid.Row="0" Grid.Column="4" Text="{Binding EnvGeminiModel, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="0" Grid.Column="4" MinHeight="42" Text="{Binding EnvGeminiModel, UpdateSourceTrigger=PropertyChanged}" />
 
                     <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="GEMINI_ENDPOINT_BASE_URL" />
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EnvGeminiEndpointBaseUrl, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="2" Grid.Column="1" MinHeight="42" Text="{Binding EnvGeminiEndpointBaseUrl, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock Grid.Row="2" Grid.Column="3" VerticalAlignment="Center" Text="GEMINI_ENABLED" />
-                    <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding EnvGeminiEnabled, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="2" Grid.Column="4" MinHeight="42" Text="{Binding EnvGeminiEnabled, UpdateSourceTrigger=PropertyChanged}" />
 
                     <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="GEMINI_MAX_REQUESTS_PER_MINUTE" />
-                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding EnvGeminiMaxRequestsPerMinute, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="4" Grid.Column="1" MinHeight="42" Text="{Binding EnvGeminiMaxRequestsPerMinute, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock Grid.Row="4" Grid.Column="3" VerticalAlignment="Center" Text="GEMINI_REQUEST_TIMEOUT_SECONDS" />
-                    <TextBox Grid.Row="4" Grid.Column="4" Text="{Binding EnvGeminiRequestTimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="4" Grid.Column="4" MinHeight="42" Text="{Binding EnvGeminiRequestTimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
 
                     <TextBlock Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Text="GEMINI_MAX_PROMPT_CHARACTERS" />
-                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding EnvGeminiMaxPromptCharacters, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="6" Grid.Column="1" MinHeight="42" Text="{Binding EnvGeminiMaxPromptCharacters, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock Grid.Row="6" Grid.Column="3" VerticalAlignment="Center" Text="FILEKITSUNE_OFFLINE_MODE" />
-                    <TextBox Grid.Row="6" Grid.Column="4" Text="{Binding EnvFileKitsuneOfflineMode, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="6" Grid.Column="4" MinHeight="42" Text="{Binding EnvFileKitsuneOfflineMode, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
 
-                <WrapPanel Margin="0,10,0,0">
+                <WrapPanel Margin="0,12,0,0">
                     <Button Margin="0,0,8,8"
-                            Style="{StaticResource SecondaryButtonStyle}"
+                            Style="{StaticResource ProminentSecondaryButtonStyle}"
                             Command="{Binding SaveEnvironmentEditorCommand}"
                             Content="{DynamicResource EnvironmentSanitySaveEnvButton}" />
                     <Button Margin="0,0,8,8"
-                            Style="{StaticResource SecondaryButtonStyle}"
+                            Style="{StaticResource ProminentSecondaryButtonStyle}"
                             Command="{Binding ReloadEnvironmentEditorCommand}"
                             Content="{DynamicResource EnvironmentSanityReloadEnvButton}" />
                     <Button Margin="0,0,8,8"
-                            Style="{StaticResource SecondaryButtonStyle}"
+                            Style="{StaticResource ProminentSecondaryButtonStyle}"
                             Command="{Binding RefreshEnvironmentSanityCommand}"
                             Content="{DynamicResource EnvironmentSanityRefreshButton}" />
                     <Button Margin="0,0,0,8"
-                            Style="{StaticResource SecondaryButtonStyle}"
+                            Style="{StaticResource HeroActionButtonStyle}"
                             Command="{Binding PingGeminiEnvironmentCommand}"
                             Content="{DynamicResource EnvironmentSanityPingButton}"
                             IsEnabled="{Binding IsGeminiEnvironmentPingAllowed}" />

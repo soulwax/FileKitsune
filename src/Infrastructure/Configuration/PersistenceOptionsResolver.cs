@@ -6,9 +6,7 @@ public sealed class PersistenceOptionsResolver
 
     public PersistenceOptionsResolver()
     {
-        var env = DotEnv.LoadIfPresent(
-            Path.Combine(Directory.GetCurrentDirectory(), ".env"),
-            Path.Combine(AppContext.BaseDirectory, ".env"));
+        var env = DotEnv.LoadIfPresent(AppEnvironmentPaths.GetCandidateEnvPaths().ToArray());
 
         string? GetValue(params string[] keys)
         {

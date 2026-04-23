@@ -43,31 +43,50 @@
             </UniformGrid>
         </StackPanel>
 
-        <DockPanel Grid.Row="1" Margin="0,0,0,12">
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <Button Style="{StaticResource SecondaryButtonStyle}"
-                        Command="{Binding SelectExecutableCommand}"
-                        Content="{DynamicResource SelectExecutableButton}" />
-                <Button Style="{StaticResource SecondaryButtonStyle}"
-                        Command="{Binding ClearSelectionCommand}"
-                        Content="{DynamicResource ClearSelectionButton}" />
-            </StackPanel>
+        <Border Grid.Row="1"
+                Margin="0,0,0,14"
+                Style="{StaticResource ActionCardBorderStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.45*" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-            <WrapPanel>
-                <Button Style="{StaticResource PrimaryButtonStyle}"
-                        Command="{Binding ScanCommand}"
-                        Content="{DynamicResource ScanButton}"
-                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
-                <Button Style="{StaticResource SecondaryButtonStyle}"
-                        Command="{Binding SaveSettingsCommand}"
-                        Content="{DynamicResource SaveButton}"
-                        IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
-                <Button Style="{StaticResource SecondaryButtonStyle}"
-                        Command="{Binding CancelCurrentWorkCommand}"
-                        Content="{DynamicResource CancelButton}"
-                        IsEnabled="{Binding IsBusy}" />
-            </WrapPanel>
-        </DockPanel>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                               Text="{DynamicResource PreviewActionTitle}" />
+                    <TextBlock Margin="0,6,0,0"
+                               Style="{StaticResource HintTextStyle}"
+                               Text="{DynamicResource PreviewActionHint}" />
+                    <TextBlock Margin="0,12,0,0"
+                               Style="{StaticResource FieldLabelTextStyle}"
+                               Text="{DynamicResource PreviewActionStatusLabel}" />
+                    <TextBlock Margin="0,2,0,0"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Text="{Binding StatusMessage}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <Button Style="{StaticResource HeroActionButtonStyle}"
+                            Command="{Binding ScanCommand}"
+                            Content="{DynamicResource ScanButton}"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+                    <WrapPanel Margin="0,10,0,0">
+                        <Button Style="{StaticResource ProminentSecondaryButtonStyle}"
+                                Command="{Binding SaveSettingsCommand}"
+                                Content="{DynamicResource SaveButton}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+                        <Button Margin="0,0,0,8"
+                                Style="{StaticResource ProminentSecondaryButtonStyle}"
+                                Command="{Binding CancelCurrentWorkCommand}"
+                                Content="{DynamicResource CancelButton}"
+                                IsEnabled="{Binding IsBusy}" />
+                    </WrapPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <Grid Grid.Row="2">
             <Grid.RowDefinitions>
@@ -95,6 +114,14 @@
                               ItemsSource="{Binding PlanFilters}"
                               DisplayMemberPath="Label"
                               SelectedItem="{Binding SelectedPlanFilter}" />
+                    <Button Margin="12,0,0,0"
+                            Style="{StaticResource ProminentSecondaryButtonStyle}"
+                            Command="{Binding SelectExecutableCommand}"
+                            Content="{DynamicResource SelectExecutableButton}" />
+                    <Button Margin="8,0,0,0"
+                            Style="{StaticResource ProminentSecondaryButtonStyle}"
+                            Command="{Binding ClearSelectionCommand}"
+                            Content="{DynamicResource ClearSelectionButton}" />
                 </StackPanel>
             </DockPanel>
 
@@ -228,7 +255,10 @@
 
             <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}" Padding="16">
                 <StackPanel>
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PlanSummary}" />
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PreviewSelectionTitle}" />
+                    <TextBlock Margin="0,6,0,10"
+                               Style="{StaticResource HintTextStyle}"
+                               Text="{DynamicResource PlanSummary}" />
                     <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
                         <TextBlock Text="{DynamicResource SummaryAnalyzedItemsLabel}" />
                         <TextBlock Margin="4,0,0,0" Text="{Binding TotalItems}" />

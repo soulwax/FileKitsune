@@ -12,16 +12,16 @@
             <StackPanel>
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
                     <StackPanel>
-                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource PreviewActions}" />
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource ExecuteActionTitle}" />
                         <TextBlock Margin="0,8,0,12"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    TextWrapping="Wrap"
-                                   Text="{DynamicResource ExecuteIntroText}" />
-                        <Button Style="{StaticResource PrimaryButtonStyle}"
+                                   Text="{DynamicResource ExecuteActionHint}" />
+                        <Button Style="{StaticResource HeroActionButtonStyle}"
                                 Command="{Binding ExecuteSelectedCommand}"
                                 Content="{DynamicResource ExecuteButton}"
                                 IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
-                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                        <Button Style="{StaticResource ProminentSecondaryButtonStyle}"
                                 Command="{Binding CancelCurrentWorkCommand}"
                                 Content="{DynamicResource CancelButton}"
                                 IsEnabled="{Binding IsBusy}" />
@@ -49,11 +49,11 @@
 
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
                     <StackPanel>
-                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource RollbackTitle}" />
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource RollbackActionTitle}" />
                         <TextBlock Margin="0,8,0,12"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    TextWrapping="Wrap"
-                                   Text="{DynamicResource RollbackBody}" />
+                                   Text="{DynamicResource RollbackActionHint}" />
                         <StackPanel Margin="0,0,0,8"
                                     Visibility="{Binding HasRollbackHistory, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <TextBlock Foreground="{StaticResource MutedTextBrush}"
@@ -70,17 +70,17 @@
                                        Foreground="{StaticResource MutedTextBrush}"
                                        TextWrapping="Wrap"
                                        Text="{Binding SelectedRollbackJournalSummary}" />
-                            <Button Style="{StaticResource SecondaryButtonStyle}"
+                            <Button Style="{StaticResource ProminentSecondaryButtonStyle}"
                                     Command="{Binding PreviewSelectedRollbackRunCommand}"
                                     Content="{DynamicResource RollbackPreviewSelectedRunButton}"
                                     IsEnabled="{Binding HasSelectedRollbackJournal}" />
                         </StackPanel>
-                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                        <Button Style="{StaticResource ProminentSecondaryButtonStyle}"
                                 Command="{Binding RollbackLatestCommand}"
                                 Content="{DynamicResource RollbackButton}"
                                 IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
                         <Button Margin="0,8,0,0"
-                                Style="{StaticResource SecondaryButtonStyle}"
+                                Style="{StaticResource ProminentSecondaryButtonStyle}"
                                 Command="{Binding RollbackSelectedCommand}"
                                 Content="{DynamicResource RollbackSelectedButton}"
                                 IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />

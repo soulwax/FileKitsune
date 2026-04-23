@@ -136,6 +136,16 @@
     <sys:String x:Key="EnvironmentSanityStatusMissing">Fehlt</sys:String>
     <sys:String x:Key="EnvironmentSanityStatusInvalid">Ungueltig</sys:String>
     <sys:String x:Key="EnvironmentSanityStatusOptional">Optional</sys:String>
+    <sys:String x:Key="FolderActionTitle">Mit einem sicheren Stammordner starten</sys:String>
+    <sys:String x:Key="FolderActionHint">Waehlen Sie zuerst den zu organisierenden Ordner. Es passiert noch nichts, bis Sie spaeter im Assistenten eine Vorschau erstellen und pruefen.</sys:String>
+    <sys:String x:Key="PreviewActionTitle">Vorschauplan erstellen</sys:String>
+    <sys:String x:Key="PreviewActionHint">Das ist die Hauptaktion in Schritt 4. Sie scannt den gewaehlten Ordner, erstellt den Plan und schaltet Empfehlungen sowie die Ausfuehrungspruefung frei.</sys:String>
+    <sys:String x:Key="PreviewActionStatusLabel">Aktueller Status</sys:String>
+    <sys:String x:Key="PreviewSelectionTitle">Operationen pruefen und auswaehlen</sys:String>
+    <sys:String x:Key="ExecuteActionTitle">Ausgewaehlte Operationen ausfuehren</sys:String>
+    <sys:String x:Key="ExecuteActionHint">Es werden nur gepruefte und ausgewaehlte Elemente ausgefuehrt. Verschiebungen und Umbenennungen bleiben innerhalb des gewaehlten Stammordners und rollback-faehig.</sys:String>
+    <sys:String x:Key="RollbackActionTitle">Bei Bedarf sicher rueckgaengig machen</sys:String>
+    <sys:String x:Key="RollbackActionHint">Waehlen Sie einen gespeicherten Lauf, pruefen Sie die Rollback-Vorschau und setzen Sie dann den ganzen Lauf oder einen einzelnen obersten Ordner zurueck.</sys:String>
     <sys:String x:Key="RulesSaveHint">Speichern Sie die Regeln, bevor Sie zur Vorschau wechseln.</sys:String>
     <sys:String x:Key="PreviewIntroText">Jeder Vorschlag zeigt vor der Ausführung Begründung, Klassifikationsquelle und Sicherheitshinweise.</sys:String>
     <sys:String x:Key="SummaryItemsAnalyzed">Analysierte Elemente</sys:String>

@@ -2,8 +2,10 @@ namespace FileTransformer.Infrastructure.Configuration;
 
 public sealed class AppEnvironmentResolver
 {
-    private readonly IReadOnlyDictionary<string, string> processEnvironment;
-    private readonly IReadOnlyDictionary<string, string> dotEnvValues;
+    private readonly IReadOnlyDictionary<string, string>? processEnvironment;
+    private readonly IReadOnlyDictionary<string, string>? dotEnvValues;
+    private readonly string? currentDirectory;
+    private readonly string? baseDirectory;
 
     public AppEnvironmentResolver()
         : this(null, null)
@@ -16,22 +18,25 @@ public sealed class AppEnvironmentResolver
         string? currentDirectory = null,
         string? baseDirectory = null)
     {
-        this.processEnvironment = processEnvironment ?? LoadProcessEnvironment();
-        this.dotEnvValues = dotEnvValues ?? DotEnv.LoadIfPresent(
-            Path.Combine(currentDirectory ?? Directory.GetCurrentDirectory(), ".env"),
-            Path.Combine(baseDirectory ?? AppContext.BaseDirectory, ".env"));
+        this.processEnvironment = processEnvironment;
+        this.dotEnvValues = dotEnvValues;
+        this.currentDirectory = currentDirectory;
+        this.baseDirectory = baseDirectory;
     }
 
     public ResolvedEnvironmentValue? GetValue(params string[] keys)
     {
+        var activeProcessEnvironment = processEnvironment ?? LoadProcessEnvironment();
+        var activeDotEnvValues = dotEnvValues ?? DotEnv.LoadIfPresent(AppEnvironmentPaths.GetCandidateEnvPaths(currentDirectory, baseDirectory).ToArray());
+
         foreach (var key in keys)
         {
-            if (processEnvironment.TryGetValue(key, out var processValue) && !string.IsNullOrWhiteSpace(processValue))
+            if (activeProcessEnvironment.TryGetValue(key, out var processValue) && !string.IsNullOrWhiteSpace(processValue))
             {
                 return new ResolvedEnvironmentValue(key, processValue, "Process");
             }
 
-            if (dotEnvValues.TryGetValue(key, out var dotEnvValue) && !string.IsNullOrWhiteSpace(dotEnvValue))
+            if (activeDotEnvValues.TryGetValue(key, out var dotEnvValue) && !string.IsNullOrWhiteSpace(dotEnvValue))
             {
                 return new ResolvedEnvironmentValue(key, dotEnvValue, ".env");
             }

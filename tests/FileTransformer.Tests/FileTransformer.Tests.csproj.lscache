@@ -65,6 +65,7 @@ Application/
  SemanticClassifierCoordinatorTests.cs
  StrategyRecommendationServiceTests.cs
 Infrastructure/
+ EnvironmentConfigServiceTests.cs
  EnvironmentSanityServiceTests.cs
  EnvironmentVariableCollection.cs
  GeminiOrganizationGuidanceParserTests.cs

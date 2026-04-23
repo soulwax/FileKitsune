@@ -136,6 +136,16 @@
     <sys:String x:Key="EnvironmentSanityStatusMissing">Missing</sys:String>
     <sys:String x:Key="EnvironmentSanityStatusInvalid">Invalid</sys:String>
     <sys:String x:Key="EnvironmentSanityStatusOptional">Optional</sys:String>
+    <sys:String x:Key="FolderActionTitle">Start with a safe root folder</sys:String>
+    <sys:String x:Key="FolderActionHint">Choose the folder to organize first. Nothing happens until you build and review a preview later in the wizard.</sys:String>
+    <sys:String x:Key="PreviewActionTitle">Build the preview plan</sys:String>
+    <sys:String x:Key="PreviewActionHint">This is the main action for step 4. It scans the selected folder, creates the plan, and unlocks recommendations and execution review.</sys:String>
+    <sys:String x:Key="PreviewActionStatusLabel">Current status</sys:String>
+    <sys:String x:Key="PreviewSelectionTitle">Review and select operations</sys:String>
+    <sys:String x:Key="ExecuteActionTitle">Run the selected operations</sys:String>
+    <sys:String x:Key="ExecuteActionHint">Only reviewed and selected items run. Moves and renames stay inside the chosen root and remain rollback-aware.</sys:String>
+    <sys:String x:Key="RollbackActionTitle">Undo safely when needed</sys:String>
+    <sys:String x:Key="RollbackActionHint">Pick a saved run, inspect the rollback preview, then undo the full run or a single top-level folder.</sys:String>
     <sys:String x:Key="RulesSaveHint">Save rule changes before moving to the preview step.</sys:String>
     <sys:String x:Key="PreviewIntroText">Every proposal shows a reason, classifier source, and safety warnings before execution.</sys:String>
     <sys:String x:Key="SummaryItemsAnalyzed">Items analyzed</sys:String>

@@ -19,7 +19,7 @@ public sealed class EnvironmentConfigService : IEnvironmentConfigService
 
     public Task<EnvironmentFileSettings> LoadAsync(CancellationToken cancellationToken)
     {
-        var path = ResolveWritableEnvPath();
+        var path = AppEnvironmentPaths.ResolveWritableEnvPath();
         var values = DotEnv.LoadIfPresent(path);
 
         return Task.FromResult(new EnvironmentFileSettings
@@ -38,7 +38,7 @@ public sealed class EnvironmentConfigService : IEnvironmentConfigService
 
     public async Task SaveAsync(EnvironmentFileSettings settings, CancellationToken cancellationToken)
     {
-        var path = string.IsNullOrWhiteSpace(settings.FilePath) ? ResolveWritableEnvPath() : settings.FilePath;
+        var path = string.IsNullOrWhiteSpace(settings.FilePath) ? AppEnvironmentPaths.ResolveWritableEnvPath() : settings.FilePath;
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
         var lines = File.Exists(path)
@@ -91,8 +91,6 @@ public sealed class EnvironmentConfigService : IEnvironmentConfigService
 
         await File.WriteAllLinesAsync(path, lines, cancellationToken);
     }
-
-    private static string ResolveWritableEnvPath() => Path.Combine(Directory.GetCurrentDirectory(), ".env");
 
     private static string GetValue(IReadOnlyDictionary<string, string> values, string key) =>
         values.TryGetValue(key, out var value) ? value : string.Empty;

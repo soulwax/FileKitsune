@@ -61,6 +61,7 @@ Classification/
  GeminiResponseParser.cs
  GeminiSemanticClassifier.cs
 Configuration/
+ AppEnvironmentPaths.cs
  AppEnvironmentResolver.cs
  AppSettingsSnapshotMapper.cs
  AppStoragePaths.cs
