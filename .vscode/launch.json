@@ -1,0 +1,44 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "FileKitsune (Debug)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build:app",
+      "program": "${workspaceFolder}/src/App/bin/Debug/net8.0-windows/FileTransformer.App.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/App",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "env": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "FileKitsune (Release)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/App/bin/Release/net8.0-windows/FileTransformer.App.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/App",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production"
+      }
+    },
+    {
+      "name": "Tests",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/tests/FileTransformer.Tests/bin/Debug/net8.0/FileTransformer.Tests.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/tests/FileTransformer.Tests",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    }
+  ]
+}
