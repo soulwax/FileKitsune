@@ -126,9 +126,12 @@
     <sys:String x:Key="EnvironmentSanityHint">Pruefen Sie wichtige Gemini- und Persistenz-Umgebungsvariablen aus Prozessumgebung oder .env und testen Sie danach Gemini mit dem env-basierten Schluessel.</sys:String>
     <sys:String x:Key="EnvironmentSanitySummary">Gueltig: {0}  Fehlt: {1}  Ungueltig: {2}  Optional: {3}</sys:String>
     <sys:String x:Key="EnvironmentSanityRefreshButton">Checkliste aktualisieren</sys:String>
+    <sys:String x:Key="EnvironmentSanitySaveEnvButton">.env speichern</sys:String>
+    <sys:String x:Key="EnvironmentSanityReloadEnvButton">.env neu laden</sys:String>
     <sys:String x:Key="EnvironmentSanityPingButton">Gemini testen</sys:String>
     <sys:String x:Key="EnvironmentSanityPingTitle">Gemini-Konnektivitaetstest</sys:String>
     <sys:String x:Key="EnvironmentSanityPingRunning">Gemini-Konnektivitaetstest laeuft...</sys:String>
+    <sys:String x:Key="EnvironmentSanityEnvSaved">Umgebungseinstellungen wurden in .env gespeichert.</sys:String>
     <sys:String x:Key="EnvironmentSanityStatusValid">Gueltig</sys:String>
     <sys:String x:Key="EnvironmentSanityStatusMissing">Fehlt</sys:String>
     <sys:String x:Key="EnvironmentSanityStatusInvalid">Ungueltig</sys:String>

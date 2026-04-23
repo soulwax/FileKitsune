@@ -126,9 +126,12 @@
     <sys:String x:Key="EnvironmentSanityHint">Validate important Gemini and persistence env vars loaded from process env or .env, then ping Gemini with the env-based key.</sys:String>
     <sys:String x:Key="EnvironmentSanitySummary">Valid: {0}  Missing: {1}  Invalid: {2}  Optional: {3}</sys:String>
     <sys:String x:Key="EnvironmentSanityRefreshButton">Refresh checklist</sys:String>
+    <sys:String x:Key="EnvironmentSanitySaveEnvButton">Save .env</sys:String>
+    <sys:String x:Key="EnvironmentSanityReloadEnvButton">Reload .env</sys:String>
     <sys:String x:Key="EnvironmentSanityPingButton">Ping Gemini</sys:String>
     <sys:String x:Key="EnvironmentSanityPingTitle">Gemini connectivity test</sys:String>
     <sys:String x:Key="EnvironmentSanityPingRunning">Running Gemini connectivity test...</sys:String>
+    <sys:String x:Key="EnvironmentSanityEnvSaved">Saved environment settings to .env.</sys:String>
     <sys:String x:Key="EnvironmentSanityStatusValid">Valid</sys:String>
     <sys:String x:Key="EnvironmentSanityStatusMissing">Missing</sys:String>
     <sys:String x:Key="EnvironmentSanityStatusInvalid">Invalid</sys:String>

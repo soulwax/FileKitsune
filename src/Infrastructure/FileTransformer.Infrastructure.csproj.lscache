@@ -65,6 +65,7 @@ Configuration/
  AppSettingsSnapshotMapper.cs
  AppStoragePaths.cs
  DotEnv.cs
+ EnvironmentConfigService.cs
  EnvironmentSanityService.cs
  JsonExecutionJournalStore.cs
  PersistenceOptions.cs

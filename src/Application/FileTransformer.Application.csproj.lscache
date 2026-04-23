@@ -55,6 +55,7 @@ TemporaryDependencyNodeTargetIdentifier=net8.0
 [sourceFiles]
 Abstractions/
  IAppSettingsStore.cs
+ IEnvironmentConfigService.cs
  IEnvironmentSanityService.cs
  IExecutionJournalStore.cs
  IFileContentReader.cs
@@ -67,6 +68,7 @@ Abstractions/
 Models/
  AppSettings.cs
  DuplicateMatch.cs
+ EnvironmentFileSettings.cs
  EnvironmentPingAvailability.cs
  EnvironmentPingResult.cs
  EnvironmentSanityItem.cs

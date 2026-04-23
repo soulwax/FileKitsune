@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<AppStoragePaths>();
         services.AddSingleton<AppEnvironmentResolver>();
+        services.AddSingleton<IEnvironmentConfigService, EnvironmentConfigService>();
         services.AddSingleton<PersistenceOptionsResolver>();
         services.AddSingleton<IEnvironmentSanityService, EnvironmentSanityService>();
         services.AddSingleton<IPersistenceStatusService, PersistenceStatusService>();

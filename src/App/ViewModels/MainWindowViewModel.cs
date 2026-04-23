@@ -20,6 +20,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private const int RollbackPreviewSectionSampleLimit = 4;
     private const int RollbackConfirmationSampleLimit = 2;
     private readonly IAppSettingsStore appSettingsStore;
+    private readonly IEnvironmentConfigService environmentConfigService;
     private readonly IEnvironmentSanityService environmentSanityService;
     private readonly IPersistenceStatusService persistenceStatusService;
     private readonly OrganizationWorkflowService organizationWorkflowService;
@@ -41,6 +42,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public MainWindowViewModel(
         IAppSettingsStore appSettingsStore,
+        IEnvironmentConfigService environmentConfigService,
         IEnvironmentSanityService environmentSanityService,
         IPersistenceStatusService persistenceStatusService,
         OrganizationWorkflowService organizationWorkflowService,
@@ -54,6 +56,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ILogger<MainWindowViewModel> logger)
     {
         this.appSettingsStore = appSettingsStore;
+        this.environmentConfigService = environmentConfigService;
         this.environmentSanityService = environmentSanityService;
         this.persistenceStatusService = persistenceStatusService;
         this.organizationWorkflowService = organizationWorkflowService;
@@ -410,6 +413,33 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string environmentSanitySummary = string.Empty;
 
     [ObservableProperty]
+    private string environmentFilePath = string.Empty;
+
+    [ObservableProperty]
+    private string envGeminiEnabled = string.Empty;
+
+    [ObservableProperty]
+    private string envGeminiApiKey = string.Empty;
+
+    [ObservableProperty]
+    private string envGeminiModel = string.Empty;
+
+    [ObservableProperty]
+    private string envGeminiEndpointBaseUrl = string.Empty;
+
+    [ObservableProperty]
+    private string envGeminiMaxRequestsPerMinute = string.Empty;
+
+    [ObservableProperty]
+    private string envGeminiRequestTimeoutSeconds = string.Empty;
+
+    [ObservableProperty]
+    private string envGeminiMaxPromptCharacters = string.Empty;
+
+    [ObservableProperty]
+    private string envFileKitsuneOfflineMode = string.Empty;
+
+    [ObservableProperty]
     private string geminiEnvironmentPingStatus = string.Empty;
 
     [ObservableProperty]
@@ -453,6 +483,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             var settings = await appSettingsStore.LoadAsync(CancellationToken.None);
             ApplySettings(settings);
+            await ReloadEnvironmentEditorAsync(CancellationToken.None);
             await RefreshEnvironmentSanityAsync(CancellationToken.None);
             await RefreshRollbackHistoryAsync(CancellationToken.None);
             await RefreshPersistenceStatusAsync(CancellationToken.None);
@@ -740,6 +771,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private async Task RefreshEnvironmentSanityAsync()
     {
         await RefreshEnvironmentSanityAsync(CancellationToken.None);
+    }
+
+    [RelayCommand]
+    private async Task ReloadEnvironmentEditorAsync()
+    {
+        await ReloadEnvironmentEditorAsync(CancellationToken.None);
+    }
+
+    [RelayCommand]
+    private async Task SaveEnvironmentEditorAsync()
+    {
+        try
+        {
+            await environmentConfigService.SaveAsync(BuildEnvironmentFileSettings(), CancellationToken.None);
+            await ReloadEnvironmentEditorAsync(CancellationToken.None);
+            await RefreshEnvironmentSanityAsync(CancellationToken.None);
+            GeminiEnvironmentPingMessage = GetString("EnvironmentSanityEnvSaved");
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Saving .env settings failed.");
+            GeminiEnvironmentPingStatus = GetEnvironmentSanityStatusLabel(EnvironmentSanityStatus.Invalid);
+            GeminiEnvironmentPingMessage = exception.Message;
+        }
     }
 
     [RelayCommand]
@@ -1237,6 +1292,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
         await appSettingsStore.SaveAsync(BuildSettings(), cancellationToken);
     }
 
+    private async Task ReloadEnvironmentEditorAsync(CancellationToken cancellationToken)
+    {
+        var settings = await environmentConfigService.LoadAsync(cancellationToken);
+        EnvironmentFilePath = settings.FilePath;
+        EnvGeminiEnabled = settings.GeminiEnabled;
+        EnvGeminiApiKey = settings.GeminiApiKey;
+        EnvGeminiModel = settings.GeminiModel;
+        EnvGeminiEndpointBaseUrl = settings.GeminiEndpointBaseUrl;
+        EnvGeminiMaxRequestsPerMinute = settings.GeminiMaxRequestsPerMinute;
+        EnvGeminiRequestTimeoutSeconds = settings.GeminiRequestTimeoutSeconds;
+        EnvGeminiMaxPromptCharacters = settings.GeminiMaxPromptCharacters;
+        EnvFileKitsuneOfflineMode = settings.FileKitsuneOfflineMode;
+    }
+
     private async Task RefreshEnvironmentSanityAsync(CancellationToken cancellationToken)
     {
         var items = await environmentSanityService.GetChecklistAsync(cancellationToken);
@@ -1481,6 +1550,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
         };
     }
+
+    private EnvironmentFileSettings BuildEnvironmentFileSettings() =>
+        new()
+        {
+            FilePath = EnvironmentFilePath,
+            GeminiEnabled = EnvGeminiEnabled.Trim(),
+            GeminiApiKey = EnvGeminiApiKey.Trim(),
+            GeminiModel = EnvGeminiModel.Trim(),
+            GeminiEndpointBaseUrl = EnvGeminiEndpointBaseUrl.Trim(),
+            GeminiMaxRequestsPerMinute = EnvGeminiMaxRequestsPerMinute.Trim(),
+            GeminiRequestTimeoutSeconds = EnvGeminiRequestTimeoutSeconds.Trim(),
+            GeminiMaxPromptCharacters = EnvGeminiMaxPromptCharacters.Trim(),
+            FileKitsuneOfflineMode = EnvFileKitsuneOfflineMode.Trim()
+        };
 
     private void ApplySettings(AppSettings settings)
     {

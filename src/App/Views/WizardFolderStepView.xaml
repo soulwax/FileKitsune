@@ -57,32 +57,79 @@
                 Style="{StaticResource CompactCardBorderStyle}"
                 Visibility="{Binding HasEnvironmentSanityItems, Converter={StaticResource BooleanToVisibilityConverter}}">
             <StackPanel>
-                <DockPanel LastChildFill="False">
-                    <StackPanel DockPanel.Dock="Left" Margin="0,0,12,0">
-                        <TextBlock Style="{StaticResource SectionTitleTextStyle}"
-                                   Text="{DynamicResource EnvironmentSanityTitle}" />
-                        <TextBlock Margin="0,4,0,0"
-                                   Style="{StaticResource HintTextStyle}"
-                                   Text="{DynamicResource EnvironmentSanityHint}" />
-                        <TextBlock Margin="0,8,0,0"
-                                   FontWeight="SemiBold"
-                                   Text="{Binding EnvironmentSanitySummary}" />
-                    </StackPanel>
+                <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                           Text="{DynamicResource EnvironmentSanityTitle}" />
+                <TextBlock Margin="0,4,0,0"
+                           Style="{StaticResource HintTextStyle}"
+                           Text="{DynamicResource EnvironmentSanityHint}" />
+                <TextBlock Margin="0,6,0,0"
+                           FontWeight="SemiBold"
+                           Text="{Binding EnvironmentSanitySummary}" />
+                <TextBlock Margin="0,4,0,0"
+                           Style="{StaticResource HintTextStyle}"
+                           Text="{Binding EnvironmentFilePath}" />
 
-                    <Button DockPanel.Dock="Right"
-                            Margin="8,0,0,0"
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="GEMINI_API_KEY" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EnvGeminiApiKey, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" Text="GEMINI_MODEL" />
+                    <TextBox Grid.Row="0" Grid.Column="4" Text="{Binding EnvGeminiModel, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="GEMINI_ENDPOINT_BASE_URL" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EnvGeminiEndpointBaseUrl, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="2" Grid.Column="3" VerticalAlignment="Center" Text="GEMINI_ENABLED" />
+                    <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding EnvGeminiEnabled, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="GEMINI_MAX_REQUESTS_PER_MINUTE" />
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding EnvGeminiMaxRequestsPerMinute, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="4" Grid.Column="3" VerticalAlignment="Center" Text="GEMINI_REQUEST_TIMEOUT_SECONDS" />
+                    <TextBox Grid.Row="4" Grid.Column="4" Text="{Binding EnvGeminiRequestTimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Text="GEMINI_MAX_PROMPT_CHARACTERS" />
+                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding EnvGeminiMaxPromptCharacters, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Grid.Row="6" Grid.Column="3" VerticalAlignment="Center" Text="FILEKITSUNE_OFFLINE_MODE" />
+                    <TextBox Grid.Row="6" Grid.Column="4" Text="{Binding EnvFileKitsuneOfflineMode, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
+
+                <WrapPanel Margin="0,10,0,0">
+                    <Button Margin="0,0,8,8"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding SaveEnvironmentEditorCommand}"
+                            Content="{DynamicResource EnvironmentSanitySaveEnvButton}" />
+                    <Button Margin="0,0,8,8"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding ReloadEnvironmentEditorCommand}"
+                            Content="{DynamicResource EnvironmentSanityReloadEnvButton}" />
+                    <Button Margin="0,0,8,8"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding RefreshEnvironmentSanityCommand}"
+                            Content="{DynamicResource EnvironmentSanityRefreshButton}" />
+                    <Button Margin="0,0,0,8"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding PingGeminiEnvironmentCommand}"
                             Content="{DynamicResource EnvironmentSanityPingButton}"
                             IsEnabled="{Binding IsGeminiEnvironmentPingAllowed}" />
-                    <Button DockPanel.Dock="Right"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            Command="{Binding RefreshEnvironmentSanityCommand}"
-                            Content="{DynamicResource EnvironmentSanityRefreshButton}"
-                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
-                </DockPanel>
+                </WrapPanel>
 
-                <TextBlock Margin="0,8,0,0"
+                <TextBlock Margin="0,2,0,0"
                            Style="{StaticResource HintTextStyle}"
                            Text="{Binding GeminiEnvironmentPingAvailabilityMessage}" />
 
@@ -99,37 +146,33 @@
                     </StackPanel>
                 </Border>
 
-                <ItemsControl Margin="0,12,0,0"
+                <ItemsControl Margin="0,10,0,0"
                               ItemsSource="{Binding EnvironmentSanityItems}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Margin="0,0,0,8"
-                                    Padding="10"
-                                    CornerRadius="12"
-                                    Background="#12FFFFFF"
-                                    BorderBrush="#1EFFFFFF"
-                                    BorderThickness="1">
-                                <StackPanel>
-                                    <DockPanel>
-                                        <TextBlock DockPanel.Dock="Right"
-                                                   FontWeight="SemiBold"
-                                                   Text="{Binding StatusLabel}" />
-                                        <TextBlock FontWeight="SemiBold"
-                                                   Text="{Binding DisplayName}" />
-                                    </DockPanel>
-                                    <TextBlock Margin="0,4,0,0"
-                                               Style="{StaticResource HintTextStyle}"
-                                               Text="{Binding Key}" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               Text="{Binding ValuePreview}" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               Style="{StaticResource HintTextStyle}"
-                                               Text="{Binding SourceLabel, StringFormat={}{0}}" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               Style="{StaticResource HintTextStyle}"
-                                               Text="{Binding Message}" />
-                                </StackPanel>
-                            </Border>
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="220" />
+                                    <ColumnDefinition Width="90" />
+                                    <ColumnDefinition Width="70" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding Key}" />
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           FontWeight="SemiBold"
+                                           Text="{Binding StatusLabel}" />
+                                <TextBlock Grid.Column="2"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource HintTextStyle}"
+                                           Text="{Binding SourceLabel}" />
+                                <TextBlock Grid.Column="3"
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource HintTextStyle}"
+                                           Text="{Binding Message}" />
+                            </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
