@@ -54,14 +54,14 @@ public sealed class EnvironmentSanityServiceTests
             processEnvironment: new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["GEMINI_API_KEY"] = "abcd1234secret",
-                ["GEMINI_MODEL"] = "gemini-3.1-flash-lite-preview"
+                ["GEMINI_MODEL"] = "gemini-2.0-flash"
             },
             dotEnvValues: new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase),
             currentDirectory: "C:\\Workspace",
             baseDirectory: "C:\\Workspace");
         var service = new EnvironmentSanityService(resolver, new StubHttpClientFactory(request =>
         {
-            Assert.Contains("models/gemini-3.1-flash-lite-preview", request.RequestUri!.ToString(), StringComparison.Ordinal);
+            Assert.Contains("models/gemini-2.0-flash", request.RequestUri!.ToString(), StringComparison.Ordinal);
             return new HttpResponseMessage(HttpStatusCode.OK);
         }));
 
@@ -96,7 +96,7 @@ public sealed class EnvironmentSanityServiceTests
             processEnvironment: new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["GEMINI_API_KEY"] = "abcd1234secret",
-                ["GEMINI_MODEL"] = "gemini-3.1-flash-lite-preview"
+                ["GEMINI_MODEL"] = "gemini-2.0-flash"
             },
             dotEnvValues: new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase),
             currentDirectory: "C:\\Workspace",
@@ -112,6 +112,29 @@ public sealed class EnvironmentSanityServiceTests
 
         Assert.Equal(EnvironmentSanityStatus.Optional, blockedResult.Status);
         Assert.Contains("next ping", blockedResult.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task PingGeminiAsync_uses_models_list_when_model_is_not_set()
+    {
+        var resolver = new AppEnvironmentResolver(
+            processEnvironment: new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["GEMINI_API_KEY"] = "abcd1234secret"
+            },
+            dotEnvValues: new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase),
+            currentDirectory: "C:\\Workspace",
+            baseDirectory: "C:\\Workspace");
+        var service = new EnvironmentSanityService(resolver, new StubHttpClientFactory(request =>
+        {
+            Assert.EndsWith("/models?key=abcd1234secret", request.RequestUri!.ToString(), StringComparison.Ordinal);
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }));
+
+        var result = await service.PingGeminiAsync(new GeminiOptions(), CancellationToken.None);
+
+        Assert.Equal(EnvironmentSanityStatus.Valid, result.Status);
+        Assert.Contains("API key is valid", result.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed class StubHttpClientFactory : IHttpClientFactory

@@ -8,7 +8,7 @@ namespace FileTransformer.Infrastructure.Configuration;
 
 public sealed class EnvironmentSanityService : IEnvironmentSanityService
 {
-    private const string DefaultGeminiModel = "gemini-3.1-flash-lite-preview";
+    private const string DefaultGeminiModel = "gemini-2.0-flash";
     private const string DefaultGeminiEndpoint = "https://generativelanguage.googleapis.com/v1beta";
     private static readonly TimeSpan GeminiPingCooldown = TimeSpan.FromHours(24);
     private readonly AppEnvironmentResolver environmentResolver;
@@ -123,9 +123,13 @@ public sealed class EnvironmentSanityService : IEnvironmentSanityService
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(Math.Max(5, context.TimeoutSeconds)));
 
-        var requestUri = new Uri(
-            context.EndpointUri!,
-            $"models/{Uri.EscapeDataString(context.Model)}?key={Uri.EscapeDataString(context.ApiKey!.Value)}");
+        var requestUri = string.IsNullOrWhiteSpace(context.Model)
+            ? new Uri(
+                context.EndpointUri!,
+                $"models?key={Uri.EscapeDataString(context.ApiKey!.Value)}")
+            : new Uri(
+                context.EndpointUri!,
+                $"models/{Uri.EscapeDataString(context.Model)}?key={Uri.EscapeDataString(context.ApiKey!.Value)}");
 
         try
         {
@@ -138,7 +142,9 @@ public sealed class EnvironmentSanityService : IEnvironmentSanityService
                 return new EnvironmentPingResult
                 {
                     Status = EnvironmentSanityStatus.Valid,
-                    Message = $"Gemini responded successfully for model '{context.Model}'.",
+                    Message = string.IsNullOrWhiteSpace(context.Model)
+                        ? "Gemini responded successfully and the API key is valid."
+                        : $"Gemini responded successfully for model '{context.Model}'.",
                     SuccessfulFingerprint = context.Fingerprint,
                     SuccessfulAtUtc = DateTimeOffset.UtcNow
                 };
@@ -189,7 +195,7 @@ public sealed class EnvironmentSanityService : IEnvironmentSanityService
         var modelValue = environmentResolver.GetValue("GEMINI_MODEL");
         var endpointValue = environmentResolver.GetValue("GEMINI_ENDPOINT_BASE_URL");
         var timeoutValue = environmentResolver.GetValue("GEMINI_REQUEST_TIMEOUT_SECONDS");
-        var model = string.IsNullOrWhiteSpace(modelValue?.Value) ? DefaultGeminiModel : modelValue.Value.Trim();
+        var model = modelValue?.Value?.Trim() ?? string.Empty;
         var endpoint = string.IsNullOrWhiteSpace(endpointValue?.Value) ? DefaultGeminiEndpoint : endpointValue.Value.Trim();
 
         if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var endpointUri))
@@ -436,7 +442,7 @@ public sealed class EnvironmentSanityService : IEnvironmentSanityService
 
         if (statusCode == HttpStatusCode.NotFound)
         {
-            return "Gemini could not find the configured model or endpoint.";
+            return "Gemini could not find the configured model or endpoint. Try setting GEMINI_MODEL to a valid current Gemini API model such as gemini-2.0-flash.";
         }
 
         if (statusCode == HttpStatusCode.BadRequest)

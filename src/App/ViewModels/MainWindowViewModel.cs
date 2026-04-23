@@ -230,7 +230,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string geminiApiKey = string.Empty;
 
     [ObservableProperty]
-    private string geminiModel = "gemini-3.1-flash-lite-preview";
+    private string geminiModel = "gemini-2.0-flash";
 
     [ObservableProperty]
     private int geminiMaxRequestsPerMinute = 30;
@@ -1542,7 +1542,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 Enabled = UseGemini,
                 ApiKey = GeminiApiKey.Trim(),
-                Model = string.IsNullOrWhiteSpace(GeminiModel) ? "gemini-3.1-flash-lite-preview" : GeminiModel.Trim(),
+                Model = string.IsNullOrWhiteSpace(GeminiModel) ? "gemini-2.0-flash" : GeminiModel.Trim(),
                 MaxRequestsPerMinute = Math.Max(1, GeminiMaxRequestsPerMinute),
                 RequestTimeoutSeconds = Math.Max(5, GeminiRequestTimeoutSeconds),
                 EnvironmentPingValidatedAtUtc = geminiEnvironmentPingValidatedAtUtcCache,

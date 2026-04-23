@@ -94,7 +94,7 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
                     : envEnabled ?? envelope.Gemini.Enabled,
                 ApiKey = string.IsNullOrWhiteSpace(decryptedApiKey) ? envApiKey ?? string.Empty : decryptedApiKey,
                 Model = string.IsNullOrWhiteSpace(envelope.Gemini.Model)
-                    ? envModel ?? "gemini-3.1-flash-lite-preview"
+                    ? envModel ?? "gemini-2.0-flash"
                     : envelope.Gemini.Model,
                 EndpointBaseUrl = string.IsNullOrWhiteSpace(envelope.Gemini.EndpointBaseUrl)
                     ? envEndpoint ?? "https://generativelanguage.googleapis.com/v1beta"
