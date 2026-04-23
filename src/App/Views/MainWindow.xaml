@@ -13,77 +13,104 @@
         MinWidth="980"
         MinHeight="720">
     <Window.Resources>
-        <Style x:Key="WizardStepTitleStyle" TargetType="TextBlock">
-            <Setter Property="Text" Value="{DynamicResource WizardStepFolderTitle}" />
+        <Style x:Key="WizardStepTitleStyle"
+                TargetType="TextBlock">
+            <Setter Property="Text"
+                    Value="{DynamicResource WizardStepFolderTitle}"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
-                    <Setter Property="Text" Value="{DynamicResource WizardStepStrategyTitle}" />
+                <DataTrigger Binding="{Binding CurrentStep}"
+                        Value="{x:Static viewModels:WizardStep.Strategy}">
+                    <Setter Property="Text"
+                            Value="{DynamicResource WizardStepStrategyTitle}"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
-                    <Setter Property="Text" Value="{DynamicResource WizardStepRulesTitle}" />
+                <DataTrigger Binding="{Binding CurrentStep}"
+                        Value="{x:Static viewModels:WizardStep.Rules}">
+                    <Setter Property="Text"
+                            Value="{DynamicResource WizardStepRulesTitle}"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
-                    <Setter Property="Text" Value="{DynamicResource WizardStepPreviewTitle}" />
+                <DataTrigger Binding="{Binding CurrentStep}"
+                        Value="{x:Static viewModels:WizardStep.Preview}">
+                    <Setter Property="Text"
+                            Value="{DynamicResource WizardStepPreviewTitle}"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
-                    <Setter Property="Text" Value="{DynamicResource WizardStepExecuteTitle}" />
+                <DataTrigger Binding="{Binding CurrentStep}"
+                        Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
+                    <Setter Property="Text"
+                            Value="{DynamicResource WizardStepExecuteTitle}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="WizardStepBodyStyle" TargetType="TextBlock">
-            <Setter Property="Text" Value="{DynamicResource WizardStepFolderBody}" />
+        <Style x:Key="WizardStepBodyStyle"
+                TargetType="TextBlock">
+            <Setter Property="Text"
+                    Value="{DynamicResource WizardStepFolderBody}"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
-                    <Setter Property="Text" Value="{DynamicResource WizardStepStrategyBody}" />
+                <DataTrigger Binding="{Binding CurrentStep}"
+                        Value="{x:Static viewModels:WizardStep.Strategy}">
+                    <Setter Property="Text"
+                            Value="{DynamicResource WizardStepStrategyBody}"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
-                    <Setter Property="Text" Value="{DynamicResource WizardStepRulesBody}" />
+                <DataTrigger Binding="{Binding CurrentStep}"
+                        Value="{x:Static viewModels:WizardStep.Rules}">
+                    <Setter Property="Text"
+                            Value="{DynamicResource WizardStepRulesBody}"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
-                    <Setter Property="Text" Value="{DynamicResource WizardStepPreviewBody}" />
+                <DataTrigger Binding="{Binding CurrentStep}"
+                        Value="{x:Static viewModels:WizardStep.Preview}">
+                    <Setter Property="Text"
+                            Value="{DynamicResource WizardStepPreviewBody}"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
-                    <Setter Property="Text" Value="{DynamicResource WizardStepExecuteBody}" />
+                <DataTrigger Binding="{Binding CurrentStep}"
+                        Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
+                    <Setter Property="Text"
+                            Value="{DynamicResource WizardStepExecuteBody}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="StepBadgeBorderStyle" TargetType="Border">
-            <Setter Property="Padding" Value="10,8" />
-            <Setter Property="Margin" Value="0,0,0,10" />
-            <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="Background" Value="#14FFFFFF" />
-            <Setter Property="BorderBrush" Value="#26FFFFFF" />
-            <Setter Property="BorderThickness" Value="1" />
+        <Style x:Key="StepBadgeBorderStyle"
+                TargetType="Border">
+            <Setter Property="Padding"
+                    Value="10,8"/>
+            <Setter Property="Margin"
+                    Value="0,0,0,10"/>
+            <Setter Property="CornerRadius"
+                    Value="14"/>
+            <Setter Property="Background"
+                    Value="#14FFFFFF"/>
+            <Setter Property="BorderBrush"
+                    Value="#26FFFFFF"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
         </Style>
 
         <DataTemplate x:Key="FolderStepTemplate">
-            <views:WizardFolderStepView />
+            <views:WizardFolderStepView/>
         </DataTemplate>
 
         <DataTemplate x:Key="StrategyStepTemplate">
-            <views:WizardStrategyStepView />
+            <views:WizardStrategyStepView/>
         </DataTemplate>
 
         <DataTemplate x:Key="RulesStepTemplate">
-            <views:WizardRulesStepView />
+            <views:WizardRulesStepView/>
         </DataTemplate>
 
         <DataTemplate x:Key="PreviewStepTemplate">
-            <views:WizardPreviewStepView />
+            <views:WizardPreviewStepView/>
         </DataTemplate>
 
         <DataTemplate x:Key="ExecuteStepTemplate">
-            <views:WizardExecuteStepView />
+            <views:WizardExecuteStepView/>
         </DataTemplate>
     </Window.Resources>
 
     <Grid Margin="14">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Ellipse Width="520"
@@ -92,28 +119,28 @@
                  VerticalAlignment="Top"
                  Margin="0,-180,-120,0"
                  Fill="#26FFFFFF"
-                 IsHitTestVisible="False" />
+                 IsHitTestVisible="False"/>
         <Ellipse Width="360"
                  Height="360"
                  HorizontalAlignment="Left"
                  VerticalAlignment="Bottom"
                  Margin="-140,0,0,-120"
                  Fill="#1FFFFFFF"
-                 IsHitTestVisible="False" />
+                 IsHitTestVisible="False"/>
 
         <Border Style="{StaticResource CompactCardBorderStyle}"
                 Padding="14"
                 Background="{StaticResource HeroPanelBrush}">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.25*" />
-                    <ColumnDefinition Width="18" />
-                    <ColumnDefinition Width="1.75*" />
+                    <ColumnDefinition Width="1.25*"/>
+                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="1.75*"/>
                 </Grid.ColumnDefinitions>
 
                 <StackPanel>
-                    <Border Width="84"
-                            Height="84"
+                    <Border Width="128"
+                            Height="128"
                             Padding="8"
                             HorizontalAlignment="Left"
                             Background="#18FFFFFF"
@@ -121,20 +148,21 @@
                             BorderThickness="1"
                             CornerRadius="24">
                         <Image Source="/Assets/filekitsune.png"
-                               Stretch="Uniform" />
+                               Stretch="Uniform"/>
                     </Border>
-                    <Border Style="{StaticResource PillBorderStyle}" HorizontalAlignment="Left">
+                    <Border Style="{StaticResource PillBorderStyle}"
+                            HorizontalAlignment="Left">
                         <TextBlock FontSize="12"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource AccentStrongBrush}"
-                                   Text="{DynamicResource WizardLabel}" />
+                                   Text="{DynamicResource WizardLabel}"/>
                     </Border>
                     <TextBlock Margin="0,6,0,0"
                                Style="{StaticResource HeroTitleTextStyle}"
-                               Text="{DynamicResource AppTitle}" />
+                               Text="{DynamicResource AppTitle}"/>
                     <TextBlock Margin="0,2,0,0"
                                Style="{StaticResource HintTextStyle}"
-                               Text="{DynamicResource AppSubtitle}" />
+                               Text="{DynamicResource AppSubtitle}"/>
                 </StackPanel>
 
                 <Border Grid.Column="2"
@@ -143,40 +171,40 @@
                         VerticalAlignment="Center">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="18" />
-                            <ColumnDefinition Width="320" />
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="18"/>
+                            <ColumnDefinition Width="320"/>
                         </Grid.ColumnDefinitions>
 
                         <StackPanel>
                             <TextBlock FontSize="12"
                                        FontWeight="SemiBold"
                                        Foreground="{StaticResource MutedTextBrush}"
-                                       Text="{DynamicResource WizardLabel}" />
+                                       Text="{DynamicResource WizardLabel}"/>
                             <TextBlock Margin="0,2,0,0"
                                        FontSize="17"
                                        FontWeight="SemiBold"
-                                       Style="{StaticResource WizardStepTitleStyle}" />
+                                       Style="{StaticResource WizardStepTitleStyle}"/>
                             <ProgressBar Margin="0,8,0,0"
                                          Minimum="1"
                                          Maximum="{Binding TotalWizardSteps, Mode=OneWay}"
                                          Value="{Binding CurrentStepNumber, Mode=OneWay}"
-                                         Height="6" />
+                                         Height="6"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
                             <TextBlock FontSize="12"
                                        FontWeight="SemiBold"
-                                       Text="{DynamicResource SafetyGuardrailsTitle}" />
+                                       Text="{DynamicResource SafetyGuardrailsTitle}"/>
                             <TextBlock Margin="0,2,0,0"
                                        Style="{StaticResource HintTextStyle}"
-                                       Text="{Binding StatusMessage}" />
+                                       Text="{Binding StatusMessage}"/>
                             <ProgressBar Margin="0,8,0,0"
                                          Height="6"
                                          Minimum="0"
                                          Maximum="{Binding ProgressMaximum}"
                                          Value="{Binding ProgressValue}"
-                                         IsIndeterminate="{Binding IsProgressIndeterminate}" />
+                                         IsIndeterminate="{Binding IsProgressIndeterminate}"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -190,19 +218,28 @@
             <ContentControl Content="{Binding}">
                 <ContentControl.Style>
                     <Style TargetType="ContentControl">
-                        <Setter Property="ContentTemplate" Value="{StaticResource FolderStepTemplate}" />
+                        <Setter Property="ContentTemplate"
+                                Value="{StaticResource FolderStepTemplate}"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Strategy}">
-                                <Setter Property="ContentTemplate" Value="{StaticResource StrategyStepTemplate}" />
+                            <DataTrigger Binding="{Binding CurrentStep}"
+                                    Value="{x:Static viewModels:WizardStep.Strategy}">
+                                <Setter Property="ContentTemplate"
+                                        Value="{StaticResource StrategyStepTemplate}"/>
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Rules}">
-                                <Setter Property="ContentTemplate" Value="{StaticResource RulesStepTemplate}" />
+                            <DataTrigger Binding="{Binding CurrentStep}"
+                                    Value="{x:Static viewModels:WizardStep.Rules}">
+                                <Setter Property="ContentTemplate"
+                                        Value="{StaticResource RulesStepTemplate}"/>
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.Preview}">
-                                <Setter Property="ContentTemplate" Value="{StaticResource PreviewStepTemplate}" />
+                            <DataTrigger Binding="{Binding CurrentStep}"
+                                    Value="{x:Static viewModels:WizardStep.Preview}">
+                                <Setter Property="ContentTemplate"
+                                        Value="{StaticResource PreviewStepTemplate}"/>
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding CurrentStep}" Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
-                                <Setter Property="ContentTemplate" Value="{StaticResource ExecuteStepTemplate}" />
+                            <DataTrigger Binding="{Binding CurrentStep}"
+                                    Value="{x:Static viewModels:WizardStep.ExecuteRollback}">
+                                <Setter Property="ContentTemplate"
+                                        Value="{StaticResource ExecuteStepTemplate}"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
@@ -218,20 +255,20 @@
                 <Button DockPanel.Dock="Right"
                         Style="{StaticResource PrimaryButtonStyle}"
                         Command="{Binding NextCommand}"
-                        Content="{DynamicResource WizardNextButton}" />
+                        Content="{DynamicResource WizardNextButton}"/>
                 <Button DockPanel.Dock="Right"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Command="{Binding BackCommand}"
-                        Content="{DynamicResource WizardBackButton}" />
+                        Content="{DynamicResource WizardBackButton}"/>
                 <StackPanel>
                     <TextBlock FontSize="11"
                                FontWeight="SemiBold"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="{DynamicResource WizardLabel}" />
+                               Text="{DynamicResource WizardLabel}"/>
                     <TextBlock Margin="0,4,0,0"
                                FontSize="16"
                                FontWeight="SemiBold"
-                               Style="{StaticResource WizardStepTitleStyle}" />
+                               Style="{StaticResource WizardStepTitleStyle}"/>
                 </StackPanel>
             </DockPanel>
         </Border>
