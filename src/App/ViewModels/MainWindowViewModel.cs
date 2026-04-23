@@ -20,6 +20,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private const int RollbackPreviewSectionSampleLimit = 4;
     private const int RollbackConfirmationSampleLimit = 2;
     private readonly IAppSettingsStore appSettingsStore;
+    private readonly IEnvironmentSanityService environmentSanityService;
     private readonly IPersistenceStatusService persistenceStatusService;
     private readonly OrganizationWorkflowService organizationWorkflowService;
     private readonly PlanExecutionService planExecutionService;
@@ -35,9 +36,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private bool initialized;
     private bool suppressDuplicateSelection;
     private bool suppressAnalysisProfileSelection;
+    private DateTimeOffset? geminiEnvironmentPingValidatedAtUtcCache;
+    private string geminiEnvironmentPingFingerprintCache = string.Empty;
 
     public MainWindowViewModel(
         IAppSettingsStore appSettingsStore,
+        IEnvironmentSanityService environmentSanityService,
         IPersistenceStatusService persistenceStatusService,
         OrganizationWorkflowService organizationWorkflowService,
         PlanExecutionService planExecutionService,
@@ -50,6 +54,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ILogger<MainWindowViewModel> logger)
     {
         this.appSettingsStore = appSettingsStore;
+        this.environmentSanityService = environmentSanityService;
         this.persistenceStatusService = persistenceStatusService;
         this.organizationWorkflowService = organizationWorkflowService;
         this.planExecutionService = planExecutionService;
@@ -108,6 +113,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PlanView = CollectionViewSource.GetDefaultView(PlanOperations);
         PlanView.Filter = ApplyPlanFilter;
         LogEntries = uiLogStore.Entries;
+        EnvironmentSanityItems = [];
         StatusMessage = GetString("StatusReady");
         StrategyDisplayName = selectedStrategyPreset.Label;
     }
@@ -153,6 +159,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ICollectionView PlanView { get; }
 
     public ObservableCollection<UiLogEntry> LogEntries { get; }
+
+    public ObservableCollection<EnvironmentSanityItemViewModel> EnvironmentSanityItems { get; }
 
     [ObservableProperty]
     private string rootDirectory = string.Empty;
@@ -396,6 +404,27 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string geminiOrganizationGuidanceBody = string.Empty;
 
     [ObservableProperty]
+    private bool hasEnvironmentSanityItems;
+
+    [ObservableProperty]
+    private string environmentSanitySummary = string.Empty;
+
+    [ObservableProperty]
+    private string geminiEnvironmentPingStatus = string.Empty;
+
+    [ObservableProperty]
+    private string geminiEnvironmentPingMessage = string.Empty;
+
+    [ObservableProperty]
+    private bool isGeminiEnvironmentPingInProgress;
+
+    [ObservableProperty]
+    private bool isGeminiEnvironmentPingAllowed = true;
+
+    [ObservableProperty]
+    private string geminiEnvironmentPingAvailabilityMessage = string.Empty;
+
+    [ObservableProperty]
     private OptionItem<string>? selectedAppLanguage;
 
     [ObservableProperty]
@@ -424,6 +453,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             var settings = await appSettingsStore.LoadAsync(CancellationToken.None);
             ApplySettings(settings);
+            await RefreshEnvironmentSanityAsync(CancellationToken.None);
             await RefreshRollbackHistoryAsync(CancellationToken.None);
             await RefreshPersistenceStatusAsync(CancellationToken.None);
             logger.LogInformation("Settings loaded from user profile.");
@@ -707,6 +737,51 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task RefreshEnvironmentSanityAsync()
+    {
+        await RefreshEnvironmentSanityAsync(CancellationToken.None);
+    }
+
+    [RelayCommand]
+    private async Task PingGeminiEnvironmentAsync()
+    {
+        try
+        {
+            IsGeminiEnvironmentPingInProgress = true;
+            GeminiEnvironmentPingStatus = GetEnvironmentSanityStatusLabel(EnvironmentSanityStatus.Optional);
+            GeminiEnvironmentPingMessage = GetString("EnvironmentSanityPingRunning");
+
+            var settings = BuildSettings();
+            var result = await environmentSanityService.PingGeminiAsync(settings.Gemini, CancellationToken.None);
+            GeminiEnvironmentPingStatus = GetEnvironmentSanityStatusLabel(result.Status);
+            GeminiEnvironmentPingMessage = result.Message;
+
+            if (result.Status == EnvironmentSanityStatus.Valid &&
+                !string.IsNullOrWhiteSpace(result.SuccessfulFingerprint) &&
+                result.SuccessfulAtUtc is not null)
+            {
+                geminiEnvironmentPingFingerprintCache = result.SuccessfulFingerprint;
+                geminiEnvironmentPingValidatedAtUtcCache = result.SuccessfulAtUtc;
+                settings.Gemini.EnvironmentPingFingerprint = result.SuccessfulFingerprint;
+                settings.Gemini.EnvironmentPingValidatedAtUtc = result.SuccessfulAtUtc;
+                await appSettingsStore.SaveAsync(settings, CancellationToken.None);
+            }
+
+            await RefreshEnvironmentSanityAsync(CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Gemini environment ping failed.");
+            GeminiEnvironmentPingStatus = GetEnvironmentSanityStatusLabel(EnvironmentSanityStatus.Invalid);
+            GeminiEnvironmentPingMessage = exception.Message;
+        }
+        finally
+        {
+            IsGeminiEnvironmentPingInProgress = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task RollbackSelectedAsync()
     {
         if (SelectedRollbackJournal is null)
@@ -895,6 +970,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         localizationService.ApplyLanguage(value?.Value ?? "de-DE");
         RefreshLocalizedOptionCollections();
         RefreshLocalizedState();
+        RefreshEnvironmentSanityAfterLocalization();
         RefreshPersistenceStatusAfterLocalization();
         RefreshRollbackStateAfterLocalization();
     }
@@ -1036,6 +1112,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         StrategyDisplayName = SelectedStrategyPreset?.Label ?? string.Empty;
         PersistenceModeLabel = LocalizePersistenceModeLabel(PersistenceModeLabel);
+        GeminiEnvironmentPingStatus = LocalizeEnvironmentSanityStatusLabel(GeminiEnvironmentPingStatus);
 
         if (!IsBusy && currentPlan is null && string.IsNullOrWhiteSpace(StatusMessage))
         {
@@ -1160,6 +1237,41 @@ public sealed partial class MainWindowViewModel : ObservableObject
         await appSettingsStore.SaveAsync(BuildSettings(), cancellationToken);
     }
 
+    private async Task RefreshEnvironmentSanityAsync(CancellationToken cancellationToken)
+    {
+        var items = await environmentSanityService.GetChecklistAsync(cancellationToken);
+        var pingAvailability = await environmentSanityService.GetGeminiPingAvailabilityAsync(BuildSettings().Gemini, cancellationToken);
+        EnvironmentSanityItems.Clear();
+
+        foreach (var item in items)
+        {
+            EnvironmentSanityItems.Add(new EnvironmentSanityItemViewModel
+            {
+                Key = item.Key,
+                DisplayName = item.DisplayName,
+                ValuePreview = item.ValuePreview,
+                SourceLabel = item.SourceLabel,
+                StatusLabel = GetEnvironmentSanityStatusLabel(item.Status),
+                Message = item.Message
+            });
+        }
+
+        HasEnvironmentSanityItems = EnvironmentSanityItems.Count > 0;
+
+        var validCount = items.Count(item => item.Status == EnvironmentSanityStatus.Valid);
+        var missingCount = items.Count(item => item.Status == EnvironmentSanityStatus.Missing);
+        var invalidCount = items.Count(item => item.Status == EnvironmentSanityStatus.Invalid);
+        var optionalCount = items.Count(item => item.Status == EnvironmentSanityStatus.Optional);
+        EnvironmentSanitySummary = FormatString(
+            "EnvironmentSanitySummary",
+            validCount,
+            missingCount,
+            invalidCount,
+            optionalCount);
+        IsGeminiEnvironmentPingAllowed = pingAvailability.CanPing;
+        GeminiEnvironmentPingAvailabilityMessage = pingAvailability.Message;
+    }
+
     private async Task RefreshPersistenceStatusAsync(CancellationToken cancellationToken)
     {
         var snapshot = await persistenceStatusService.GetStatusAsync(cancellationToken);
@@ -1195,6 +1307,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
         catch (Exception exception)
         {
             logger.LogDebug(exception, "Refreshing persistence status after localization failed.");
+        }
+    }
+
+    private async void RefreshEnvironmentSanityAfterLocalization()
+    {
+        try
+        {
+            await RefreshEnvironmentSanityAsync(CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            logger.LogDebug(exception, "Refreshing environment sanity after localization failed.");
         }
     }
 
@@ -1351,7 +1475,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 ApiKey = GeminiApiKey.Trim(),
                 Model = string.IsNullOrWhiteSpace(GeminiModel) ? "gemini-3.1-flash-lite-preview" : GeminiModel.Trim(),
                 MaxRequestsPerMinute = Math.Max(1, GeminiMaxRequestsPerMinute),
-                RequestTimeoutSeconds = Math.Max(5, GeminiRequestTimeoutSeconds)
+                RequestTimeoutSeconds = Math.Max(5, GeminiRequestTimeoutSeconds),
+                EnvironmentPingValidatedAtUtc = geminiEnvironmentPingValidatedAtUtcCache,
+                EnvironmentPingFingerprint = geminiEnvironmentPingFingerprintCache
             }
         };
     }
@@ -1405,6 +1531,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         GeminiModel = settings.Gemini.Model;
         GeminiMaxRequestsPerMinute = settings.Gemini.MaxRequestsPerMinute;
         GeminiRequestTimeoutSeconds = settings.Gemini.RequestTimeoutSeconds;
+        geminiEnvironmentPingValidatedAtUtcCache = settings.Gemini.EnvironmentPingValidatedAtUtc;
+        geminiEnvironmentPingFingerprintCache = settings.Gemini.EnvironmentPingFingerprint;
         SyncAnalysisProfileSelection();
     }
 
@@ -1936,6 +2064,25 @@ public sealed partial class MainWindowViewModel : ObservableObject
             RollbackPreviewStatus.MissingDestination => GetString("RollbackPreviewMessageMissingDestination"),
             RollbackPreviewStatus.OriginalPathOccupied => GetString("RollbackPreviewMessageOriginalPathOccupied"),
             _ => string.Empty
+        };
+
+    private string GetEnvironmentSanityStatusLabel(EnvironmentSanityStatus status) =>
+        status switch
+        {
+            EnvironmentSanityStatus.Valid => GetString("EnvironmentSanityStatusValid"),
+            EnvironmentSanityStatus.Missing => GetString("EnvironmentSanityStatusMissing"),
+            EnvironmentSanityStatus.Invalid => GetString("EnvironmentSanityStatusInvalid"),
+            _ => GetString("EnvironmentSanityStatusOptional")
+        };
+
+    private string LocalizeEnvironmentSanityStatusLabel(string currentLabel) =>
+        currentLabel switch
+        {
+            "Valid" or "Gueltig" => GetString("EnvironmentSanityStatusValid"),
+            "Missing" or "Fehlt" => GetString("EnvironmentSanityStatusMissing"),
+            "Invalid" or "Ungueltig" => GetString("EnvironmentSanityStatusInvalid"),
+            "Optional" => GetString("EnvironmentSanityStatusOptional"),
+            _ => currentLabel
         };
 
     private void PopulateStrategyRecommendations(OrganizationPlan plan)

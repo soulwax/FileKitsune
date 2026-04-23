@@ -150,6 +150,8 @@ dotnet run --project src/App/FileTransformer.App.csproj
 ```
 
 The shipped product name is `FileKitsune`, while the current repository and project filenames still use `FileTransformer.*`.
+This is the current intended state for compatibility: solution, project, and test filenames remain on the `FileTransformer` technical identifier for now to avoid unnecessary breaking changes for developers, scripts, and local tooling.
+If that technical naming is changed in a future release, the rename should be treated as a deliberate breaking-change migration and called out explicitly in release notes and setup guidance.
 
 `FileTransformer.slnx` is also included if you prefer the newer solution format.
 

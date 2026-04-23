@@ -81,6 +81,7 @@ Services/
  UiLogStore.cs
 ViewModels/
  DuplicateGroupItem.cs
+ EnvironmentSanityItemViewModel.cs
  MainWindowViewModel.cs
  OptionItem.cs
  PlanFilterMode.cs

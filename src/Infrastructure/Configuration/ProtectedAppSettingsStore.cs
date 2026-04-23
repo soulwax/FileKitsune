@@ -18,10 +18,12 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
     };
 
     private readonly AppStoragePaths appStoragePaths;
+    private readonly AppEnvironmentResolver environmentResolver;
 
-    public ProtectedAppSettingsStore(AppStoragePaths appStoragePaths)
+    public ProtectedAppSettingsStore(AppStoragePaths appStoragePaths, AppEnvironmentResolver environmentResolver)
     {
         this.appStoragePaths = appStoragePaths;
+        this.environmentResolver = environmentResolver;
     }
 
     public async Task<AppSettings> LoadAsync(CancellationToken cancellationToken)
@@ -37,27 +39,9 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
                 ?? new StoredSettingsEnvelope();
         }
 
-        var env = DotEnv.LoadIfPresent(
-            Path.Combine(Directory.GetCurrentDirectory(), ".env"),
-            Path.Combine(AppContext.BaseDirectory, ".env"));
-
         string? GetEnvValue(params string[] keys)
         {
-            foreach (var key in keys)
-            {
-                var value = Environment.GetEnvironmentVariable(key);
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    return value;
-                }
-
-                if (env.TryGetValue(key, out var envValue) && !string.IsNullOrWhiteSpace(envValue))
-                {
-                    return envValue;
-                }
-            }
-
-            return null;
+            return environmentResolver.GetValue(keys)?.Value;
         }
 
         static bool? ParseBool(string? value)
@@ -123,7 +107,9 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
                     : envelope.Gemini.RequestTimeoutSeconds,
                 MaxPromptCharacters = envelope.Gemini.MaxPromptCharacters <= 0
                     ? envMaxPromptChars ?? 4_000
-                    : envelope.Gemini.MaxPromptCharacters
+                    : envelope.Gemini.MaxPromptCharacters,
+                EnvironmentPingValidatedAtUtc = envelope.Gemini.EnvironmentPingValidatedAtUtc,
+                EnvironmentPingFingerprint = envelope.Gemini.EnvironmentPingFingerprint ?? string.Empty
             }
         };
     }
@@ -144,7 +130,9 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
                 EndpointBaseUrl = settings.Gemini.EndpointBaseUrl,
                 MaxRequestsPerMinute = settings.Gemini.MaxRequestsPerMinute,
                 RequestTimeoutSeconds = settings.Gemini.RequestTimeoutSeconds,
-                MaxPromptCharacters = settings.Gemini.MaxPromptCharacters
+                MaxPromptCharacters = settings.Gemini.MaxPromptCharacters,
+                EnvironmentPingValidatedAtUtc = settings.Gemini.EnvironmentPingValidatedAtUtc,
+                EnvironmentPingFingerprint = settings.Gemini.EnvironmentPingFingerprint
             }
         };
 
@@ -207,5 +195,9 @@ public sealed class ProtectedAppSettingsStore : IAppSettingsStore
         public int RequestTimeoutSeconds { get; set; } = 30;
 
         public int MaxPromptCharacters { get; set; } = 4_000;
+
+        public DateTimeOffset? EnvironmentPingValidatedAtUtc { get; set; }
+
+        public string EnvironmentPingFingerprint { get; set; } = string.Empty;
     }
 }

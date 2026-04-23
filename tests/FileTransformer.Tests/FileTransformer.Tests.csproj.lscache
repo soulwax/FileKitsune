@@ -65,11 +65,13 @@ Application/
  SemanticClassifierCoordinatorTests.cs
  StrategyRecommendationServiceTests.cs
 Infrastructure/
+ EnvironmentSanityServiceTests.cs
  EnvironmentVariableCollection.cs
  GeminiOrganizationGuidanceParserTests.cs
  GeminiPromptBuilderTests.cs
  GeminiResponseParserTests.cs
  LocalFileContentReaderTests.cs
+ PersistenceOptionsResolverTests.cs
  PersistenceStatusServiceTests.cs
  ResilientPersistenceTests.cs
  Sha256FileHashProviderTests.cs

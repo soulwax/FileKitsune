@@ -15,4 +15,8 @@ public sealed class GeminiOptions
     public int RequestTimeoutSeconds { get; set; } = 30;
 
     public int MaxPromptCharacters { get; set; } = 4_000;
+
+    public DateTimeOffset? EnvironmentPingValidatedAtUtc { get; set; }
+
+    public string EnvironmentPingFingerprint { get; set; } = string.Empty;
 }

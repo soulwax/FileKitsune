@@ -15,7 +15,9 @@ public sealed class PersistenceStatusServiceTests
             ["NILEDB_URL"] = null,
             ["POSTGRES_URL"] = null,
             ["DATABASE_URL"] = null,
-            ["FILETRANSFORMER_OFFLINE_MODE"] = null
+            ["FILEKITSUNE_OFFLINE_MODE"] = null,
+            ["FILETRANSFORMER_OFFLINE_MODE"] = null,
+            ["OFFLINE_MODE"] = null
         });
 
         var service = new PersistenceStatusService(new PersistenceOptionsResolver());
@@ -33,7 +35,9 @@ public sealed class PersistenceStatusServiceTests
             ["POSTGRES_URL"] = "Host=127.0.0.1;Port=1;Username=test;Password=test;Database=filetransformer",
             ["NILEDB_URL"] = null,
             ["DATABASE_URL"] = null,
-            ["FILETRANSFORMER_OFFLINE_MODE"] = "true"
+            ["FILEKITSUNE_OFFLINE_MODE"] = "true",
+            ["FILETRANSFORMER_OFFLINE_MODE"] = null,
+            ["OFFLINE_MODE"] = null
         });
 
         var service = new PersistenceStatusService(new PersistenceOptionsResolver());
@@ -51,7 +55,9 @@ public sealed class PersistenceStatusServiceTests
             ["POSTGRES_URL"] = "Host=127.0.0.1;Port=1;Username=test;Password=test;Database=filetransformer",
             ["NILEDB_URL"] = null,
             ["DATABASE_URL"] = null,
-            ["FILETRANSFORMER_OFFLINE_MODE"] = "false"
+            ["FILEKITSUNE_OFFLINE_MODE"] = "false",
+            ["FILETRANSFORMER_OFFLINE_MODE"] = null,
+            ["OFFLINE_MODE"] = null
         });
 
         var service = new PersistenceStatusService(new PersistenceOptionsResolver());

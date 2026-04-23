@@ -13,7 +13,9 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFileTransformerInfrastructure(this IServiceCollection services)
     {
         services.AddSingleton<AppStoragePaths>();
+        services.AddSingleton<AppEnvironmentResolver>();
         services.AddSingleton<PersistenceOptionsResolver>();
+        services.AddSingleton<IEnvironmentSanityService, EnvironmentSanityService>();
         services.AddSingleton<IPersistenceStatusService, PersistenceStatusService>();
         services.AddSingleton<IGeminiOrganizationAdvisor, GeminiOrganizationAdvisor>();
         services.AddSingleton<GeminiPromptBuilder>();

@@ -122,6 +122,17 @@
     <sys:String x:Key="RuleModel">Modell</sys:String>
     <sys:String x:Key="RuleMaxRequestsPerMinute">Max. Anfragen/Minute</sys:String>
     <sys:String x:Key="RuleRequestTimeoutSeconds">Anfrage-Timeout (Sek.)</sys:String>
+    <sys:String x:Key="EnvironmentSanityTitle">Umgebungs-Checkliste</sys:String>
+    <sys:String x:Key="EnvironmentSanityHint">Pruefen Sie wichtige Gemini- und Persistenz-Umgebungsvariablen aus Prozessumgebung oder .env und testen Sie danach Gemini mit dem env-basierten Schluessel.</sys:String>
+    <sys:String x:Key="EnvironmentSanitySummary">Gueltig: {0}  Fehlt: {1}  Ungueltig: {2}  Optional: {3}</sys:String>
+    <sys:String x:Key="EnvironmentSanityRefreshButton">Checkliste aktualisieren</sys:String>
+    <sys:String x:Key="EnvironmentSanityPingButton">Gemini testen</sys:String>
+    <sys:String x:Key="EnvironmentSanityPingTitle">Gemini-Konnektivitaetstest</sys:String>
+    <sys:String x:Key="EnvironmentSanityPingRunning">Gemini-Konnektivitaetstest laeuft...</sys:String>
+    <sys:String x:Key="EnvironmentSanityStatusValid">Gueltig</sys:String>
+    <sys:String x:Key="EnvironmentSanityStatusMissing">Fehlt</sys:String>
+    <sys:String x:Key="EnvironmentSanityStatusInvalid">Ungueltig</sys:String>
+    <sys:String x:Key="EnvironmentSanityStatusOptional">Optional</sys:String>
     <sys:String x:Key="RulesSaveHint">Speichern Sie die Regeln, bevor Sie zur Vorschau wechseln.</sys:String>
     <sys:String x:Key="PreviewIntroText">Jeder Vorschlag zeigt vor der Ausführung Begründung, Klassifikationsquelle und Sicherheitshinweise.</sys:String>
     <sys:String x:Key="SummaryItemsAnalyzed">Analysierte Elemente</sys:String>

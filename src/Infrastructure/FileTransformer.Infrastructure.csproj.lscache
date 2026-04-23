@@ -61,9 +61,11 @@ Classification/
  GeminiResponseParser.cs
  GeminiSemanticClassifier.cs
 Configuration/
+ AppEnvironmentResolver.cs
  AppSettingsSnapshotMapper.cs
  AppStoragePaths.cs
  DotEnv.cs
+ EnvironmentSanityService.cs
  JsonExecutionJournalStore.cs
  PersistenceOptions.cs
  PersistenceOptionsResolver.cs

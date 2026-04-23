@@ -19,7 +19,9 @@ internal static class AppSettingsSnapshotMapper
                 EndpointBaseUrl = settings.Gemini.EndpointBaseUrl,
                 MaxRequestsPerMinute = settings.Gemini.MaxRequestsPerMinute,
                 RequestTimeoutSeconds = settings.Gemini.RequestTimeoutSeconds,
-                MaxPromptCharacters = settings.Gemini.MaxPromptCharacters
+                MaxPromptCharacters = settings.Gemini.MaxPromptCharacters,
+                EnvironmentPingValidatedAtUtc = settings.Gemini.EnvironmentPingValidatedAtUtc,
+                EnvironmentPingFingerprint = settings.Gemini.EnvironmentPingFingerprint
             }
         };
     }
@@ -51,7 +53,11 @@ internal static class AppSettingsSnapshotMapper
                     : overlay.Gemini.RequestTimeoutSeconds,
                 MaxPromptCharacters = overlay.Gemini.MaxPromptCharacters <= 0
                     ? baseline.Gemini.MaxPromptCharacters
-                    : overlay.Gemini.MaxPromptCharacters
+                    : overlay.Gemini.MaxPromptCharacters,
+                EnvironmentPingValidatedAtUtc = overlay.Gemini.EnvironmentPingValidatedAtUtc ?? baseline.Gemini.EnvironmentPingValidatedAtUtc,
+                EnvironmentPingFingerprint = string.IsNullOrWhiteSpace(overlay.Gemini.EnvironmentPingFingerprint)
+                    ? baseline.Gemini.EnvironmentPingFingerprint
+                    : overlay.Gemini.EnvironmentPingFingerprint
             }
         };
     }

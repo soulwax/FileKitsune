@@ -22,14 +22,16 @@ public sealed class ResilientPersistenceTests
             ["POSTGRES_URL"] = "Host=127.0.0.1;Port=1;Username=test;Password=test;Database=filetransformer",
             ["NILEDB_URL"] = null,
             ["DATABASE_URL"] = null,
-            ["FILETRANSFORMER_OFFLINE_MODE"] = "false"
+            ["FILEKITSUNE_OFFLINE_MODE"] = "false",
+            ["FILETRANSFORMER_OFFLINE_MODE"] = null,
+            ["OFFLINE_MODE"] = null
         });
 
         var rootPath = CreateTempDirectory();
         try
         {
             var appStoragePaths = new AppStoragePaths(rootPath);
-            var protectedStore = new ProtectedAppSettingsStore(appStoragePaths);
+            var protectedStore = new ProtectedAppSettingsStore(appStoragePaths, new AppEnvironmentResolver());
             var sqliteStore = new SqliteAppSettingsStore(appStoragePaths);
             var postgresStore = new PostgresAppSettingsStore(new PersistenceOptionsResolver());
             var store = new ResilientAppSettingsStore(
@@ -81,7 +83,9 @@ public sealed class ResilientPersistenceTests
             ["POSTGRES_URL"] = "Host=127.0.0.1;Port=1;Username=test;Password=test;Database=filetransformer",
             ["NILEDB_URL"] = null,
             ["DATABASE_URL"] = null,
-            ["FILETRANSFORMER_OFFLINE_MODE"] = "false"
+            ["FILEKITSUNE_OFFLINE_MODE"] = "false",
+            ["FILETRANSFORMER_OFFLINE_MODE"] = null,
+            ["OFFLINE_MODE"] = null
         });
 
         var rootPath = CreateTempDirectory();
