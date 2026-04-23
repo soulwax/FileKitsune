@@ -5,7 +5,7 @@ public sealed class AppStoragePaths
     public AppStoragePaths(string? rootDirectory = null)
     {
         RootDirectory = string.IsNullOrWhiteSpace(rootDirectory)
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileTransformer")
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileKitsune")
             : rootDirectory;
     }
 

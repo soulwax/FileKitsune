@@ -1,4 +1,4 @@
-# Gemini Agent Notes For FileTransformer
+# Gemini Agent Notes For FileKitsune
 
 This repository already contains a `gemini.json`, but the desktop application's Gemini integration is separate from that file.
 
@@ -7,7 +7,7 @@ This repository already contains a `gemini.json`, but the desktop application's 
 - Runtime Gemini usage is implemented in `src/Infrastructure/Classification/GeminiSemanticClassifier.cs`.
 - The app combines Gemini output with heuristics in `src/Application/Services/SemanticClassifierCoordinator.cs`.
 - Gemini is advisory only. Local review and path safety logic still control what can execute.
-- API keys are stored with DPAPI in `%LocalAppData%\\FileTransformer\\settings.json`.
+- API keys are stored with DPAPI in `%LocalAppData%\\FileKitsune\\settings.json`.
 - The WPF app can now read `.env` or environment variables as a fallback for Gemini settings when no DPAPI value is present.
 
 ## Repo Facts That Matter

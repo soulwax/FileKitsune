@@ -1,6 +1,6 @@
-# FileTransformer
+# FileKitsune
 
-FileTransformer is a Windows-only .NET 8 WPF desktop app for safe, preview-first file organization. It scans a chosen root folder, classifies files with local heuristics and optional Gemini assistance, builds an explainable plan, and only executes user-selected moves and renames after local safety checks pass.
+FileKitsune is a Windows-only .NET 8 WPF desktop app for safe, preview-first file organization. It scans a chosen root folder, classifies files with local heuristics and optional Gemini assistance, builds an explainable plan, and only executes user-selected moves and renames after local safety checks pass.
 
 ## Current State
 
@@ -30,7 +30,7 @@ The app is usable today and currently provides:
 - automatic local SQLite fallback/cache for settings and journals when remote persistence is unavailable or offline mode is enabled
 - visible persistence status in the execute step so users can see whether shared storage or local fallback is active
 - backend support for loading historical journals by id
-- persisted settings and DPAPI-protected Gemini credentials under `%LocalAppData%\FileTransformer`
+- persisted settings and DPAPI-protected Gemini credentials under `%LocalAppData%\FileKitsune`
 
 ## What The App Does Right Now
 
@@ -112,7 +112,7 @@ Current limitation:
 Gemini support is optional.
 
 - the app stores the Gemini API key encrypted with DPAPI in the current Windows user profile
-- runtime settings live in `%LocalAppData%\FileTransformer\settings.json`
+- runtime settings live in `%LocalAppData%\FileKitsune\settings.json`
 - the app can read environment variables or `.env` as fallback when no DPAPI value is present
 - Gemini can enrich semantic understanding, but it does not decide executable paths
 
@@ -120,12 +120,12 @@ Gemini support is optional.
 
 The app now supports a layered persistence model:
 
-- local protected settings remain in `%LocalAppData%\FileTransformer\settings.json`
-- local cached settings and execution journals are also stored in `%LocalAppData%\FileTransformer\persistence.db`
-- JSON journal files remain under `%LocalAppData%\FileTransformer\journals` for compatibility and inspection
+- local protected settings remain in `%LocalAppData%\FileKitsune\settings.json`
+- local cached settings and execution journals are also stored in `%LocalAppData%\FileKitsune\persistence.db`
+- JSON journal files remain under `%LocalAppData%\FileKitsune\journals` for compatibility and inspection
 - if `NILEDB_URL`, `POSTGRES_URL`, or `DATABASE_URL` is configured, the app will try to use Postgres for shared persistence
 - if remote persistence is unavailable, the app falls back to local SQLite automatically
-- set `FILETRANSFORMER_OFFLINE_MODE=true` to force local-only mode even when remote connection strings are present
+- set `FILEKITSUNE_OFFLINE_MODE=true` to force local-only mode even when remote connection strings are present
 
 Security note:
 
@@ -149,6 +149,8 @@ dotnet test FileTransformer.sln -c Debug
 dotnet run --project src/App/FileTransformer.App.csproj
 ```
 
+The shipped product name is `FileKitsune`, while the current repository and project filenames still use `FileTransformer.*`.
+
 `FileTransformer.slnx` is also included if you prefer the newer solution format.
 
 ## Current Limitations
@@ -166,10 +168,10 @@ The app is still evolving. Notable gaps:
 
 ## Storage Locations
 
-- settings: `%LocalAppData%\FileTransformer\settings.json`
-- sqlite cache: `%LocalAppData%\FileTransformer\persistence.db`
-- journals: `%LocalAppData%\FileTransformer\journals`
-- logs: `%LocalAppData%\FileTransformer\logs`
+- settings: `%LocalAppData%\FileKitsune\settings.json`
+- sqlite cache: `%LocalAppData%\FileKitsune\persistence.db`
+- journals: `%LocalAppData%\FileKitsune\journals`
+- logs: `%LocalAppData%\FileKitsune\logs`
 
 ## Developer Notes
 

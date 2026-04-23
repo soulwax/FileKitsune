@@ -1,8 +1,8 @@
-# FileTransformer Agent Guide
+# FileKitsune Agent Guide
 
 ## Project Mission
 
-FileTransformer is a Windows-only .NET 8 WPF application for safe, explainable, preview-first file organization. Every change should strengthen these product promises:
+FileKitsune is a Windows-only .NET 8 WPF application for safe, explainable, preview-first file organization. Every change should strengthen these product promises:
 
 - preview before execution
 - operations stay inside the selected root
@@ -36,7 +36,7 @@ Today the app already:
 - recommends strategy presets after preview
 - detects exact duplicates using size pre-filtering and SHA-256 hashing
 - journals executed operations and can roll back the latest run
-- stores settings and journals under `%LocalAppData%\\FileTransformer`
+- stores settings and journals under `%LocalAppData%\\FileKitsune`
 
 ## Product Direction To Preserve
 

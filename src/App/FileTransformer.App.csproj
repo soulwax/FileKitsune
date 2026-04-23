@@ -13,6 +13,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="..\..\Assets\filekitsune.png">
+      <Link>Assets\filekitsune.png</Link>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />

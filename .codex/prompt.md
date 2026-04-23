@@ -2,6 +2,8 @@
 
 Continue work on `d:\Workspace\C#\FileTransformer` as a senior .NET 8 / WPF / MVVM engineer.
 
+The shipped product name is `FileKitsune`, even though the current repository path and project filenames still use `FileTransformer`.
+
 ## Current Product State
 
 The app already has:

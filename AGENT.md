@@ -1,8 +1,8 @@
-# AGENT.md
+# FileKitsune Agent Notes
 
 ## Mission
 
-Build a file organization workflow users can trust:
+Build FileKitsune into a file organization workflow users can trust:
 
 - preview-first
 - explainable

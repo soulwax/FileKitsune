@@ -1,4 +1,4 @@
-# Session Status
+# FileKitsune Session Status
 
 ## Done
 

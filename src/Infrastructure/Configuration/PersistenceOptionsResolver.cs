@@ -51,7 +51,7 @@ public sealed class PersistenceOptionsResolver
         }
 
         var remoteConnectionString = GetValue("NILEDB_URL", "POSTGRES_URL", "DATABASE_URL") ?? string.Empty;
-        var forceOfflineMode = ParseFlag(GetValue("FILETRANSFORMER_OFFLINE_MODE", "OFFLINE_MODE"));
+        var forceOfflineMode = ParseFlag(GetValue("FILEKITSUNE_OFFLINE_MODE", "FILETRANSFORMER_OFFLINE_MODE", "OFFLINE_MODE"));
 
         options = new PersistenceOptions
         {

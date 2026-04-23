@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
-    <sys:String x:Key="AppTitle">FileTransformer</sys:String>
+    <sys:String x:Key="AppTitle">FileKitsune</sys:String>
     <sys:String x:Key="AppSubtitle">Semantic preview-first organization for multilingual Windows folders</sys:String>
     <sys:String x:Key="RootFolder">Root folder</sys:String>
     <sys:String x:Key="Browse">Browse</sys:String>

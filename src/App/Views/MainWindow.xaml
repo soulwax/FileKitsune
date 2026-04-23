@@ -7,6 +7,7 @@
         xmlns:views="clr-namespace:FileTransformer.App.Views"
         mc:Ignorable="d"
         Title="{DynamicResource AppTitle}"
+        Icon="/Assets/filekitsune.png"
         Width="1360"
         Height="860"
         MinWidth="980"
@@ -111,6 +112,17 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel>
+                    <Border Width="84"
+                            Height="84"
+                            Padding="8"
+                            HorizontalAlignment="Left"
+                            Background="#18FFFFFF"
+                            BorderBrush="#24FFFFFF"
+                            BorderThickness="1"
+                            CornerRadius="24">
+                        <Image Source="/Assets/filekitsune.png"
+                               Stretch="Uniform" />
+                    </Border>
                     <Border Style="{StaticResource PillBorderStyle}" HorizontalAlignment="Left">
                         <TextBlock FontSize="12"
                                    FontWeight="SemiBold"

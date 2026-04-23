@@ -1,8 +1,18 @@
 # TODO.md
 
-## FileTransformer Implementation Status
+## FileKitsune Rebrand And Implementation Status
 
-This roadmap tracks where the app stands now and what remains before the trust model is fully delivered.
+This roadmap tracks the current FileKitsune rebrand and where the app stands before the trust model is fully delivered.
+
+## Rebrand Baseline
+
+Current project branding direction:
+
+- [x] Product name is now `FileKitsune`
+- [x] Primary logo asset currently lives at `Assets/filekitsune.png`
+- [x] Replace remaining `FileTransformer` user-facing naming across app UI, docs, packaging, and metadata
+- [ ] Rename technical repo identifiers such as solution, project, assembly, and namespace names where worthwhile
+- [ ] Wire additional assets from `Assets/` as they are added
 
 ## Current Baseline
 

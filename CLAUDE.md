@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-## FileTransformer Assistant Notes
+## FileKitsune Assistant Notes
 
 Current repo reality:
 
