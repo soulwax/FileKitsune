@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Windows;
 using FileTransformer.App.ViewModels;
 
@@ -13,6 +14,12 @@ public partial class MainWindow : Window
         this.viewModel = viewModel;
         DataContext = viewModel;
         Loaded += OnLoaded;
+
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        if (version is not null)
+        {
+            Title = $"FileKitsune {version.Major}.{version.Minor}.{version.Build}";
+        }
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)

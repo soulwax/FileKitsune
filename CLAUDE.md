@@ -69,7 +69,15 @@ Key env vars (copy `.env.example` → `.env` at repo root):
 - **Write-ahead journal** — a `Pending` entry is written to `IExecutionJournalStore` *before* `MoveFileAsync` runs so a crash leaves a recoverable record. After a successful move the entry is updated to `Moved` and saved again. Any entry with `Outcome = "Pending"` in a loaded journal signals an interrupted run.
 - **Gemini is advisory only** — it cannot trigger mutations; it only influences classification and folder-structure suggestions.
 
-## Known Risks (from 2026-04-29 audit — now resolved)
+## Localization
+
+All UI strings are `DynamicResource` lookups. Resource dictionaries live in `src/App/Localization/`: `Strings.en-US.xaml` and `Strings.de-DE.xaml`. `App.xaml` merges `Strings.de-DE.xaml` by default (German is the primary locale). The window title (`AppTitle`) is set via `DynamicResource` in `MainWindow.xaml`; `MainWindow.xaml.cs` overrides `Title` in code-behind to append the assembly version after `InitializeComponent()`.
+
+## Versioning
+
+Version is centrally managed in [`Directory.Build.props`](Directory.Build.props) (`<Version>`, `<AssemblyVersion>`, `<FileVersion>`, `<InformationalVersion>`). Update all four fields together when bumping. History is tracked in [`CHANGELOG.md`](CHANGELOG.md).
+
+## Stability Notes (2026-04-29 audit — all resolved)
 
 All confirmed data-loss findings from the 2026-04-29 audit have been fixed. See the memory entry `project_audit_2026_04_29.md` for the full list.
 

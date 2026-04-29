@@ -6,7 +6,7 @@
         xmlns:viewModels="clr-namespace:FileTransformer.App.ViewModels"
         xmlns:views="clr-namespace:FileTransformer.App.Views"
         mc:Ignorable="d"
-        Title="{DynamicResource AppTitle}"
+        Title="FileKitsune"
         Icon="/Assets/filekitsune.png"
         Width="1360"
         Height="860"
