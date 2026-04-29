@@ -125,6 +125,13 @@
     <sys:String x:Key="EnvironmentSanityTitle">Environment sanity checklist</sys:String>
     <sys:String x:Key="EnvironmentSanityHint">Validate important Gemini and persistence env vars loaded from process env or .env, then ping Gemini with the env-based key.</sys:String>
     <sys:String x:Key="EnvironmentSanitySummary">Valid: {0}  Missing: {1}  Invalid: {2}  Optional: {3}</sys:String>
+    <sys:String x:Key="EnvironmentSanityQuickTitle">Quick setup check</sys:String>
+    <sys:String x:Key="EnvironmentSanityQuickHint">Keep the setup simple here: save your .env values, refresh the checklist, and only ping Gemini when you want to confirm the current config.</sys:String>
+    <sys:String x:Key="EnvironmentSanityFileLabel">Current .env file</sys:String>
+    <sys:String x:Key="EnvironmentSanityEditorTitle">Edit Gemini and offline .env values</sys:String>
+    <sys:String x:Key="EnvironmentSanityEditorHint">Use this only when you want to change the managed setup values directly in the app.</sys:String>
+    <sys:String x:Key="EnvironmentSanityDetailsTitle">Show detailed checklist</sys:String>
+    <sys:String x:Key="EnvironmentSanityDetailsHint">Open the full diagnostic list when you need per-variable status and source details.</sys:String>
     <sys:String x:Key="EnvironmentSanityRefreshButton">Refresh checklist</sys:String>
     <sys:String x:Key="EnvironmentSanitySaveEnvButton">Save .env</sys:String>
     <sys:String x:Key="EnvironmentSanityReloadEnvButton">Reload .env</sys:String>

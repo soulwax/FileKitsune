@@ -125,6 +125,13 @@
     <sys:String x:Key="EnvironmentSanityTitle">Umgebungs-Checkliste</sys:String>
     <sys:String x:Key="EnvironmentSanityHint">Pruefen Sie wichtige Gemini- und Persistenz-Umgebungsvariablen aus Prozessumgebung oder .env und testen Sie danach Gemini mit dem env-basierten Schluessel.</sys:String>
     <sys:String x:Key="EnvironmentSanitySummary">Gueltig: {0}  Fehlt: {1}  Ungueltig: {2}  Optional: {3}</sys:String>
+    <sys:String x:Key="EnvironmentSanityQuickTitle">Schneller Setup-Check</sys:String>
+    <sys:String x:Key="EnvironmentSanityQuickHint">Halten Sie den Einstieg hier einfach: .env-Werte speichern, die Checkliste aktualisieren und Gemini nur dann testen, wenn Sie die aktuelle Konfiguration bestaetigen moechten.</sys:String>
+    <sys:String x:Key="EnvironmentSanityFileLabel">Aktuelle .env-Datei</sys:String>
+    <sys:String x:Key="EnvironmentSanityEditorTitle">Gemini- und Offline-.env-Werte bearbeiten</sys:String>
+    <sys:String x:Key="EnvironmentSanityEditorHint">Nur oeffnen, wenn Sie die verwalteten Setup-Werte direkt in der App anpassen moechten.</sys:String>
+    <sys:String x:Key="EnvironmentSanityDetailsTitle">Detaillierte Checkliste anzeigen</sys:String>
+    <sys:String x:Key="EnvironmentSanityDetailsHint">Oeffnen Sie die vollstaendige Diagnose nur dann, wenn Sie Status und Quelle pro Variable sehen moechten.</sys:String>
     <sys:String x:Key="EnvironmentSanityRefreshButton">Checkliste aktualisieren</sys:String>
     <sys:String x:Key="EnvironmentSanitySaveEnvButton">.env speichern</sys:String>
     <sys:String x:Key="EnvironmentSanityReloadEnvButton">.env neu laden</sys:String>
