@@ -79,6 +79,13 @@ public sealed class PlanExecutionService
 
                 try
                 {
+                    if (!fileOperations.FileExists(sourceFullPath))
+                    {
+                        failedCount++;
+                        messages.Add($"Skipped '{operation.CurrentRelativePath}': source file no longer exists.");
+                        continue;
+                    }
+
                     if (destinationExistedBeforeMove)
                     {
                         if (plan.Settings.NamingPolicy.ConflictHandlingMode == ConflictHandlingMode.Skip)
@@ -91,13 +98,11 @@ public sealed class PlanExecutionService
                         destinationFullPath = await ResolveConflictAsync(destinationFullPath, cancellationToken);
                     }
 
-                    var fileInfo = TryReadFileInfo(sourceFullPath);
                     var destinationDirectory = Path.GetDirectoryName(destinationFullPath) ?? plan.Settings.RootDirectory;
                     await fileOperations.EnsureDirectoryAsync(destinationDirectory, cancellationToken);
-                    await fileOperations.MoveFileAsync(sourceFullPath, destinationFullPath, cancellationToken);
-                    var contentHash = await TryComputeHashAsync(destinationFullPath, cancellationToken);
 
-                    journal.Entries.Add(new ExecutionJournalEntry
+                    // Write-ahead: persist intent before mutating the filesystem so a crash leaves a recoverable "Pending" record.
+                    var entry = new ExecutionJournalEntry
                     {
                         OperationId = operation.Id,
                         SourceFullPath = sourceFullPath,
@@ -106,14 +111,21 @@ public sealed class PlanExecutionService
                         DestinationRelativePath = operation.ProposedRelativePath,
                         FileName = operation.FileName,
                         FileExtension = Path.GetExtension(operation.FileName),
-                        Outcome = "Moved",
+                        Outcome = "Pending",
                         Notes = operation.Reason,
                         DestinationExistedBeforeMove = destinationExistedBeforeMove,
-                        ContentHash = contentHash,
-                        FileSizeBytes = fileInfo?.Length,
-                        SourceCreatedUtc = fileInfo is null ? null : new DateTimeOffset(fileInfo.CreationTimeUtc),
-                        SourceModifiedUtc = fileInfo is null ? null : new DateTimeOffset(fileInfo.LastWriteTimeUtc)
-                    });
+                    };
+                    journal.Entries.Add(entry);
+                    await executionJournalStore.SaveAsync(journal, cancellationToken);
+
+                    await fileOperations.MoveFileAsync(sourceFullPath, destinationFullPath, cancellationToken);
+
+                    var fileInfo = TryReadFileInfo(destinationFullPath);
+                    entry.Outcome = "Moved";
+                    entry.ContentHash = await TryComputeHashAsync(destinationFullPath, cancellationToken);
+                    entry.FileSizeBytes = fileInfo?.Length;
+                    entry.SourceCreatedUtc = fileInfo is null ? null : new DateTimeOffset(fileInfo.CreationTimeUtc);
+                    entry.SourceModifiedUtc = fileInfo is null ? null : new DateTimeOffset(fileInfo.LastWriteTimeUtc);
 
                     successCount++;
                     await executionJournalStore.SaveAsync(journal, cancellationToken);

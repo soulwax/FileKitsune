@@ -24,16 +24,21 @@ public sealed class JsonExecutionJournalStore : IExecutionJournalStore
     {
         Directory.CreateDirectory(appStoragePaths.JournalDirectory);
         var path = GetJournalPath(journal);
+        var tmpPath = path + ".tmp";
 
-        await using var stream = File.Create(path);
-        await JsonSerializer.SerializeAsync(stream, journal, SerializerOptions, cancellationToken);
+        await using (var stream = File.Create(tmpPath))
+        {
+            await JsonSerializer.SerializeAsync(stream, journal, SerializerOptions, cancellationToken);
+        }
+
+        File.Move(tmpPath, path, overwrite: true);
     }
 
     public async Task<ExecutionJournal?> LoadLatestAsync(CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(appStoragePaths.JournalDirectory);
         var latestFile = Directory.EnumerateFiles(appStoragePaths.JournalDirectory, "*.json")
-            .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
             .FirstOrDefault();
 
         if (string.IsNullOrWhiteSpace(latestFile))
@@ -48,7 +53,7 @@ public sealed class JsonExecutionJournalStore : IExecutionJournalStore
     {
         Directory.CreateDirectory(appStoragePaths.JournalDirectory);
         var journalFile = Directory.EnumerateFiles(appStoragePaths.JournalDirectory, $"*_{journalId:N}.json")
-            .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
             .FirstOrDefault();
 
         return string.IsNullOrWhiteSpace(journalFile)
@@ -61,7 +66,7 @@ public sealed class JsonExecutionJournalStore : IExecutionJournalStore
         Directory.CreateDirectory(appStoragePaths.JournalDirectory);
 
         var files = Directory.EnumerateFiles(appStoragePaths.JournalDirectory, "*.json")
-            .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         var journals = new List<ExecutionJournal>(files.Count);
@@ -82,7 +87,14 @@ public sealed class JsonExecutionJournalStore : IExecutionJournalStore
 
     private async Task<ExecutionJournal?> LoadFromPathAsync(string path, CancellationToken cancellationToken)
     {
-        await using var stream = File.OpenRead(path);
-        return await JsonSerializer.DeserializeAsync<ExecutionJournal>(stream, SerializerOptions, cancellationToken);
+        try
+        {
+            await using var stream = File.OpenRead(path);
+            return await JsonSerializer.DeserializeAsync<ExecutionJournal>(stream, SerializerOptions, cancellationToken);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 }

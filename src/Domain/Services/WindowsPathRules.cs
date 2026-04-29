@@ -102,9 +102,10 @@ public static partial class WindowsPathRules
 
         var sanitized = MultiWhitespaceRegex().Replace(builder.ToString(), " ").Trim().TrimEnd('.', ' ');
 
-        if (ReservedNames.Contains(sanitized.ToUpperInvariant()))
+        var nameWithoutExt = Path.GetFileNameWithoutExtension(sanitized);
+        if (ReservedNames.Contains(nameWithoutExt.ToUpperInvariant()))
         {
-            sanitized = $"{sanitized}_item";
+            sanitized = $"{nameWithoutExt}_item{Path.GetExtension(sanitized)}";
         }
 
         return sanitized;

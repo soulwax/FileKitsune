@@ -18,7 +18,7 @@ public sealed class LocalFileOperations : IFileOperations
     public Task MoveFileAsync(string sourceFullPath, string destinationFullPath, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.Run(() => File.Move(sourceFullPath, destinationFullPath), cancellationToken);
+        return Task.Run(() => File.Move(sourceFullPath, destinationFullPath, overwrite: false), cancellationToken);
     }
 
     public Task<IReadOnlyList<string>> RemoveEmptyDirectoriesAsync(string rootDirectory, CancellationToken cancellationToken)

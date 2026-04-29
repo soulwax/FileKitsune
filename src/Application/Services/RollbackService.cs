@@ -77,9 +77,7 @@ public sealed class RollbackService
 
         var folderFullPath = Path.Combine(journal.RootDirectory, folderPrefix);
         var entries = journal.Entries
-            .Where(entry =>
-                entry.DestinationFullPath.StartsWith(folderFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(Path.GetDirectoryName(entry.DestinationFullPath), folderFullPath, StringComparison.OrdinalIgnoreCase))
+            .Where(entry => IsInFolder(entry.DestinationFullPath, folderFullPath) || IsInFolder(entry.SourceFullPath, folderFullPath))
             .ToList();
 
         return BuildPreview(journal, entries);
@@ -92,9 +90,7 @@ public sealed class RollbackService
     {
         var folderFullPath = Path.Combine(journal.RootDirectory, folderPrefix);
         var entries = journal.Entries
-            .Where(entry =>
-                entry.DestinationFullPath.StartsWith(folderFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(Path.GetDirectoryName(entry.DestinationFullPath), folderFullPath, StringComparison.OrdinalIgnoreCase))
+            .Where(entry => IsInFolder(entry.DestinationFullPath, folderFullPath) || IsInFolder(entry.SourceFullPath, folderFullPath))
             .ToList();
 
         if (entries.Count == 0)
@@ -107,8 +103,12 @@ public sealed class RollbackService
             };
         }
 
-        return await RollbackEntriesAsync(journal, entries, cancellationToken);
+        return await RollbackEntriesAsync(journal, entries, cancellationToken, folderFullPath);
     }
+
+    private static bool IsInFolder(string filePath, string folderFullPath) =>
+        filePath.StartsWith(folderFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(Path.GetDirectoryName(filePath), folderFullPath, StringComparison.OrdinalIgnoreCase);
 
     private static ExecutionOutcome CreateNoJournalOutcome() =>
         new()
@@ -120,7 +120,8 @@ public sealed class RollbackService
     private async Task<ExecutionOutcome> RollbackEntriesAsync(
         ExecutionJournal journal,
         IEnumerable<ExecutionJournalEntry> entries,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? scopeDirectory = null)
     {
         var successCount = 0;
         var skippedCount = 0;
@@ -175,7 +176,7 @@ public sealed class RollbackService
 
         try
         {
-            var removedFolders = await fileOperations.RemoveEmptyDirectoriesAsync(journal.RootDirectory, cancellationToken);
+            var removedFolders = await fileOperations.RemoveEmptyDirectoriesAsync(scopeDirectory ?? journal.RootDirectory, cancellationToken);
             if (removedFolders.Count > 0)
             {
                 messages.Add($"Removed {removedFolders.Count} empty folder(s) left behind by the rolled-back run.");
