@@ -14,6 +14,8 @@ public sealed class ExecutionJournal
 
     public DateTimeOffset? CompletedAtUtc { get; set; }
 
+    public DateTimeOffset LastSavedAtUtc { get; set; } = DateTimeOffset.UtcNow;
+
     public ExecutionJournalStatus Status { get; set; } = ExecutionJournalStatus.Started;
 
     public List<ExecutionJournalEntry> Entries { get; set; } = [];

@@ -69,15 +69,11 @@ Key env vars (copy `.env.example` → `.env` at repo root):
 - **Write-ahead journal** — a `Pending` entry is written to `IExecutionJournalStore` *before* `MoveFileAsync` runs so a crash leaves a recoverable record. After a successful move the entry is updated to `Moved` and saved again. Any entry with `Outcome = "Pending"` in a loaded journal signals an interrupted run.
 - **Gemini is advisory only** — it cannot trigger mutations; it only influences classification and folder-structure suggestions.
 
-## Known Risks / Open Items (from 2026-04-29 audit)
+## Known Risks (from 2026-04-29 audit — now resolved)
 
-These were identified but not fully addressed — they need follow-up:
+All confirmed data-loss findings from the 2026-04-29 audit have been fixed. See the memory entry `project_audit_2026_04_29.md` for the full list.
 
-- **`ResilientExecutionJournalStore` store divergence** — SQLite and JSON saves are two sequential awaits with no transaction between them. A crash after the SQLite write but before JSON write leaves stores with different `RollbackStatus`. The SQLite view wins on next load but only because of tiebreaker ordering — fragile.
-- **`ContentHash` not verified on rollback** — `RollbackService` has the hash in the journal entry but never compares it against the file at `DestinationFullPath` before moving it back. A file replaced at the destination after the original move is silently relocated over the source path.
-- **No OS-folder blocklist** — `ProtectionPolicyService` has no hardcoded guards for `Windows`, `Program Files`, `System32`, etc. If the user selects a high root (e.g., `C:\`) and `SkipHiddenOrSystemFiles` is false, directories lacking the System attribute inside OS folders are unprotected.
 - **4 pre-existing test failures** — `PersistenceOptionsResolverTests` and `PersistenceStatusServiceTests` fail because a live `.env` / environment variable on this machine satisfies a connection-string condition the tests expect to be absent. Not caused by code changes.
-- **Plan-level destination collision** — two source files can resolve to the same `ProposedRelativePath` at plan-build time; the collision is only resolved at execution time. With `ConflictHandlingMode.Skip` the second file is silently dropped with no pre-execution warning to the user.
 
 ## Test Patterns
 

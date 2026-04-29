@@ -8,6 +8,29 @@ namespace FileTransformer.Infrastructure.FileSystem;
 
 public sealed class LocalFileScanner : IFileScanner
 {
+    private static readonly IReadOnlySet<string> OsProtectedPaths = ResolveOsProtectedPaths();
+
+    private static IReadOnlySet<string> ResolveOsProtectedPaths()
+    {
+        var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var folder in new[]
+        {
+            Environment.SpecialFolder.Windows,
+            Environment.SpecialFolder.System,
+            Environment.SpecialFolder.SystemX86,
+            Environment.SpecialFolder.ProgramFiles,
+            Environment.SpecialFolder.ProgramFilesX86,
+        })
+        {
+            var path = Environment.GetFolderPath(folder);
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                paths.Add(path);
+            }
+        }
+        return paths;
+    }
+
     private readonly ILogger<LocalFileScanner> logger;
 
     public LocalFileScanner(ILogger<LocalFileScanner> logger)
@@ -166,6 +189,24 @@ public sealed class LocalFileScanner : IFileScanner
             (attributes.HasFlag(FileAttributes.Hidden) || attributes.HasFlag(FileAttributes.System)))
         {
             return true;
+        }
+
+        // Block known OS system directories unless the user explicitly chose a root inside one of them.
+        var fullPath = directoryInfo.FullName;
+        var root = Path.GetFullPath(settings.RootDirectory);
+        foreach (var protectedPath in OsProtectedPaths)
+        {
+            var isInsideProtected =
+                fullPath.StartsWith(protectedPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(fullPath, protectedPath, StringComparison.OrdinalIgnoreCase);
+            var rootIsInsideProtected =
+                root.StartsWith(protectedPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(root, protectedPath, StringComparison.OrdinalIgnoreCase);
+
+            if (isInsideProtected && !rootIsInsideProtected)
+            {
+                return true;
+            }
         }
 
         return false;

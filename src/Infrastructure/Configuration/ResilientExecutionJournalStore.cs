@@ -28,6 +28,7 @@ public sealed class ResilientExecutionJournalStore : IExecutionJournalStore
 
     public async Task SaveAsync(ExecutionJournal journal, CancellationToken cancellationToken)
     {
+        journal.LastSavedAtUtc = DateTimeOffset.UtcNow;
         await sqliteStore.SaveAsync(journal, cancellationToken);
         await jsonStore.SaveAsync(journal, cancellationToken);
 
@@ -124,7 +125,7 @@ public sealed class ResilientExecutionJournalStore : IExecutionJournalStore
         return primary
             .Concat(secondary)
             .GroupBy(journal => journal.JournalId)
-            .Select(group => group.OrderByDescending(candidate => candidate.CreatedAtUtc).First())
+            .Select(group => group.OrderByDescending(candidate => candidate.LastSavedAtUtc).First())
             .OrderByDescending(journal => journal.CreatedAtUtc)
             .ToList();
     }

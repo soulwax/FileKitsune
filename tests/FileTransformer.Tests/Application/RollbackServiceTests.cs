@@ -22,7 +22,7 @@ public sealed class RollbackServiceTests
 
         var fileOperations = new FakeFileOperations(existingFiles: [@"C:\Root\Invoices\2025\source.txt"]);
         var journalStore = new InMemoryJournalStore([journal]);
-        var service = new RollbackService(journalStore, fileOperations, NullLogger<RollbackService>.Instance);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
 
         var outcome = await service.RollbackLatestAsync(CancellationToken.None);
 
@@ -55,7 +55,7 @@ public sealed class RollbackServiceTests
 
         var fileOperations = new FakeFileOperations(existingFiles: [@"C:\Root\Alpha\a.txt", @"C:\Root\Beta\b.txt"]);
         var journalStore = new InMemoryJournalStore([olderJournal, latestJournal]);
-        var service = new RollbackService(journalStore, fileOperations, NullLogger<RollbackService>.Instance);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
 
         var outcome = await service.RollbackAsync(olderJournal.JournalId, CancellationToken.None);
 
@@ -77,7 +77,7 @@ public sealed class RollbackServiceTests
 
         var fileOperations = new FakeFileOperations(existingFiles: [@"C:\Root\Invoices\2025\a.txt", @"C:\Root\Research\2025\b.txt"]);
         var journalStore = new InMemoryJournalStore([journal]);
-        var service = new RollbackService(journalStore, fileOperations, NullLogger<RollbackService>.Instance);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
 
         var outcome = await service.RollbackFolderAsync("Invoices", CancellationToken.None);
 
@@ -98,7 +98,7 @@ public sealed class RollbackServiceTests
 
         var fileOperations = new FakeFileOperations(existingFiles: [@"C:\Root\source.txt", @"C:\Root\Invoices\2025\source.txt"]);
         var journalStore = new InMemoryJournalStore([journal]);
-        var service = new RollbackService(journalStore, fileOperations, NullLogger<RollbackService>.Instance);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
 
         var outcome = await service.RollbackLatestAsync(CancellationToken.None);
 
@@ -118,7 +118,7 @@ public sealed class RollbackServiceTests
 
         var fileOperations = new FakeFileOperations(existingFiles: [@"C:\Root\Invoices\2025\source.txt"]);
         var journalStore = new InMemoryJournalStore([journal]);
-        var service = new RollbackService(journalStore, fileOperations, NullLogger<RollbackService>.Instance);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
 
         var firstOutcome = await service.RollbackLatestAsync(CancellationToken.None);
         var secondOutcome = await service.RollbackLatestAsync(CancellationToken.None);
@@ -147,7 +147,7 @@ public sealed class RollbackServiceTests
             @"C:\Root\occupied.txt"
         ]);
         var journalStore = new InMemoryJournalStore([journal]);
-        var service = new RollbackService(journalStore, fileOperations, NullLogger<RollbackService>.Instance);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
 
         var preview = await service.PreviewRollbackAsync(journal.JournalId, CancellationToken.None);
 
@@ -180,7 +180,7 @@ public sealed class RollbackServiceTests
             @"C:\Root\Research\elsewhere.txt"
         ]);
         var journalStore = new InMemoryJournalStore([journal]);
-        var service = new RollbackService(journalStore, fileOperations, NullLogger<RollbackService>.Instance);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
 
         var preview = await service.PreviewRollbackFolderAsync(journal.JournalId, "Invoices", CancellationToken.None);
 
@@ -203,7 +203,7 @@ public sealed class RollbackServiceTests
 
         var fileOperations = new FakeFileOperations(existingFiles: [@"C:\Root\Invoices\source.txt"]);
         var journalStore = new InMemoryJournalStore([journal]);
-        var service = new RollbackService(journalStore, fileOperations, NullLogger<RollbackService>.Instance);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
 
         await service.RollbackAsync(journal.JournalId, CancellationToken.None);
 
@@ -222,6 +222,7 @@ public sealed class RollbackServiceTests
         var service = new RollbackService(
             journalStore,
             new FakeFileOperations(existingFiles: []),
+            new NoOpHashProvider(),
             NullLogger<RollbackService>.Instance);
 
         var outcome = await service.RollbackLatestAsync(CancellationToken.None);
@@ -250,6 +251,12 @@ public sealed class RollbackServiceTests
             ExecutedAtUtc = DateTimeOffset.UtcNow,
             Outcome = "Moved"
         };
+
+    private sealed class NoOpHashProvider : IFileHashProvider
+    {
+        public Task<string> ComputeHashAsync(string fullPath, CancellationToken cancellationToken) =>
+            Task.FromResult(string.Empty);
+    }
 
     private sealed class FakeFileOperations : IFileOperations
     {

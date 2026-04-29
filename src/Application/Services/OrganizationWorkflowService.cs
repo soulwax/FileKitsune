@@ -199,6 +199,8 @@ public sealed class OrganizationWorkflowService
             })
             .ToArray();
 
+        MarkDestinationCollisions(operations);
+
         return new OrganizationPlan
         {
             Settings = settings,
@@ -244,6 +246,21 @@ public sealed class OrganizationWorkflowService
     }
 
     private static bool IsSidecar(string extension) => SidecarExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
+
+    private static void MarkDestinationCollisions(IEnumerable<PlanOperation> operations)
+    {
+        var executables = operations
+            .Where(op => op.AllowedToExecute && op.OperationType != PlanOperationType.Skip)
+            .GroupBy(op => op.ProposedRelativePath, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var group in executables)
+        {
+            foreach (var op in group.Skip(1))
+            {
+                op.WarningFlags.Add($"Destination collision: another file in this plan also targets \"{group.Key}\".");
+            }
+        }
+    }
 
     private static PlanSummary BuildSummary(IEnumerable<PlanOperation> operations)
     {

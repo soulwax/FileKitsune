@@ -136,6 +136,7 @@ public sealed class PlanExecutionServiceTests
             var rollbackService = new RollbackService(
                 journalStore,
                 fileOperations,
+                new FakeHashProvider(),
                 NullLogger<RollbackService>.Instance);
 
             var operation = new PlanOperation

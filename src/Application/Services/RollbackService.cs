@@ -11,15 +11,18 @@ public sealed class RollbackService
     // TODO: Persist richer rollback checkpoints for partial-failure recovery across sessions.
     private readonly IExecutionJournalStore executionJournalStore;
     private readonly IFileOperations fileOperations;
+    private readonly IFileHashProvider fileHashProvider;
     private readonly ILogger<RollbackService> logger;
 
     public RollbackService(
         IExecutionJournalStore executionJournalStore,
         IFileOperations fileOperations,
+        IFileHashProvider fileHashProvider,
         ILogger<RollbackService> logger)
     {
         this.executionJournalStore = executionJournalStore;
         this.fileOperations = fileOperations;
+        this.fileHashProvider = fileHashProvider;
         this.logger = logger;
     }
 
@@ -106,6 +109,19 @@ public sealed class RollbackService
         return await RollbackEntriesAsync(journal, entries, cancellationToken, folderFullPath);
     }
 
+    private async Task<string> TryComputeHashAsync(string path, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await fileHashProvider.ComputeHashAsync(path, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Hash verification skipped for {Path}", path);
+            return string.Empty;
+        }
+    }
+
     private static bool IsInFolder(string filePath, string folderFullPath) =>
         filePath.StartsWith(folderFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
         string.Equals(Path.GetDirectoryName(filePath), folderFullPath, StringComparison.OrdinalIgnoreCase);
@@ -151,6 +167,21 @@ public sealed class RollbackService
                     entry.RollbackMessage = $"Skipped '{entry.DestinationFullPath}': a file already exists at the original path '{entry.SourceFullPath}'.";
                     messages.Add(entry.RollbackMessage);
                     continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(entry.ContentHash))
+                {
+                    var currentHash = await TryComputeHashAsync(entry.DestinationFullPath, cancellationToken);
+                    if (!string.IsNullOrWhiteSpace(currentHash) &&
+                        !string.Equals(currentHash, entry.ContentHash, StringComparison.OrdinalIgnoreCase))
+                    {
+                        skippedCount++;
+                        entry.RollbackStatus = RollbackEntryStatus.SkippedContentMismatch;
+                        entry.RollbackMessage = $"Skipped '{entry.DestinationFullPath}': content has changed since the original move — rolling back would overwrite modified data.";
+                        messages.Add(entry.RollbackMessage);
+                        logger.LogWarning("Rollback skipped for {Path}: content hash mismatch.", entry.DestinationFullPath);
+                        continue;
+                    }
                 }
 
                 var directory = Path.GetDirectoryName(entry.SourceFullPath);

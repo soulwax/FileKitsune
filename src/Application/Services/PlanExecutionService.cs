@@ -77,6 +77,7 @@ public sealed class PlanExecutionService
                 var destinationFullPath = pathSafetyService.CombineWithinRoot(plan.Settings.RootDirectory, operation.ProposedRelativePath);
                 var destinationExistedBeforeMove = fileOperations.FileExists(destinationFullPath);
 
+                ExecutionJournalEntry? entry = null;
                 try
                 {
                     if (!fileOperations.FileExists(sourceFullPath))
@@ -102,7 +103,7 @@ public sealed class PlanExecutionService
                     await fileOperations.EnsureDirectoryAsync(destinationDirectory, cancellationToken);
 
                     // Write-ahead: persist intent before mutating the filesystem so a crash leaves a recoverable "Pending" record.
-                    var entry = new ExecutionJournalEntry
+                    entry = new ExecutionJournalEntry
                     {
                         OperationId = operation.Id,
                         SourceFullPath = sourceFullPath,
@@ -130,11 +131,27 @@ public sealed class PlanExecutionService
                     successCount++;
                     await executionJournalStore.SaveAsync(journal, cancellationToken);
                 }
+                catch (OperationCanceledException)
+                {
+                    if (entry is not null)
+                    {
+                        entry.Outcome = "ExecutionFailed";
+                        entry.RollbackStatus = RollbackEntryStatus.Failed;
+                        try { await executionJournalStore.SaveAsync(journal, CancellationToken.None); } catch { }
+                    }
+                    throw;
+                }
                 catch (Exception exception)
                 {
                     failedCount++;
                     messages.Add($"Failed '{operation.CurrentRelativePath}': {exception.Message}");
                     logger.LogError(exception, "Execution failed for {File}", operation.CurrentRelativePath);
+                    if (entry is not null)
+                    {
+                        entry.Outcome = "ExecutionFailed";
+                        entry.RollbackStatus = RollbackEntryStatus.Failed;
+                        try { await executionJournalStore.SaveAsync(journal, CancellationToken.None); } catch { }
+                    }
                 }
             }
 
