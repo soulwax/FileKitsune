@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] - 2026-03-14
+## [0.1.0] - 2026-03-14
 
 ### Added
 - Initial .NET 8 WPF desktop application scaffold for semantic file and folder organization.
