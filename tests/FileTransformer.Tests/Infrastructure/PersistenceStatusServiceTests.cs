@@ -73,6 +73,9 @@ public sealed class PersistenceStatusServiceTests
 
         public EnvironmentVariableScope(IReadOnlyDictionary<string, string?> updates)
         {
+            originalValues["FILEKITSUNE_IGNORE_DOTENV"] = Environment.GetEnvironmentVariable("FILEKITSUNE_IGNORE_DOTENV");
+            Environment.SetEnvironmentVariable("FILEKITSUNE_IGNORE_DOTENV", "true");
+
             foreach (var (key, value) in updates)
             {
                 originalValues[key] = Environment.GetEnvironmentVariable(key);

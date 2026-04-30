@@ -61,12 +61,38 @@ public sealed class PersistenceOptionsResolverTests
         Assert.True(options.ForceOfflineMode);
     }
 
+    [Fact]
+    public void GetOptions_NormalizesPostgresUrlConnectionStrings()
+    {
+        using var envScope = new EnvironmentVariableScope(new Dictionary<string, string?>
+        {
+            ["FILEKITSUNE_OFFLINE_MODE"] = null,
+            ["FILETRANSFORMER_OFFLINE_MODE"] = null,
+            ["OFFLINE_MODE"] = null,
+            ["NILEDB_URL"] = null,
+            ["POSTGRES_URL"] = null,
+            ["DATABASE_URL"] = "postgresql://user:secret@example.test:55433/filekitsune?sslmode=require"
+        });
+
+        var options = new PersistenceOptionsResolver().GetOptions();
+
+        Assert.True(options.UseRemotePersistence);
+        Assert.Contains("Host=example.test", options.RemoteConnectionString);
+        Assert.Contains("Port=55433", options.RemoteConnectionString);
+        Assert.Contains("Database=filekitsune", options.RemoteConnectionString);
+        Assert.Contains("Username=user", options.RemoteConnectionString);
+        Assert.Contains("SSL Mode=Require", options.RemoteConnectionString);
+    }
+
     private sealed class EnvironmentVariableScope : IDisposable
     {
         private readonly Dictionary<string, string?> originalValues = [];
 
         public EnvironmentVariableScope(IReadOnlyDictionary<string, string?> updates)
         {
+            originalValues["FILEKITSUNE_IGNORE_DOTENV"] = Environment.GetEnvironmentVariable("FILEKITSUNE_IGNORE_DOTENV");
+            Environment.SetEnvironmentVariable("FILEKITSUNE_IGNORE_DOTENV", "true");
+
             foreach (var (key, value) in updates)
             {
                 originalValues[key] = Environment.GetEnvironmentVariable(key);

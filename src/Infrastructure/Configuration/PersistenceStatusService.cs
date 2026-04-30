@@ -42,7 +42,7 @@ public sealed class PersistenceStatusService : IPersistenceStatusService
             return new PersistenceStatusSnapshot
             {
                 Mode = PersistenceStatusMode.SharedOnline,
-                PrimaryStore = "Nile/Postgres",
+                PrimaryStore = "Postgres",
                 SecondaryStore = "SQLite + JSON cache",
                 DetailKey = "PersistenceDetailSharedOnline"
             };
@@ -52,7 +52,7 @@ public sealed class PersistenceStatusService : IPersistenceStatusService
         {
             Mode = PersistenceStatusMode.SharedFallback,
             PrimaryStore = "SQLite + JSON",
-            SecondaryStore = "Nile/Postgres unavailable",
+            SecondaryStore = "Postgres unavailable",
             DetailKey = "PersistenceDetailSharedFallback"
         };
     }

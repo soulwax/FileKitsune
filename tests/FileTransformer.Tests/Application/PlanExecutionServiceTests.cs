@@ -90,7 +90,7 @@ public sealed class PlanExecutionServiceTests
 
             Assert.Equal(1, outcome.SuccessfulOperations);
             Assert.NotNull(journalStore.LastSavedJournal);
-            Assert.Equal(3, journalStore.SaveCount);
+            Assert.Equal(4, journalStore.SaveCount);
             Assert.Equal(ExecutionJournalStatus.Completed, journalStore.LastSavedJournal!.Status);
             Assert.Single(journalStore.LastSavedJournal.Entries);
             Assert.Equal(destinationFullPath, journalStore.LastSavedJournal.Entries[0].DestinationFullPath);

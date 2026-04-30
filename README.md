@@ -26,7 +26,7 @@ The app is usable today and currently provides:
 - rollback confirmation dialogs now include preview-aware counts and concrete example path restores/skips
 - local content extraction for text-like files, `.docx`, and `.pdf`
 - large readable files are sampled from both the beginning and end instead of only taking a leading slice
-- optional remote persistence via Nile/Postgres when `NILEDB_URL` or `POSTGRES_URL` is configured
+- optional remote persistence via Postgres-compatible databases, including self-hosted Neon, when `NILEDB_URL`, `POSTGRES_URL`, or `DATABASE_URL` is configured
 - automatic local SQLite fallback/cache for settings and journals when remote persistence is unavailable or offline mode is enabled
 - visible persistence status in the execute step so users can see whether shared storage or local fallback is active
 - backend support for loading historical journals by id
@@ -124,6 +124,7 @@ The app now supports a layered persistence model:
 - local cached settings and execution journals are also stored in `%LocalAppData%\FileKitsune\persistence.db`
 - JSON journal files remain under `%LocalAppData%\FileKitsune\journals` for compatibility and inspection
 - if `NILEDB_URL`, `POSTGRES_URL`, or `DATABASE_URL` is configured, the app will try to use Postgres for shared persistence
+- `DATABASE_URL` may be either an Npgsql keyword connection string or a `postgres://` / `postgresql://` URL such as the connection strings exported by Neon
 - if remote persistence is unavailable, the app falls back to local SQLite automatically
 - set `FILEKITSUNE_OFFLINE_MODE=true` to force local-only mode even when remote connection strings are present
 
