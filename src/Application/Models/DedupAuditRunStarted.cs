@@ -16,7 +16,11 @@ public sealed class DedupAuditRunStarted
 
     public int FilesPlannedForRecycle { get; init; }
 
+    public int FilesPlannedForQuarantine { get; init; }
+
     public long BytesPlannedForRecycle { get; init; }
+
+    public long BytesPlannedForQuarantine { get; init; }
 
     public IReadOnlyList<DedupAuditGroup> Groups { get; init; } = [];
 }

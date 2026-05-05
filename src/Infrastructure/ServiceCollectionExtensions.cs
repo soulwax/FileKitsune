@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IFileOperations, LocalFileOperations>();
         services.AddSingleton<IFileHashProvider, Sha256FileHashProvider>();
         services.AddSingleton<IRecycleBinService, RecycleBinService>();
+        services.AddSingleton<IDedupQuarantineService, DedupQuarantineService>();
         services.AddSingleton<IDedupAuditStore, JsonDedupAuditStore>();
         services.AddSingleton<IGeminiSemanticClassifier, GeminiSemanticClassifier>();
         services.AddHttpClient("GeminiClassifier");

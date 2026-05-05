@@ -81,6 +81,7 @@ Configuration/
  SqliteAppSettingsStore.cs
  SqliteExecutionJournalStore.cs
 FileSystem/
+ DedupQuarantineService.cs
  LocalFileContentReader.cs
  LocalFileOperations.cs
  LocalFileScanner.cs

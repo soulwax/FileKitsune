@@ -56,6 +56,7 @@ TemporaryDependencyNodeTargetIdentifier=net8.0
 Abstractions/
  IAppSettingsStore.cs
  IDedupAuditStore.cs
+ IDedupQuarantineService.cs
  IEnvironmentConfigService.cs
  IEnvironmentSanityService.cs
  IExecutionJournalStore.cs
@@ -74,6 +75,8 @@ Models/
  DedupAuditRunCompleted.cs
  DedupAuditRunHandle.cs
  DedupAuditRunStarted.cs
+ DedupQuarantineRecord.cs
+ DedupQuarantineRestoreResult.cs
  DuplicateDetectionResult.cs
  DuplicateMatch.cs
  EnvironmentFileSettings.cs

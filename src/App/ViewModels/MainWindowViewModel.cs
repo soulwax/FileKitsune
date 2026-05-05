@@ -20,6 +20,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 {
     private const int RollbackPreviewSectionSampleLimit = 4;
     private const int RollbackConfirmationSampleLimit = 2;
+    private const int ExecutionReviewSampleLimit = 4;
     private readonly IAppSettingsStore appSettingsStore;
     private readonly IEnvironmentConfigService environmentConfigService;
     private readonly IEnvironmentSanityService environmentSanityService;
@@ -30,7 +31,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly StrategyRecommendationService strategyRecommendationService;
     private readonly IFileScanner fileScanner;
     private readonly DuplicateDetectionService duplicateDetectionService;
-    private readonly IRecycleBinService recycleBinService;
+    private readonly IDedupQuarantineService dedupQuarantineService;
     private readonly IDedupAuditStore dedupAuditStore;
     private readonly IFolderPickerService folderPickerService;
     private readonly IDialogService dialogService;
@@ -45,6 +46,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private WizardStep stepBeforeLegal = WizardStep.ModeSelector;
     private DateTimeOffset? geminiEnvironmentPingValidatedAtUtcCache;
     private string geminiEnvironmentPingFingerprintCache = string.Empty;
+    private Guid? currentDedupAuditRunId;
+    private readonly List<DedupQuarantineRecord> currentDedupQuarantineRecords = [];
 
     public MainWindowViewModel(
         IAppSettingsStore appSettingsStore,
@@ -57,7 +60,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         StrategyRecommendationService strategyRecommendationService,
         IFileScanner fileScanner,
         DuplicateDetectionService duplicateDetectionService,
-        IRecycleBinService recycleBinService,
+        IDedupQuarantineService dedupQuarantineService,
         IDedupAuditStore dedupAuditStore,
         IFolderPickerService folderPickerService,
         IDialogService dialogService,
@@ -75,7 +78,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         this.strategyRecommendationService = strategyRecommendationService;
         this.fileScanner = fileScanner;
         this.duplicateDetectionService = duplicateDetectionService;
-        this.recycleBinService = recycleBinService;
+        this.dedupQuarantineService = dedupQuarantineService;
         this.dedupAuditStore = dedupAuditStore;
         this.folderPickerService = folderPickerService;
         this.dialogService = dialogService;
@@ -127,6 +130,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         selectedAppLanguage = AppLanguages[0];
 
         PlanOperations = [];
+        StalePreviewIssues = [];
+        ExecutionReviewSamples = [];
         DedupGroups = [];
         DedupExecutionErrors = [];
         LegalLicenseText = LoadLicenseText();
@@ -161,6 +166,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public IReadOnlyList<OptionItem<string>> AppLanguages { get; }
 
     public ObservableCollection<PlanOperationItemViewModel> PlanOperations { get; }
+
+    public ObservableCollection<string> StalePreviewIssues { get; }
+
+    public ObservableCollection<string> ExecutionReviewSamples { get; }
 
     public ObservableCollection<StrategyRecommendation> StrategyRecommendations { get; } = [];
 
@@ -326,6 +335,45 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string coverageSummaryText = string.Empty;
+
+    [ObservableProperty]
+    private bool hasStalePreviewIssues;
+
+    [ObservableProperty]
+    private string stalePreviewSummaryText = string.Empty;
+
+    [ObservableProperty]
+    private int executionReviewSelectedCount;
+
+    [ObservableProperty]
+    private int executionReviewMoveCount;
+
+    [ObservableProperty]
+    private int executionReviewRenameCount;
+
+    [ObservableProperty]
+    private int executionReviewMoveAndRenameCount;
+
+    [ObservableProperty]
+    private int executionReviewDuplicateCount;
+
+    [ObservableProperty]
+    private int executionReviewNeedsReviewCount;
+
+    [ObservableProperty]
+    private int executionReviewUnselectedExecutableCount;
+
+    [ObservableProperty]
+    private int executionReviewBlockedCount;
+
+    [ObservableProperty]
+    private string executionReviewSummaryText = string.Empty;
+
+    [ObservableProperty]
+    private string executionReviewRemainingText = string.Empty;
+
+    [ObservableProperty]
+    private bool hasExecutionReviewRemainingText;
 
     [ObservableProperty]
     private bool hasDuplicateGroups;
@@ -529,19 +577,28 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private int dedupSkippedCount;
 
     [ObservableProperty]
-    private int dedupFilesRecycledCount;
+    private int dedupFilesQuarantinedCount;
 
     [ObservableProperty]
-    private int dedupRecycleErrorCount;
+    private int dedupQuarantineErrorCount;
 
     [ObservableProperty]
-    private long dedupBytesFreed;
+    private long dedupBytesQuarantined;
 
     [ObservableProperty]
     private string dedupExecutionSummary = string.Empty;
 
     [ObservableProperty]
     private string dedupLastAuditPath = string.Empty;
+
+    [ObservableProperty]
+    private string dedupLastQuarantinePath = string.Empty;
+
+    [ObservableProperty]
+    private bool hasDedupQuarantineRecords;
+
+    [ObservableProperty]
+    private int dedupFilesRestoredCount;
 
     [ObservableProperty]
     private bool hasDedupExecutionResults;
@@ -576,7 +633,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public string DedupReviewTally =>
         FormatString("DedupReviewTally", DedupGroups.Count, DedupResolvedCount, DedupSkippedCount);
 
-    public double DedupBytesFreedMb => DedupBytesFreed / 1024d / 1024d;
+    public double DedupBytesQuarantinedMb => DedupBytesQuarantined / 1024d / 1024d;
+
+    public bool CanExecuteSelectedOperations => !IsBusy && !HasStalePreviewIssues && ExecutionReviewSelectedCount > 0;
 
     public async Task InitializeAsync()
     {
@@ -675,7 +734,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         await PersistSettingsAsync(CancellationToken.None);
         ResetProgress();
-        PlanOperations.Clear();
+        ClearPlanOperations();
+        ClearStalePreviewIssues();
         StrategyRecommendations.Clear();
         HasGeminiOrganizationGuidance = false;
         GeminiOrganizationGuidanceTitle = string.Empty;
@@ -703,10 +763,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             foreach (var operation in currentPlan.Operations)
             {
-                PlanOperations.Add(new PlanOperationItemViewModel(operation));
+                AddPlanOperation(new PlanOperationItemViewModel(operation));
             }
 
             UpdateSummary(currentPlan.Summary);
+            RefreshExecutionReviewSummary();
             PopulateStrategyRecommendations(currentPlan);
             PopulateDuplicateGroups(currentPlan);
             PlanView.Refresh();
@@ -844,31 +905,42 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var resolvedGroups = DedupGroups.Where(group => group.IsResolved && !group.IsSkipped).ToList();
         if (resolvedGroups.Count == 0)
         {
+            currentDedupAuditRunId = null;
+            currentDedupQuarantineRecords.Clear();
+            HasDedupQuarantineRecords = false;
+            DedupFilesRestoredCount = 0;
+            DedupLastQuarantinePath = string.Empty;
             DedupExecutionSummary = FormatString("DedupExecuteSummary", 0, DedupGroups.Count(group => group.IsSkipped), 0d, 0);
             HasDedupExecutionResults = true;
             return;
         }
 
         currentCancellationTokenSource = new CancellationTokenSource();
-        var recycledCount = 0;
+        var quarantinedCount = 0;
         var errorCount = 0;
-        long bytesFreed = 0;
-        var filesToRecycle = resolvedGroups.SelectMany(group => group.Files.Where(file => !file.IsKeeper)).ToList();
+        long bytesQuarantined = 0;
+        var filesToQuarantine = resolvedGroups.SelectMany(group => group.Files.Where(file => !file.IsKeeper)).ToList();
         var processed = 0;
         DedupExecutionErrors.Clear();
         DedupLastAuditPath = string.Empty;
+        DedupLastQuarantinePath = string.Empty;
+        currentDedupQuarantineRecords.Clear();
+        HasDedupQuarantineRecords = false;
+        DedupFilesRestoredCount = 0;
 
         DedupAuditRunHandle auditRun;
         try
         {
             auditRun = await dedupAuditStore.StartRunAsync(
-                BuildDedupAuditRunStarted(filesToRecycle),
+                BuildDedupAuditRunStarted(filesToQuarantine),
                 CancellationToken.None);
+            currentDedupAuditRunId = auditRun.RunId;
             DedupLastAuditPath = auditRun.AuditFilePath;
+            DedupLastQuarantinePath = dedupQuarantineService.GetRunDirectory(auditRun.RunId);
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Dedup execution audit could not be started. No files will be recycled.");
+            logger.LogError(exception, "Dedup execution audit could not be started. No files will be quarantined.");
             dialogService.ShowError(GetString("DialogDedupAuditFailedTitle"), GetString("DialogDedupAuditFailedBody"));
             StatusMessage = GetString("StatusDedupAuditFailed");
             return;
@@ -878,7 +950,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             IsBusy = true;
             StatusMessage = GetString("StatusDedupExecuting");
-            ProgressMaximum = Math.Max(1, filesToRecycle.Count);
+            ProgressMaximum = Math.Max(1, filesToQuarantine.Count);
             ProgressValue = 0;
             IsProgressIndeterminate = false;
 
@@ -891,10 +963,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     {
                         errorCount++;
                         DedupExecutionErrors.Add(FormatString("DedupExecuteErrorOutOfRoot", file.RelativePath));
-                        logger.LogWarning("Dedup recycle skipped for out-of-root path {Path}", file.FullPath);
+                        logger.LogWarning("Dedup quarantine skipped for out-of-root path {Path}", file.FullPath);
                         await dedupAuditStore.AppendEntryAsync(
                             auditRun.RunId,
-                            CreateDedupAuditEntry(file, "recycle-result", "SkippedOutOfRoot", "File was outside the selected dedup root and was not moved."),
+                            CreateDedupAuditEntry(file, "quarantine-result", "SkippedOutOfRoot", "File was outside the selected dedup root and was not moved."),
                             CancellationToken.None);
                         continue;
                     }
@@ -903,63 +975,71 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     {
                         await dedupAuditStore.AppendEntryAsync(
                             auditRun.RunId,
-                            CreateDedupAuditEntry(file, "recycle-attempt", "Pending", "Recycle Bin move is about to start."),
+                            CreateDedupAuditEntry(file, "quarantine-attempt", "Pending", "Quarantine move is about to start."),
                             currentCancellationTokenSource.Token);
 
-                        await recycleBinService.RecycleFileAsync(file.FullPath, currentCancellationTokenSource.Token);
-                        recycledCount++;
-                        bytesFreed += file.SizeBytes;
+                        var record = await dedupQuarantineService.QuarantineFileAsync(
+                            auditRun.RunId,
+                            DedupRootFolder,
+                            file.FullPath,
+                            file.RelativePath,
+                            file.SizeBytes,
+                            currentCancellationTokenSource.Token);
+                        currentDedupQuarantineRecords.Add(record);
+                        HasDedupQuarantineRecords = currentDedupQuarantineRecords.Count > 0;
+                        quarantinedCount++;
+                        bytesQuarantined += file.SizeBytes;
 
                         try
                         {
                             await dedupAuditStore.AppendEntryAsync(
                                 auditRun.RunId,
-                                CreateDedupAuditEntry(file, "recycle-result", "MovedToRecycleBin", "File was handed to the Windows Recycle Bin."),
+                                CreateDedupAuditEntry(file, "quarantine-result", "MovedToQuarantine", "File was moved to FileKitsune quarantine.", record.QuarantineFullPath),
                                 CancellationToken.None);
                         }
                         catch (Exception auditException)
                         {
                             errorCount++;
                             DedupExecutionErrors.Add(FormatString("DedupExecuteAuditWriteFailed", file.RelativePath, auditException.Message));
-                            logger.LogError(auditException, "Dedup audit append failed after recycling {Path}", file.FullPath);
+                            logger.LogError(auditException, "Dedup audit append failed after quarantining {Path}", file.FullPath);
                         }
                     }
                     catch (Exception exception)
                     {
                         errorCount++;
                         DedupExecutionErrors.Add(FormatString("DedupExecuteErrorLine", file.RelativePath, exception.Message));
-                        logger.LogWarning(exception, "Dedup recycle failed for {Path}", file.FullPath);
+                        logger.LogWarning(exception, "Dedup quarantine failed for {Path}", file.FullPath);
 
                         try
                         {
                             await dedupAuditStore.AppendEntryAsync(
                                 auditRun.RunId,
-                                CreateDedupAuditEntry(file, "recycle-result", "Failed", exception.Message),
+                                CreateDedupAuditEntry(file, "quarantine-result", "Failed", exception.Message),
                                 CancellationToken.None);
                         }
                         catch (Exception auditException)
                         {
-                            logger.LogError(auditException, "Dedup audit append failed after recycle failure for {Path}", file.FullPath);
+                            logger.LogError(auditException, "Dedup audit append failed after quarantine failure for {Path}", file.FullPath);
                         }
                     }
                     finally
                     {
                         processed++;
                         ProgressValue = processed;
-                        StatusMessage = FormatString("StatusDedupExecuteProgress", processed, filesToRecycle.Count);
+                        StatusMessage = FormatString("StatusDedupExecuteProgress", processed, filesToQuarantine.Count);
                     }
                 }
             }
 
-            DedupFilesRecycledCount = recycledCount;
-            DedupRecycleErrorCount = errorCount;
-            DedupBytesFreed = bytesFreed;
-            OnPropertyChanged(nameof(DedupBytesFreedMb));
+            DedupFilesQuarantinedCount = quarantinedCount;
+            DedupQuarantineErrorCount = errorCount;
+            DedupBytesQuarantined = bytesQuarantined;
+            OnPropertyChanged(nameof(DedupBytesQuarantinedMb));
             DedupExecutionSummary = FormatString(
                 "DedupExecuteSummary",
-                recycledCount,
+                quarantinedCount,
                 DedupGroups.Count(group => group.IsSkipped),
-                DedupBytesFreedMb,
+                DedupBytesQuarantinedMb,
                 errorCount);
 
             await dedupAuditStore.CompleteRunAsync(
@@ -967,10 +1047,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 new DedupAuditRunCompleted
                 {
                     Status = errorCount == 0 ? "Completed" : "CompletedWithErrors",
-                    FilesRecycled = recycledCount,
+                    FilesRecycled = quarantinedCount,
+                    FilesQuarantined = quarantinedCount,
                     FilesSkipped = DedupGroups.Count(group => group.IsSkipped),
                     Errors = errorCount,
-                    BytesFreed = bytesFreed
+                    BytesFreed = bytesQuarantined,
+                    BytesQuarantined = bytesQuarantined
                 },
                 CancellationToken.None);
 
@@ -984,10 +1066,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 new DedupAuditRunCompleted
                 {
                     Status = "Canceled",
-                    FilesRecycled = recycledCount,
+                    FilesRecycled = quarantinedCount,
+                    FilesQuarantined = quarantinedCount,
                     FilesSkipped = DedupGroups.Count(group => group.IsSkipped),
                     Errors = errorCount,
-                    BytesFreed = bytesFreed
+                    BytesFreed = bytesQuarantined,
+                    BytesQuarantined = bytesQuarantined
                 },
                 CancellationToken.None);
             StatusMessage = GetString("StatusCanceled");
@@ -1002,9 +1086,83 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenRecycleBin()
+    private void OpenDedupQuarantineFolder()
     {
-        Process.Start(new ProcessStartInfo("shell:RecycleBinFolder") { UseShellExecute = true });
+        if (!string.IsNullOrWhiteSpace(DedupLastQuarantinePath) && Directory.Exists(DedupLastQuarantinePath))
+        {
+            Process.Start(new ProcessStartInfo(DedupLastQuarantinePath) { UseShellExecute = true });
+        }
+    }
+
+    [RelayCommand]
+    private async Task RestoreDedupQuarantineAsync()
+    {
+        if (currentDedupAuditRunId is null || currentDedupQuarantineRecords.Count == 0)
+        {
+            dialogService.ShowInformation(GetString("DialogDedupRestoreUnavailableTitle"), GetString("DialogDedupRestoreUnavailableBody"));
+            return;
+        }
+
+        var restoredCount = 0;
+        var errorCount = 0;
+        var remainingRecords = new List<DedupQuarantineRecord>();
+
+        try
+        {
+            IsBusy = true;
+            StatusMessage = GetString("StatusDedupRestoring");
+            ProgressMaximum = Math.Max(1, currentDedupQuarantineRecords.Count);
+            ProgressValue = 0;
+            IsProgressIndeterminate = false;
+
+            foreach (var record in currentDedupQuarantineRecords)
+            {
+                await dedupAuditStore.AppendEntryAsync(
+                    currentDedupAuditRunId.Value,
+                    CreateDedupRestoreAuditEntry(record, "restore-attempt", "Pending", "Restore from FileKitsune quarantine is about to start."),
+                    CancellationToken.None);
+
+                var result = await dedupQuarantineService.RestoreFileAsync(record, CancellationToken.None);
+                if (result.Restored)
+                {
+                    restoredCount++;
+                    await dedupAuditStore.AppendEntryAsync(
+                        currentDedupAuditRunId.Value,
+                        CreateDedupRestoreAuditEntry(record, "restore-result", result.Status, result.Message),
+                        CancellationToken.None);
+                }
+                else
+                {
+                    errorCount++;
+                    remainingRecords.Add(record);
+                    DedupExecutionErrors.Add(FormatString("DedupRestoreErrorLine", record.OriginalRelativePath, result.Message));
+                    await dedupAuditStore.AppendEntryAsync(
+                        currentDedupAuditRunId.Value,
+                        CreateDedupRestoreAuditEntry(record, "restore-result", result.Status, result.Message),
+                        CancellationToken.None);
+                }
+
+                ProgressValue++;
+            }
+
+            currentDedupQuarantineRecords.Clear();
+            currentDedupQuarantineRecords.AddRange(remainingRecords);
+            HasDedupQuarantineRecords = currentDedupQuarantineRecords.Count > 0;
+            DedupFilesRestoredCount += restoredCount;
+            DedupQuarantineErrorCount += errorCount;
+            DedupExecutionSummary = FormatString("DedupRestoreSummary", restoredCount, errorCount);
+            StatusMessage = DedupExecutionSummary;
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Dedup quarantine restore failed.");
+            dialogService.ShowError(GetString("DialogDedupRestoreFailedTitle"), exception.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+            NotifyWizardNavigationChanged();
+        }
     }
 
     [RelayCommand]
@@ -1088,6 +1246,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        if (HasStalePreviewIssues)
+        {
+            dialogService.ShowInformation(GetString("DialogStalePreviewExecutionTitle"), GetString("DialogStalePreviewExecutionBody"));
+            return;
+        }
+
         if (!dialogService.Confirm(
                 GetString("DialogConfirmExecutionTitle"),
                 FormatString("DialogConfirmExecutionBody", selectedIds.Count)))
@@ -1127,6 +1291,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
             foreach (var message in outcome.Messages)
             {
                 logger.LogInformation(message);
+            }
+
+            if (outcome.RequiresPreviewRebuild)
+            {
+                ApplyStalePreviewOutcome(outcome, outcomeSummary);
+                dialogService.ShowInformation(
+                    GetString("DialogStalePreviewExecutionTitle"),
+                    FormatString("DialogStalePreviewExecutionBlockedBody", outcome.Messages.Count));
+                return;
             }
 
             await RefreshRollbackHistoryAsync(CancellationToken.None, outcome.Journal?.JournalId);
@@ -1491,9 +1664,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
         HasSelectedDedupGroup = value is not null;
     }
 
-    partial void OnDedupBytesFreedChanged(long value) => OnPropertyChanged(nameof(DedupBytesFreedMb));
+    partial void OnDedupBytesQuarantinedChanged(long value) => OnPropertyChanged(nameof(DedupBytesQuarantinedMb));
 
-    partial void OnIsBusyChanged(bool value) => NotifyWizardNavigationChanged();
+    partial void OnHasStalePreviewIssuesChanged(bool value) => OnPropertyChanged(nameof(CanExecuteSelectedOperations));
+
+    partial void OnExecutionReviewSelectedCountChanged(int value) => OnPropertyChanged(nameof(CanExecuteSelectedOperations));
+
+    partial void OnIsBusyChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanExecuteSelectedOperations));
+        NotifyWizardNavigationChanged();
+    }
 
     partial void OnSelectedRollbackJournalChanged(RollbackJournalItem? value)
     {
@@ -1622,6 +1803,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         StrategyDisplayName = SelectedStrategyPreset?.Label ?? string.Empty;
         PersistenceModeLabel = LocalizePersistenceModeLabel(PersistenceModeLabel);
         GeminiEnvironmentPingStatus = LocalizeEnvironmentSanityStatusLabel(GeminiEnvironmentPingStatus);
+        RefreshExecutionReviewSummary();
+        if (HasStalePreviewIssues)
+        {
+            StalePreviewSummaryText = FormatString("StalePreviewSummary", StalePreviewIssues.Count);
+        }
 
         if (!IsBusy && currentPlan is null && string.IsNullOrWhiteSpace(StatusMessage))
         {
@@ -1660,6 +1846,89 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         return outcome.Summary;
+    }
+
+    private void AddPlanOperation(PlanOperationItemViewModel item)
+    {
+        item.PropertyChanged += OnPlanOperationPropertyChanged;
+        PlanOperations.Add(item);
+    }
+
+    private void ClearPlanOperations()
+    {
+        foreach (var item in PlanOperations)
+        {
+            item.PropertyChanged -= OnPlanOperationPropertyChanged;
+        }
+
+        PlanOperations.Clear();
+        RefreshExecutionReviewSummary();
+    }
+
+    private void OnPlanOperationPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (string.Equals(args.PropertyName, nameof(PlanOperationItemViewModel.IsSelected), StringComparison.Ordinal))
+        {
+            RefreshExecutionReviewSummary();
+        }
+    }
+
+    private void RefreshExecutionReviewSummary()
+    {
+        var selectedItems = PlanOperations
+            .Where(item => item.IsSelected && item.CanSelect)
+            .ToList();
+
+        ExecutionReviewSelectedCount = selectedItems.Count;
+        ExecutionReviewMoveCount = selectedItems.Count(item => item.Operation.OperationType == PlanOperationType.Move);
+        ExecutionReviewRenameCount = selectedItems.Count(item => item.Operation.OperationType == PlanOperationType.Rename);
+        ExecutionReviewMoveAndRenameCount = selectedItems.Count(item => item.Operation.OperationType == PlanOperationType.MoveAndRename);
+        ExecutionReviewDuplicateCount = selectedItems.Count(item => item.Operation.DuplicateDetected);
+        ExecutionReviewNeedsReviewCount = selectedItems.Count(item => item.Operation.RequiresReview);
+        ExecutionReviewUnselectedExecutableCount = PlanOperations.Count(item => item.CanSelect && !item.IsSelected);
+        ExecutionReviewBlockedCount = PlanOperations.Count(item => !item.CanSelect);
+        ExecutionReviewSummaryText = FormatString(
+            "ExecutionReviewSummary",
+            ExecutionReviewSelectedCount,
+            ExecutionReviewUnselectedExecutableCount,
+            ExecutionReviewBlockedCount);
+
+        ExecutionReviewSamples.Clear();
+        foreach (var item in selectedItems.Take(ExecutionReviewSampleLimit))
+        {
+            ExecutionReviewSamples.Add(FormatString(
+                "ExecutionReviewSampleLine",
+                item.CurrentRelativePath,
+                item.ProposedRelativePath));
+        }
+
+        var remaining = selectedItems.Count - ExecutionReviewSamples.Count;
+        HasExecutionReviewRemainingText = remaining > 0;
+        ExecutionReviewRemainingText = remaining > 0
+            ? FormatString("ExecutionReviewRemainingLine", remaining)
+            : string.Empty;
+    }
+
+    private void ApplyStalePreviewOutcome(ExecutionOutcome outcome, string outcomeSummary)
+    {
+        StalePreviewIssues.Clear();
+        foreach (var message in outcome.Messages)
+        {
+            StalePreviewIssues.Add(message);
+        }
+
+        HasStalePreviewIssues = StalePreviewIssues.Count > 0;
+        StalePreviewSummaryText = HasStalePreviewIssues
+            ? FormatString("StalePreviewSummary", StalePreviewIssues.Count)
+            : string.Empty;
+        StatusMessage = outcomeSummary;
+    }
+
+    private void ClearStalePreviewIssues()
+    {
+        StalePreviewIssues.Clear();
+        HasStalePreviewIssues = false;
+        StalePreviewSummaryText = string.Empty;
     }
 
     private string GetString(string resourceKey) => localizationService.GetString(resourceKey);
@@ -1741,6 +2010,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             dialogService.ShowInformation(GetString("DialogNoItemsSelectedTitle"), GetString("DialogNoItemsSelectedBody"));
         }
+
+        RefreshExecutionReviewSummary();
     }
 
     private bool CanMoveBack() => !IsBusy && CurrentStep is not WizardStep.ModeSelector;
@@ -2363,7 +2634,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             IsKeeper = isKeeper
         };
 
-    private DedupAuditRunStarted BuildDedupAuditRunStarted(IReadOnlyList<DedupFileItemViewModel> filesToRecycle) =>
+    private DedupAuditRunStarted BuildDedupAuditRunStarted(IReadOnlyList<DedupFileItemViewModel> filesToQuarantine) =>
         new()
         {
             RunId = Guid.NewGuid(),
@@ -2371,8 +2642,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
             TotalGroups = DedupGroups.Count,
             ResolvedGroups = DedupGroups.Count(group => group.IsResolved && !group.IsSkipped),
             SkippedGroups = DedupGroups.Count(group => group.IsSkipped),
-            FilesPlannedForRecycle = filesToRecycle.Count,
-            BytesPlannedForRecycle = filesToRecycle.Sum(file => file.SizeBytes),
+            FilesPlannedForRecycle = filesToQuarantine.Count,
+            FilesPlannedForQuarantine = filesToQuarantine.Count,
+            BytesPlannedForRecycle = filesToQuarantine.Sum(file => file.SizeBytes),
+            BytesPlannedForQuarantine = filesToQuarantine.Sum(file => file.SizeBytes),
             Groups = DedupGroups.Select(CreateDedupAuditGroup).ToList()
         };
 
@@ -2395,13 +2668,31 @@ public sealed partial class MainWindowViewModel : ObservableObject
         DedupFileItemViewModel file,
         string action,
         string status,
-        string message) =>
+        string message,
+        string quarantinePath = "") =>
         new()
         {
             Action = action,
             FullPath = file.FullPath,
             RelativePath = file.RelativePath,
             SizeBytes = file.SizeBytes,
+            QuarantinePath = quarantinePath,
+            Status = status,
+            Message = message
+        };
+
+    private static DedupAuditEntry CreateDedupRestoreAuditEntry(
+        DedupQuarantineRecord record,
+        string action,
+        string status,
+        string message) =>
+        new()
+        {
+            Action = action,
+            FullPath = record.OriginalFullPath,
+            RelativePath = record.OriginalRelativePath,
+            SizeBytes = record.SizeBytes,
+            QuarantinePath = record.QuarantineFullPath,
             Status = status,
             Message = message
         };
@@ -2415,11 +2706,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
         HasSelectedDedupGroup = false;
         DedupResolvedCount = 0;
         DedupSkippedCount = 0;
-        DedupFilesRecycledCount = 0;
-        DedupRecycleErrorCount = 0;
-        DedupBytesFreed = 0;
+        DedupFilesQuarantinedCount = 0;
+        DedupQuarantineErrorCount = 0;
+        DedupBytesQuarantined = 0;
         DedupExecutionSummary = string.Empty;
         DedupLastAuditPath = string.Empty;
+        DedupLastQuarantinePath = string.Empty;
+        currentDedupAuditRunId = null;
+        currentDedupQuarantineRecords.Clear();
+        HasDedupQuarantineRecords = false;
+        DedupFilesRestoredCount = 0;
         DedupExecutionErrors.Clear();
         HasDedupExecutionResults = false;
         if (clearRoot)
@@ -2429,7 +2725,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         OnPropertyChanged(nameof(AllDedupGroupsReviewed));
         OnPropertyChanged(nameof(DedupReviewTally));
-        OnPropertyChanged(nameof(DedupBytesFreedMb));
+        OnPropertyChanged(nameof(DedupBytesQuarantinedMb));
         NotifyWizardNavigationChanged();
     }
 

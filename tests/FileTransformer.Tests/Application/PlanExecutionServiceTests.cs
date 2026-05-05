@@ -94,6 +94,7 @@ public sealed class PlanExecutionServiceTests
         Assert.Equal(0, outcome.SuccessfulOperations);
         Assert.Equal(2, outcome.FailedOperations);
         Assert.Equal("StatusExecutionPreflightFailed", outcome.SummaryResourceKey);
+        Assert.True(outcome.RequiresPreviewRebuild);
         Assert.Empty(fileOperations.Moves);
         Assert.Equal(0, journalStore.SaveCount);
         Assert.Contains(outcome.Messages, message => message.Contains("missing.txt", StringComparison.OrdinalIgnoreCase));
@@ -133,6 +134,7 @@ public sealed class PlanExecutionServiceTests
 
             Assert.Equal(0, outcome.SuccessfulOperations);
             Assert.Equal(1, outcome.FailedOperations);
+            Assert.True(outcome.RequiresPreviewRebuild);
             Assert.Empty(fileOperations.Moves);
             Assert.Equal(0, journalStore.SaveCount);
             Assert.Contains(outcome.Messages, message => message.Contains("changed size", StringComparison.OrdinalIgnoreCase));

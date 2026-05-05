@@ -165,16 +165,16 @@ Validated baseline:
 These are not cosmetic. They close trust gaps where a user could misunderstand scope, execute a stale plan, or lose confidence after a failure.
 
 - [x] Add execution preflight revalidation before any mutation: source still exists, source metadata/hash still matches the preview where available, destination is still conflict-free or intentionally conflict-resolved, and every final path still resolves inside the selected root.
-- [ ] Surface stale-preview results in the UI and require the user to rebuild or explicitly reconfirm changed items before execution.
+- [x] Surface stale-preview results in the UI and require the user to rebuild the preview before execution.
 - [x] Add clear scan/preview coverage reporting: total scanned, previewed/planned count, skipped count, protected count, scan limit hit, preview sample limit hit, and unreadable content count.
 - [x] Add duplicate hash failure counts to scan/preview coverage reporting once duplicate detection exposes failure statistics.
 - [x] Block or strongly warn on execution when the current plan is incomplete because `MaxFilesToScan` or `PreviewSampleSize` truncated the folder.
 - [ ] Add full OCR text extraction for scanned PDFs and image files, preferably local/offline-first, with extraction source and confidence visible in the preview.
-- [x] Add an audit trail for standalone dedup runs: root folder, duplicate groups, selected keepers, files sent to Recycle Bin, skipped groups, failures, and timestamp.
-- [ ] Replace Recycle Bin-only dedup execution with a FileKitsune-managed quarantine/restore flow so duplicate removal remains recoverable even if the OS Recycle Bin is unavailable, disabled, or later emptied.
+- [x] Add an audit trail for standalone dedup runs: root folder, duplicate groups, selected keepers, quarantined files, skipped groups, failures, and timestamp.
+- [x] Replace Recycle Bin-only dedup execution with a FileKitsune-managed quarantine/restore flow so duplicate removal remains recoverable even if the OS Recycle Bin is unavailable, disabled, or later emptied.
 - [ ] Add recovery UI for incomplete/canceled/crashed execution journals so users can see pending operations and choose resume, rollback completed moves, or mark abandoned.
 - [ ] Add checkpoint-level rollback hardening for partial failures across process restarts, including tests for pending journal entries and interrupted rollback attempts.
-- [ ] Add a final execution review screen that summarizes exactly how many selected operations will move, rename, route duplicates, skip, or require review before the execute button is enabled.
+- [x] Add a final execution review screen that summarizes exactly how many selected operations will move, rename, route duplicates, skip, or require review before the execute button is enabled.
 
 ## 11. Current Best Next Slice
 
@@ -183,10 +183,10 @@ Highest-value next work:
 - [x] improve rollback preview/confirmation from impact summary into a clearer diff-style confirmation experience
 - [x] add image-first metadata handling and scanned-PDF detection for image-led folders
 - [ ] add full OCR text extraction for scanned PDFs and images
-- [ ] add execution preflight revalidation and stale-preview handling
+- [x] add execution preflight revalidation and stale-preview handling
 - [x] make partial scan/preview coverage impossible to miss before execution
 - [x] add dedup run audit history beyond relying on the Windows Recycle Bin
-- [ ] add FileKitsune-managed dedup quarantine with explicit restore
+- [x] add FileKitsune-managed dedup quarantine with explicit restore
 - [ ] consider any last domain-specific duplicate canonical heuristics after manual testing
 
 Why this is next:
@@ -241,11 +241,13 @@ Spec: `docs/superpowers/specs/2026-04-29-dedup-mode-design.md`
 ### DedupExecute Step
 - [x] Create `WizardDedupExecuteView.xaml` + code-behind
 - [x] Add `DedupExecuteCommand` — flushes any remaining confirmed groups, reports progress
-- [x] Results summary: files recycled, groups skipped, MB freed, per-file errors
+- [x] Results summary: files quarantined, groups skipped, recoverable MB, per-file errors
 - [x] "Scan another folder" button → `ModeSelector`
-- [x] "Open Recycle Bin" button → `Process.Start("shell:RecycleBinFolder")`
-- [x] Write a local JSONL audit run before moving any duplicate to the Recycle Bin
+- [x] Legacy "Open Recycle Bin" button → `Process.Start("shell:RecycleBinFolder")`
+- [x] Replace Recycle Bin execution controls with "Open quarantine folder" and current-run restore controls
+- [x] Write a local JSONL audit run before moving any duplicate to FileKitsune quarantine
 - [x] Show the dedup audit file path after execution
+- [x] Show the FileKitsune quarantine folder path after execution
 
 ### Localization
 - [x] Add all `WizardStepModeSelectorTitle`, `ModeOrganize*`, `ModeDedup*`, `DedupScan*`, `DedupReview*`, `DedupExecute*` keys to `Strings.de-DE.xaml`
@@ -265,7 +267,7 @@ Spec: `docs/superpowers/specs/2026-04-29-dedup-mode-design.md`
 - [x] Duplicate identity is hash-based, not filename-based
 - [x] Core rollback scenarios and preview states covered by dedicated tests
 - [x] No file-removal flow runs without a local audit trail first
-- [ ] No file-removal flow should rely solely on the OS Recycle Bin for recoverability
+- [x] No file-removal flow should rely solely on the OS Recycle Bin for recoverability
 
 ## Guiding Principle
 

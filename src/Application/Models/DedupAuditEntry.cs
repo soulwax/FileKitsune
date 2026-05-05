@@ -12,6 +12,8 @@ public sealed class DedupAuditEntry
 
     public long SizeBytes { get; init; }
 
+    public string QuarantinePath { get; init; } = string.Empty;
+
     public string Status { get; init; } = string.Empty;
 
     public string Message { get; init; } = string.Empty;

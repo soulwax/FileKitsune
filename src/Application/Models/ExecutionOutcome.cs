@@ -18,6 +18,8 @@ public sealed class ExecutionOutcome
 
     public object[] SummaryArguments { get; init; } = [];
 
+    public bool RequiresPreviewRebuild { get; init; }
+
     public ExecutionJournal? Journal { get; init; }
 
     public List<string> Messages { get; init; } = [];

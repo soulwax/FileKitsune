@@ -54,6 +54,7 @@ public sealed class PlanExecutionService
                 Summary = $"Execution blocked before any file was changed. Rebuild the preview and review {preflightFailures.Count} issue(s).",
                 SummaryResourceKey = "StatusExecutionPreflightFailed",
                 SummaryArguments = [preflightFailures.Count],
+                RequiresPreviewRebuild = true,
                 Messages = preflightFailures.ToList()
             };
         }

@@ -18,8 +18,9 @@ The app is usable today and currently provides:
 - duplicate canonical selection now prefers cleaner paths, then older files, then richer metadata
 - duplicate hashing now has explicit large-file test coverage
 - duplicate review in the preview step and duplicate-routing options in the rules step
-- standalone duplicate-remover flow with scan, keeper review, skip/confirm decisions, and Windows Recycle Bin execution
-- standalone duplicate-remover execution writes a local JSONL audit run before any file is moved to the Recycle Bin
+- standalone duplicate-remover flow with scan, keeper review, skip/confirm decisions, and FileKitsune quarantine execution
+- standalone duplicate-remover execution writes a local JSONL audit run before any file is moved into quarantine
+- current-run duplicate quarantine restore so confirmed copies can be brought back without depending on the OS Recycle Bin
 - preview-first planning with reasons, warnings, confidence, and review indicators
 - saved-run selection in the execute step for both full-run rollback and folder-scoped undo
 - rollback preview tab for the selected saved run
@@ -56,7 +57,7 @@ The app is usable today and currently provides:
 ### Mode selector
 
 - choose `Organize files` for the existing preview-first organization wizard
-- choose `Find duplicates` to scan for exact copies, select one keeper per group, and move confirmed copies to the Windows Recycle Bin
+- choose `Find duplicates` to scan for exact copies, select one keeper per group, and move confirmed copies to FileKitsune quarantine
 
 ### 1. Folder
 
@@ -87,6 +88,7 @@ The app is usable today and currently provides:
 ### 5. Execute / Undo
 
 - execute only the selected allowed operations
+- review final selected-operation counts for moves, renames, duplicate routes, review-required items, and blocked/skipped items before execution is enabled
 - select a saved run and preview rollback readiness before undoing
 - review the rollback impact summary to see what would restore cleanly versus be skipped
 - confirm undo actions with preview-aware counts instead of a generic warning only
@@ -98,12 +100,13 @@ The app is usable today and currently provides:
 - destination paths are validated as Windows-safe relative paths
 - final destinations must resolve inside the selected root folder
 - execution revalidates selected preview items before any mutation and blocks the whole run if a selected source disappeared, changed metadata/hash where available, or can no longer resolve safely
+- stale-preview blocks are surfaced in the execute step with the exact issues and a rebuild-preview action before execution can be retried
 - previews report scan coverage, planned item counts, preview sampling gaps, protected items, unreadable content, duplicate hash failures, and scan/preview limit warnings
 - execution asks for an extra confirmation when the current plan is incomplete because scan or preview limits were reached
 - Gemini is advisory only; local logic still validates categories, fragments, and final paths
 - execution currently performs moves and renames only
 - the organization wizard does not delete files
-- standalone duplicate removal moves confirmed copies to the Windows Recycle Bin after review
+- standalone duplicate removal moves confirmed copies to FileKitsune-managed quarantine after review
 - duplicate removal refuses to move files if it cannot create a local audit trail first
 - hidden/system files and reparse points are skipped by default unless policy settings are changed in code
 
@@ -116,7 +119,8 @@ Exact duplicate detection already exists in the current app:
 - SHA-256 is used for exact duplicate identity
 - duplicate handling can require review, route to a duplicates folder, or skip duplicate items
 - standalone duplicate mode uses the same size/hash identity checks, then lets you set the keeper before any file is moved
-- standalone duplicate mode writes a per-run audit file with root folder, keeper decisions, skipped groups, move attempts, failures, and completion status
+- standalone duplicate mode writes a per-run audit file with root folder, keeper decisions, skipped groups, quarantine attempts, failures, restore attempts, and completion status
+- confirmed duplicate copies are moved under `%LocalAppData%\FileKitsune\quarantine\<run-id>` and can be restored from the current run while records are still available in the UI
 
 Current limitation:
 
@@ -190,6 +194,7 @@ The app is still evolving. Notable gaps:
 - sqlite cache: `%LocalAppData%\FileKitsune\persistence.db`
 - journals: `%LocalAppData%\FileKitsune\journals`
 - dedup audit runs: `%LocalAppData%\FileKitsune\dedup-runs`
+- dedup quarantine: `%LocalAppData%\FileKitsune\quarantine`
 - logs: `%LocalAppData%\FileKitsune\logs`
 
 ## Developer Notes

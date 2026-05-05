@@ -66,6 +66,7 @@ Application/
  SemanticClassifierCoordinatorTests.cs
  StrategyRecommendationServiceTests.cs
 Infrastructure/
+ DedupQuarantineServiceTests.cs
  EnvironmentConfigServiceTests.cs
  EnvironmentSanityServiceTests.cs
  EnvironmentVariableCollection.cs

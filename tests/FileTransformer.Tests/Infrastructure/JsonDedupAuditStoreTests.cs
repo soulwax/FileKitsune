@@ -23,7 +23,9 @@ public sealed class JsonDedupAuditStoreTests
                     TotalGroups = 1,
                     ResolvedGroups = 1,
                     FilesPlannedForRecycle = 1,
+                    FilesPlannedForQuarantine = 1,
                     BytesPlannedForRecycle = 128,
+                    BytesPlannedForQuarantine = 128,
                     Groups =
                     [
                         new DedupAuditGroup
@@ -41,10 +43,11 @@ public sealed class JsonDedupAuditStoreTests
                 runId,
                 new DedupAuditEntry
                 {
-                    Action = "recycle-attempt",
+                    Action = "quarantine-attempt",
                     FullPath = @"C:\Root\copy.txt",
                     RelativePath = "copy.txt",
                     SizeBytes = 128,
+                    QuarantinePath = @"C:\AppData\FileKitsune\quarantine\run\copy.txt",
                     Status = "Pending"
                 },
                 CancellationToken.None);
@@ -55,7 +58,9 @@ public sealed class JsonDedupAuditStoreTests
                 {
                     Status = "Completed",
                     FilesRecycled = 1,
-                    BytesFreed = 128
+                    FilesQuarantined = 1,
+                    BytesFreed = 128,
+                    BytesQuarantined = 128
                 },
                 CancellationToken.None);
 
@@ -64,10 +69,14 @@ public sealed class JsonDedupAuditStoreTests
             Assert.Equal(3, lines.Length);
             Assert.Contains("\"Event\":\"run-started\"", lines[0]);
             Assert.Contains("\"KeeperRelativePath\":\"keeper.txt\"", lines[0]);
+            Assert.Contains("\"FilesPlannedForQuarantine\":1", lines[0]);
             Assert.Contains("\"Event\":\"entry\"", lines[1]);
-            Assert.Contains("\"Action\":\"recycle-attempt\"", lines[1]);
+            Assert.Contains("\"Action\":\"quarantine-attempt\"", lines[1]);
+            Assert.Contains("\"QuarantinePath\":\"C:\\\\AppData\\\\FileKitsune\\\\quarantine\\\\run\\\\copy.txt\"", lines[1]);
             Assert.Contains("\"Event\":\"run-completed\"", lines[2]);
             Assert.Contains("\"Status\":\"Completed\"", lines[2]);
+            Assert.Contains("\"FilesQuarantined\":1", lines[2]);
+            Assert.Contains("\"BytesQuarantined\":128", lines[2]);
         }
         finally
         {

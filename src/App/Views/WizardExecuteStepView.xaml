@@ -18,10 +18,111 @@
                                    Foreground="{StaticResource MutedTextBrush}"
                                    TextWrapping="Wrap"
                                    Text="{DynamicResource ExecuteActionHint}" />
+                        <Border Margin="0,0,0,12"
+                                Style="{StaticResource SoftPanelBorderStyle}">
+                            <StackPanel>
+                                <TextBlock FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Text="{DynamicResource ExecutionReviewTitle}" />
+                                <TextBlock Margin="0,6,0,10"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding ExecutionReviewSummaryText}" />
+                                <UniformGrid Columns="2">
+                                    <StackPanel Margin="0,0,8,8">
+                                        <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                                   Text="{DynamicResource ExecutionReviewMoveLabel}" />
+                                        <TextBlock FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding ExecutionReviewMoveCount}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,0,8">
+                                        <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                                   Text="{DynamicResource ExecutionReviewRenameLabel}" />
+                                        <TextBlock FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding ExecutionReviewRenameCount}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,8,8">
+                                        <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                                   Text="{DynamicResource ExecutionReviewMoveRenameLabel}" />
+                                        <TextBlock FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding ExecutionReviewMoveAndRenameCount}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,0,8">
+                                        <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                                   Text="{DynamicResource ExecutionReviewDuplicateLabel}" />
+                                        <TextBlock FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding ExecutionReviewDuplicateCount}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,8,0">
+                                        <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                                   Text="{DynamicResource ExecutionReviewNeedsReviewLabel}" />
+                                        <TextBlock FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding ExecutionReviewNeedsReviewCount}" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                                   Text="{DynamicResource ExecutionReviewBlockedLabel}" />
+                                        <TextBlock FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding ExecutionReviewBlockedCount}" />
+                                    </StackPanel>
+                                </UniformGrid>
+                                <ItemsControl Margin="0,12,0,0"
+                                              ItemsSource="{Binding ExecutionReviewSamples}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Margin="0,0,0,6"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       Text="{Binding}"
+                                                       TextWrapping="Wrap" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                           Text="{Binding ExecutionReviewRemainingText}"
+                                           Visibility="{Binding HasExecutionReviewRemainingText, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Margin="0,0,0,12"
+                                Style="{StaticResource SoftPanelBorderStyle}"
+                                Visibility="{Binding HasStalePreviewIssues, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel>
+                                <TextBlock FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Text="{DynamicResource StalePreviewTitle}" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="{DynamicResource StalePreviewBody}" />
+                                <TextBlock Margin="0,10,0,0"
+                                           FontWeight="SemiBold"
+                                           Text="{Binding StalePreviewSummaryText}" />
+                                <ItemsControl Margin="0,8,0,0"
+                                              ItemsSource="{Binding StalePreviewIssues}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Margin="0,0,0,6"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       Text="{Binding}"
+                                                       TextWrapping="Wrap" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Margin="0,8,0,0"
+                                        Style="{StaticResource ProminentSecondaryButtonStyle}"
+                                        Command="{Binding ScanCommand}"
+                                        Content="{DynamicResource StalePreviewRebuildButton}" />
+                            </StackPanel>
+                        </Border>
                         <Button Style="{StaticResource HeroActionButtonStyle}"
                                 Command="{Binding ExecuteSelectedCommand}"
                                 Content="{DynamicResource ExecuteButton}"
-                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBooleanConverter}}" />
+                                IsEnabled="{Binding CanExecuteSelectedOperations}" />
                         <Button Style="{StaticResource ProminentSecondaryButtonStyle}"
                                 Command="{Binding CancelCurrentWorkCommand}"
                                 Content="{DynamicResource CancelButton}"

@@ -8,9 +8,15 @@ public sealed class DedupAuditRunCompleted
 
     public int FilesRecycled { get; init; }
 
+    public int FilesQuarantined { get; init; }
+
+    public int FilesRestored { get; init; }
+
     public int FilesSkipped { get; init; }
 
     public int Errors { get; init; }
 
     public long BytesFreed { get; init; }
+
+    public long BytesQuarantined { get; init; }
 }
