@@ -74,6 +74,7 @@ Models/
  DedupAuditRunCompleted.cs
  DedupAuditRunHandle.cs
  DedupAuditRunStarted.cs
+ DuplicateDetectionResult.cs
  DuplicateMatch.cs
  EnvironmentFileSettings.cs
  EnvironmentPingAvailability.cs

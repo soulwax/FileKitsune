@@ -155,10 +155,10 @@ public sealed class OrganizationWorkflowService
 
         await Task.WhenAll(tasks);
 
-        var duplicateMatches = await duplicateDetectionService.DetectAsync(selectedFiles, settings.DuplicatePolicy, progress, cancellationToken);
+        var duplicateDetection = await duplicateDetectionService.AnalyzeAsync(selectedFiles, settings.DuplicatePolicy, progress, cancellationToken);
         foreach (var context in contexts)
         {
-            if (duplicateMatches.TryGetValue(context.File.RelativePath, out var duplicateMatch))
+            if (duplicateDetection.Matches.TryGetValue(context.File.RelativePath, out var duplicateMatch))
             {
                 context.DuplicateMatch = duplicateMatch;
             }
@@ -206,7 +206,7 @@ public sealed class OrganizationWorkflowService
             Settings = settings,
             StrategyPreset = strategyDefinition.Preset,
             Operations = operations,
-            Summary = BuildSummary(operations, scannedFiles.Count, selectedFiles.Count, settings, contexts),
+            Summary = BuildSummary(operations, scannedFiles.Count, selectedFiles.Count, settings, contexts, duplicateDetection),
             Guidance = guidance
         };
     }
@@ -267,7 +267,8 @@ public sealed class OrganizationWorkflowService
         int scannedItemCount,
         int plannedItemCount,
         OrganizationSettings settings,
-        IEnumerable<FileAnalysisContext> contexts)
+        IEnumerable<FileAnalysisContext> contexts,
+        DuplicateDetectionResult duplicateDetection)
     {
         var operationList = operations.ToList();
         var skippedByPreviewSample = Math.Max(0, scannedItemCount - plannedItemCount);
@@ -280,6 +281,7 @@ public sealed class OrganizationWorkflowService
             ScanLimitHit = scannedItemCount >= settings.MaxFilesToScan,
             PreviewSampleLimitHit = skippedByPreviewSample > 0,
             UnreadableContentCount = contexts.Count(context => !context.Content.IsTextReadable),
+            DuplicateHashFailureCount = duplicateDetection.HashFailureCount,
             MoveCount = operationList.Count(operation => operation.OperationType == PlanOperationType.Move),
             RenameCount = operationList.Count(operation => operation.OperationType == PlanOperationType.Rename),
             MoveAndRenameCount = operationList.Count(operation => operation.OperationType == PlanOperationType.MoveAndRename),

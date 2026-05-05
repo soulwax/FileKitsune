@@ -177,6 +177,41 @@ public sealed class DuplicateDetectionServiceTests
         Assert.True(results.ContainsKey("b.txt"));
     }
 
+    [Fact]
+    public async Task AnalyzeAsync_ReportsHashFailuresAndKeepsUsableMatches()
+    {
+        var provider = new ThrowingHashProvider
+        {
+            Hashes =
+            {
+                [@"C:\Root\a.txt"] = "HASH-1",
+                [@"C:\Root\b.txt"] = "HASH-1"
+            },
+            ThrowingPaths =
+            {
+                @"C:\Root\broken.txt"
+            }
+        };
+
+        var service = new DuplicateDetectionService(provider, NullLogger<DuplicateDetectionService>.Instance);
+        var policy = new DuplicatePolicy { EnableExactDuplicateDetection = true };
+
+        var result = await service.AnalyzeAsync(
+            [
+                new ScannedFile { FullPath = @"C:\Root\a.txt", RelativePath = "a.txt", FileName = "a.txt", SizeBytes = 100 },
+                new ScannedFile { FullPath = @"C:\Root\b.txt", RelativePath = "b.txt", FileName = "b.txt", SizeBytes = 100 },
+                new ScannedFile { FullPath = @"C:\Root\broken.txt", RelativePath = "broken.txt", FileName = "broken.txt", SizeBytes = 100 }
+            ],
+            policy,
+            progress: null,
+            CancellationToken.None);
+
+        Assert.Equal(3, result.CandidateFileCount);
+        Assert.Equal(1, result.HashFailureCount);
+        Assert.True(result.Matches.ContainsKey("b.txt"));
+        Assert.False(result.Matches.ContainsKey("broken.txt"));
+    }
+
     private sealed class FakeHashProvider : IFileHashProvider
     {
         public Dictionary<string, string> Hashes { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -196,6 +231,23 @@ public sealed class DuplicateDetectionServiceTests
         public Task<string> ComputeHashAsync(string fullPath, CancellationToken cancellationToken)
         {
             RequestedPaths.Add(fullPath);
+            return Task.FromResult(Hashes.TryGetValue(fullPath, out var hash) ? hash : string.Empty);
+        }
+    }
+
+    private sealed class ThrowingHashProvider : IFileHashProvider
+    {
+        public Dictionary<string, string> Hashes { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+        public HashSet<string> ThrowingPaths { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+        public Task<string> ComputeHashAsync(string fullPath, CancellationToken cancellationToken)
+        {
+            if (ThrowingPaths.Contains(fullPath))
+            {
+                throw new IOException("Cannot hash file.");
+            }
+
             return Task.FromResult(Hashes.TryGetValue(fullPath, out var hash) ? hash : string.Empty);
         }
     }

@@ -223,7 +223,7 @@
     <sys:String x:Key="SummaryItemsNeedingReviewLabel">Items needing review:</sys:String>
     <sys:String x:Key="SummaryDuplicatesLabel">Duplicates:</sys:String>
     <sys:String x:Key="PreviewCoverageTitle">Preview coverage</sys:String>
-    <sys:String x:Key="PreviewCoverageSummary">Scanned {0} file(s), planned {1}, left out of this preview sample {2}, protected {3}, unreadable content {4}.</sys:String>
+    <sys:String x:Key="PreviewCoverageSummary">Scanned {0} file(s), planned {1}, left out of this preview sample {2}, protected {3}, unreadable content {4}, duplicate hash failures {5}.</sys:String>
     <sys:String x:Key="PreviewCoverageWarning">{0} {1} Rebuild with higher limits before execution if you expected the whole folder to be represented.</sys:String>
     <sys:String x:Key="PreviewCoverageScanLimitHit">The scan reached the max-files limit.</sys:String>
     <sys:String x:Key="PreviewCoverageScanLimitNotHit">The scan did not reach the max-files limit.</sys:String>

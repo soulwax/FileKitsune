@@ -16,6 +16,8 @@ public sealed class PlanSummary
 
     public int UnreadableContentCount { get; init; }
 
+    public int DuplicateHashFailureCount { get; init; }
+
     public int MoveCount { get; init; }
 
     public int RenameCount { get; init; }

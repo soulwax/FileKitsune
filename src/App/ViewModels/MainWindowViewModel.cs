@@ -316,6 +316,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private int unreadableContentCount;
 
     [ObservableProperty]
+    private int duplicateHashFailureCount;
+
+    [ObservableProperty]
     private bool hasCoverageWarning;
 
     [ObservableProperty]
@@ -2107,6 +2110,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SkippedByPreviewSample = summary.SkippedByPreviewSample;
         ProtectedCount = summary.ProtectedCount;
         UnreadableContentCount = summary.UnreadableContentCount;
+        DuplicateHashFailureCount = summary.DuplicateHashFailureCount;
         MoveCount = summary.MoveCount + summary.MoveAndRenameCount;
         RenameCount = summary.RenameCount + summary.MoveAndRenameCount;
         NeedsReviewCount = summary.RequiresReviewCount;
@@ -2118,7 +2122,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             summary.PlannedItems,
             summary.SkippedByPreviewSample,
             summary.ProtectedCount,
-            summary.UnreadableContentCount);
+            summary.UnreadableContentCount,
+            summary.DuplicateHashFailureCount);
         HasCoverageWarning = summary.HasIncompleteCoverage;
         CoverageWarningText = summary.HasIncompleteCoverage
             ? FormatString(
@@ -2135,6 +2140,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SkippedByPreviewSample = 0;
         ProtectedCount = 0;
         UnreadableContentCount = 0;
+        DuplicateHashFailureCount = 0;
         HasCoverageWarning = false;
         CoverageWarningText = string.Empty;
         CoverageSummaryText = string.Empty;

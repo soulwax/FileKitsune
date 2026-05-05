@@ -167,7 +167,7 @@ These are not cosmetic. They close trust gaps where a user could misunderstand s
 - [x] Add execution preflight revalidation before any mutation: source still exists, source metadata/hash still matches the preview where available, destination is still conflict-free or intentionally conflict-resolved, and every final path still resolves inside the selected root.
 - [ ] Surface stale-preview results in the UI and require the user to rebuild or explicitly reconfirm changed items before execution.
 - [x] Add clear scan/preview coverage reporting: total scanned, previewed/planned count, skipped count, protected count, scan limit hit, preview sample limit hit, and unreadable content count.
-- [ ] Add duplicate hash failure counts to scan/preview coverage reporting once duplicate detection exposes failure statistics.
+- [x] Add duplicate hash failure counts to scan/preview coverage reporting once duplicate detection exposes failure statistics.
 - [x] Block or strongly warn on execution when the current plan is incomplete because `MaxFilesToScan` or `PreviewSampleSize` truncated the folder.
 - [ ] Add full OCR text extraction for scanned PDFs and image files, preferably local/offline-first, with extraction source and confidence visible in the preview.
 - [x] Add an audit trail for standalone dedup runs: root folder, duplicate groups, selected keepers, files sent to Recycle Bin, skipped groups, failures, and timestamp.

@@ -304,6 +304,78 @@ public sealed class OrganizationWorkflowServiceTests
         Assert.Equal(1, plan.Summary.UnreadableContentCount);
     }
 
+    [Fact]
+    public async Task BuildPlanAsync_ReportsDuplicateHashFailuresInCoverage()
+    {
+        var scanner = new FakeFileScanner(
+        [
+            new ScannedFile
+            {
+                FullPath = @"C:\Root\a.txt",
+                RelativePath = "a.txt",
+                RelativeDirectoryPath = string.Empty,
+                FileName = "a.txt",
+                Extension = ".txt",
+                SizeBytes = 10,
+                ModifiedUtc = new DateTimeOffset(2025, 02, 01, 8, 0, 0, TimeSpan.Zero)
+            },
+            new ScannedFile
+            {
+                FullPath = @"C:\Root\b.txt",
+                RelativePath = "b.txt",
+                RelativeDirectoryPath = string.Empty,
+                FileName = "b.txt",
+                Extension = ".txt",
+                SizeBytes = 10,
+                ModifiedUtc = new DateTimeOffset(2025, 02, 02, 8, 0, 0, TimeSpan.Zero)
+            }
+        ]);
+
+        var service = new OrganizationWorkflowService(
+            scanner,
+            new FakeContentReader(new FileContentSnapshot
+            {
+                Text = "Readable text",
+                IsTextReadable = true,
+                ExtractionSource = "text"
+            }),
+            new SemanticClassifierCoordinator(
+                new HeuristicSemanticClassifier(),
+                new NullGeminiClassifier(),
+                NullLogger<SemanticClassifierCoordinator>.Instance),
+            new NullGeminiOrganizationAdvisor(),
+            new DateResolutionService(),
+            new DuplicateDetectionService(new ThrowingFileHashProvider(@"C:\Root\b.txt"), NullLogger<DuplicateDetectionService>.Instance),
+            new ProjectClusterService(),
+            new ProtectionPolicyService(),
+            new DestinationPathBuilder(new NamingPolicyService(), new ReviewDecisionService()),
+            new PathSafetyService(),
+            NullLogger<OrganizationWorkflowService>.Instance);
+
+        var plan = await service.BuildPlanAsync(
+            new AppSettings
+            {
+                Organization = new OrganizationSettings
+                {
+                    RootDirectory = @"C:\Root",
+                    PreviewSampleSize = 10,
+                    DuplicatePolicy = new DuplicatePolicy
+                    {
+                        EnableExactDuplicateDetection = true
+                    }
+                },
+                Gemini = new GeminiOptions
+                {
+                    Enabled = false
+                }
+            },
+            progress: null,
+            CancellationToken.None);
+
+        Assert.Equal(1, plan.Summary.DuplicateHashFailureCount);
+        Assert.Equal(0, plan.Summary.DuplicateCount);
+    }
+
     private sealed class FakeFileScanner : IFileScanner
     {
         private readonly IReadOnlyList<ScannedFile> files;
@@ -380,5 +452,18 @@ public sealed class OrganizationWorkflowServiceTests
     {
         public Task<string> ComputeHashAsync(string fullPath, CancellationToken cancellationToken) =>
             Task.FromResult(string.Empty);
+    }
+
+    private sealed class ThrowingFileHashProvider(string throwingPath) : IFileHashProvider
+    {
+        public Task<string> ComputeHashAsync(string fullPath, CancellationToken cancellationToken)
+        {
+            if (string.Equals(fullPath, throwingPath, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new IOException("Cannot hash file.");
+            }
+
+            return Task.FromResult("HASH");
+        }
     }
 }

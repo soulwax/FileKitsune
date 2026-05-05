@@ -34,9 +34,19 @@ public sealed class DuplicateDetectionService
         IProgress<WorkflowProgress>? progress,
         CancellationToken cancellationToken)
     {
+        var result = await AnalyzeAsync(files, policy, progress, cancellationToken);
+        return result.Matches;
+    }
+
+    public async Task<DuplicateDetectionResult> AnalyzeAsync(
+        IReadOnlyList<ScannedFile> files,
+        DuplicatePolicy policy,
+        IProgress<WorkflowProgress>? progress,
+        CancellationToken cancellationToken)
+    {
         if (!policy.EnableExactDuplicateDetection)
         {
-            return new Dictionary<string, DuplicateMatch>(StringComparer.OrdinalIgnoreCase);
+            return new DuplicateDetectionResult();
         }
 
         var candidatesBySize = files
@@ -48,6 +58,7 @@ public sealed class DuplicateDetectionService
         var matches = new Dictionary<string, DuplicateMatch>(StringComparer.OrdinalIgnoreCase);
         var total = candidatesBySize.Sum(group => group.Count());
         var processed = 0;
+        var hashFailureCount = 0;
 
         foreach (var group in candidatesBySize)
         {
@@ -63,6 +74,7 @@ public sealed class DuplicateDetectionService
                 }
                 catch (Exception exception)
                 {
+                    hashFailureCount++;
                     logger.LogWarning(exception, "Failed to hash {File}", file.RelativePath);
                 }
                 finally
@@ -106,7 +118,12 @@ public sealed class DuplicateDetectionService
             }
         }
 
-        return matches;
+        return new DuplicateDetectionResult
+        {
+            Matches = matches,
+            CandidateFileCount = total,
+            HashFailureCount = hashFailureCount
+        };
     }
 
     private static int GetPathQualityScore(ScannedFile file)

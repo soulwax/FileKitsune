@@ -223,7 +223,7 @@
     <sys:String x:Key="SummaryItemsNeedingReviewLabel">Prüfbedürftige Elemente:</sys:String>
     <sys:String x:Key="SummaryDuplicatesLabel">Duplikate:</sys:String>
     <sys:String x:Key="PreviewCoverageTitle">Vorschauabdeckung</sys:String>
-    <sys:String x:Key="PreviewCoverageSummary">{0} Datei(en) gescannt, {1} geplant, {2} ausserhalb dieser Vorschau-Stichprobe, {3} geschuetzt, {4} Inhalte nicht lesbar.</sys:String>
+    <sys:String x:Key="PreviewCoverageSummary">{0} Datei(en) gescannt, {1} geplant, {2} ausserhalb dieser Vorschau-Stichprobe, {3} geschuetzt, {4} Inhalte nicht lesbar, {5} Duplikat-Hashfehler.</sys:String>
     <sys:String x:Key="PreviewCoverageWarning">{0} {1} Erhoehen Sie die Grenzen und erstellen Sie die Vorschau neu, wenn der ganze Ordner enthalten sein soll.</sys:String>
     <sys:String x:Key="PreviewCoverageScanLimitHit">Der Scan hat die maximale Dateigrenze erreicht.</sys:String>
     <sys:String x:Key="PreviewCoverageScanLimitNotHit">Der Scan hat die maximale Dateigrenze nicht erreicht.</sys:String>
