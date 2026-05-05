@@ -463,6 +463,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private bool hasRollbackHistory;
 
     [ObservableProperty]
+    private bool hasIncompleteExecutionJournals;
+
+    [ObservableProperty]
+    private bool selectedRollbackJournalNeedsRecovery;
+
+    [ObservableProperty]
+    private string incompleteExecutionJournalSummary = string.Empty;
+
+    [ObservableProperty]
     private RollbackJournalItem? selectedRollbackJournal;
 
     [ObservableProperty]
@@ -1483,6 +1492,46 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task MarkSelectedRollbackJournalAbandonedAsync()
+    {
+        if (SelectedRollbackJournal is null)
+        {
+            dialogService.ShowInformation(GetString("DialogRollbackSelectionRequiredTitle"), GetString("DialogRollbackSelectionRequiredBody"));
+            return;
+        }
+
+        if (!dialogService.Confirm(
+                GetString("DialogMarkJournalAbandonedTitle"),
+                FormatString("DialogMarkJournalAbandonedBody", SelectedRollbackJournal.Label)))
+        {
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+            var marked = await rollbackService.MarkAbandonedAsync(SelectedRollbackJournal.JournalId, CancellationToken.None);
+            if (!marked)
+            {
+                dialogService.ShowError(GetString("DialogMarkJournalAbandonedFailedTitle"), GetString("DialogMarkJournalAbandonedMissingBody"));
+                return;
+            }
+
+            await RefreshRollbackHistoryAsync(CancellationToken.None, SelectedRollbackJournal.JournalId);
+            StatusMessage = GetString("StatusJournalMarkedAbandoned");
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Marking journal abandoned failed.");
+            dialogService.ShowError(GetString("DialogMarkJournalAbandonedFailedTitle"), exception.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task RollbackFolderAsync(string folderName)
     {
         var confirmationBody = await BuildRollbackFolderConfirmationBodyAsync(folderName);
@@ -1679,6 +1728,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnSelectedRollbackJournalChanged(RollbackJournalItem? value)
     {
         HasSelectedRollbackJournal = value is not null;
+        SelectedRollbackJournalNeedsRecovery = value?.NeedsRecovery == true;
 
         if (value is null)
         {
@@ -2141,6 +2191,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         if (!HasRollbackHistory)
         {
+            HasIncompleteExecutionJournals = false;
+            IncompleteExecutionJournalSummary = string.Empty;
             return;
         }
 
@@ -2831,8 +2883,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RollbackHistory.Clear();
 
         var journals = await rollbackService.LoadHistoryAsync(cancellationToken);
+        var incompleteCount = 0;
         foreach (var journal in journals)
         {
+            if (journal.Status is ExecutionJournalStatus.Started or ExecutionJournalStatus.Canceled)
+            {
+                incompleteCount++;
+            }
+
             RollbackHistory.Add(new RollbackJournalItem
             {
                 JournalId = journal.JournalId,
@@ -2848,6 +2906,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         HasRollbackHistory = RollbackHistory.Count > 0;
+        HasIncompleteExecutionJournals = incompleteCount > 0;
+        IncompleteExecutionJournalSummary = incompleteCount > 0
+            ? FormatString("IncompleteExecutionJournalSummary", incompleteCount)
+            : string.Empty;
         var selectedJournalId = preferredJournalId ?? SelectedRollbackJournal?.JournalId;
         SelectedRollbackJournal = RollbackHistory.FirstOrDefault(item => item.JournalId == selectedJournalId) ??
                                   RollbackHistory.FirstOrDefault();
@@ -3100,6 +3162,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ExecutionJournalStatus.Started => GetString("RollbackStatusStarted"),
             ExecutionJournalStatus.Completed => GetString("RollbackStatusCompleted"),
             ExecutionJournalStatus.Canceled => GetString("RollbackStatusCanceled"),
+            ExecutionJournalStatus.Abandoned => GetString("RollbackStatusAbandoned"),
             _ => status.ToString()
         };
 

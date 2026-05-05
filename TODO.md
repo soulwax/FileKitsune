@@ -172,7 +172,7 @@ These are not cosmetic. They close trust gaps where a user could misunderstand s
 - [ ] Add full OCR text extraction for scanned PDFs and image files, preferably local/offline-first, with extraction source and confidence visible in the preview.
 - [x] Add an audit trail for standalone dedup runs: root folder, duplicate groups, selected keepers, quarantined files, skipped groups, failures, and timestamp.
 - [x] Replace Recycle Bin-only dedup execution with a FileKitsune-managed quarantine/restore flow so duplicate removal remains recoverable even if the OS Recycle Bin is unavailable, disabled, or later emptied.
-- [ ] Add recovery UI for incomplete/canceled/crashed execution journals so users can see pending operations and choose resume, rollback completed moves, or mark abandoned.
+- [x] Add recovery UI for incomplete/canceled/crashed execution journals so users can see pending operations, roll back completed moves, or mark abandoned.
 - [ ] Add checkpoint-level rollback hardening for partial failures across process restarts, including tests for pending journal entries and interrupted rollback attempts.
 - [x] Add a final execution review screen that summarizes exactly how many selected operations will move, rename, route duplicates, skip, or require review before the execute button is enabled.
 

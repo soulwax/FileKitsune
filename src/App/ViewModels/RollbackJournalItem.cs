@@ -10,6 +10,8 @@ public sealed class RollbackJournalItem
 
     public ExecutionJournalStatus Status { get; init; }
 
+    public bool NeedsRecovery => Status is ExecutionJournalStatus.Started or ExecutionJournalStatus.Canceled;
+
     public int OperationCount { get; init; }
 
     public string Label { get; init; } = string.Empty;

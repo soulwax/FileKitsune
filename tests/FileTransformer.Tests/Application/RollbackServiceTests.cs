@@ -230,16 +230,55 @@ public sealed class RollbackServiceTests
         Assert.Equal("StatusRollbackNoJournal", outcome.SummaryResourceKey);
     }
 
+    [Fact]
+    public async Task MarkAbandonedAsync_UpdatesJournalStatus()
+    {
+        var journal = CreateJournal(
+            rootDirectory: @"C:\Root",
+            entries:
+            [
+                CreateEntry(@"C:\Root\source.txt", @"C:\Root\Organized\source.txt")
+            ],
+            status: ExecutionJournalStatus.Started);
+        var journalStore = new InMemoryJournalStore([journal]);
+        var service = new RollbackService(
+            journalStore,
+            new FakeFileOperations(existingFiles: []),
+            new NoOpHashProvider(),
+            NullLogger<RollbackService>.Instance);
+
+        var marked = await service.MarkAbandonedAsync(journal.JournalId, CancellationToken.None);
+
+        Assert.True(marked);
+        Assert.Equal(ExecutionJournalStatus.Abandoned, journal.Status);
+        Assert.NotNull(journal.CompletedAtUtc);
+    }
+
+    [Fact]
+    public async Task MarkAbandonedAsync_ReturnsFalseWhenJournalIsMissing()
+    {
+        var service = new RollbackService(
+            new InMemoryJournalStore([]),
+            new FakeFileOperations(existingFiles: []),
+            new NoOpHashProvider(),
+            NullLogger<RollbackService>.Instance);
+
+        var marked = await service.MarkAbandonedAsync(Guid.NewGuid(), CancellationToken.None);
+
+        Assert.False(marked);
+    }
+
     private static ExecutionJournal CreateJournal(
         string rootDirectory,
         IReadOnlyList<ExecutionJournalEntry> entries,
-        DateTimeOffset? createdAtUtc = null) =>
+        DateTimeOffset? createdAtUtc = null,
+        ExecutionJournalStatus status = ExecutionJournalStatus.Completed) =>
         new()
         {
             RootDirectory = rootDirectory,
             CreatedAtUtc = createdAtUtc ?? DateTimeOffset.UtcNow,
-            CompletedAtUtc = createdAtUtc ?? DateTimeOffset.UtcNow,
-            Status = ExecutionJournalStatus.Completed,
+            CompletedAtUtc = status == ExecutionJournalStatus.Completed ? createdAtUtc ?? DateTimeOffset.UtcNow : null,
+            Status = status,
             Entries = entries.ToList()
         };
 

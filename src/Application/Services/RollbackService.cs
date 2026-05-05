@@ -64,6 +64,20 @@ public sealed class RollbackService
     public Task<ExecutionJournal?> LoadJournalAsync(Guid journalId, CancellationToken cancellationToken) =>
         executionJournalStore.LoadAsync(journalId, cancellationToken);
 
+    public async Task<bool> MarkAbandonedAsync(Guid journalId, CancellationToken cancellationToken)
+    {
+        var journal = await executionJournalStore.LoadAsync(journalId, cancellationToken);
+        if (journal is null)
+        {
+            return false;
+        }
+
+        journal.Status = ExecutionJournalStatus.Abandoned;
+        journal.CompletedAtUtc ??= DateTimeOffset.UtcNow;
+        await executionJournalStore.SaveAsync(journal, cancellationToken);
+        return true;
+    }
+
     public async Task<RollbackPreview> PreviewRollbackAsync(Guid journalId, CancellationToken cancellationToken)
     {
         var journal = await executionJournalStore.LoadAsync(journalId, cancellationToken);

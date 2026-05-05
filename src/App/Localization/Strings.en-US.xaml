@@ -274,6 +274,12 @@
     <sys:String x:Key="RollbackHistoryHint">Choose a saved execution run to inspect folder-scoped undo targets. The main rollback button still reverts the latest run.</sys:String>
     <sys:String x:Key="RollbackHistoryItemLabel">{0:g} | {1} operations | {2}</sys:String>
     <sys:String x:Key="RollbackHistorySelectedSummary">Selected run: {0:g}, {1} operations, status {2}, root {3}</sys:String>
+    <sys:String x:Key="IncompleteExecutionJournalTitle">Recovery attention needed</sys:String>
+    <sys:String x:Key="IncompleteExecutionJournalSummary">{0} started or canceled run(s) may need recovery.</sys:String>
+    <sys:String x:Key="IncompleteExecutionJournalBody">Select one of these runs below, preview what can roll back, then either roll back completed moves or mark the run abandoned.</sys:String>
+    <sys:String x:Key="RecoveryPreviewButton">Preview recovery</sys:String>
+    <sys:String x:Key="RecoveryRollbackButton">Roll back completed moves</sys:String>
+    <sys:String x:Key="RecoveryMarkAbandonedButton">Mark abandoned</sys:String>
     <sys:String x:Key="RollbackFolderItemLabel">Undo "{0}" ({1} files)</sys:String>
     <sys:String x:Key="RollbackFolderUndoButton">Undo folder</sys:String>
     <sys:String x:Key="RollbackSelectedButton">Rollback selected run</sys:String>
@@ -318,6 +324,7 @@
     <sys:String x:Key="RollbackStatusStarted">Started</sys:String>
     <sys:String x:Key="RollbackStatusCompleted">Completed</sys:String>
     <sys:String x:Key="RollbackStatusCanceled">Canceled</sys:String>
+    <sys:String x:Key="RollbackStatusAbandoned">Abandoned</sys:String>
     <sys:String x:Key="OptionRenameKeepOriginal">Keep original names</sys:String>
     <sys:String x:Key="OptionRenameNormalizeWhitespace">Normalize whitespace/punctuation</sys:String>
     <sys:String x:Key="OptionRenameSuggestCleanNames">Suggest cleaned names</sys:String>
@@ -370,6 +377,7 @@
     <sys:String x:Key="StatusExecuting">Executing approved operations...</sys:String>
     <sys:String x:Key="StatusExecutionOutcome">Executed {0} operation(s), skipped {1}, failed {2}.</sys:String>
     <sys:String x:Key="StatusExecutionPreflightFailed">Execution blocked before any file was changed. Rebuild the preview and review {0} issue(s).</sys:String>
+    <sys:String x:Key="StatusJournalMarkedAbandoned">Selected recovery run marked abandoned.</sys:String>
     <sys:String x:Key="StatusRollbackOutcome">Rolled back {0} operation(s), skipped {1}, failed {2}.</sys:String>
     <sys:String x:Key="StatusRollbackNoJournal">No rollback journal was found.</sys:String>
     <sys:String x:Key="StatusRollbackNoFolderOperations">No operations found for folder "{0}".</sys:String>
@@ -409,6 +417,10 @@
     <sys:String x:Key="DialogRollbackLatestBody">Attempt to reverse the most recent successful move/rename journal? Existing conflicts will be skipped.</sys:String>
     <sys:String x:Key="DialogRollbackSelectedTitle">Rollback selected run</sys:String>
     <sys:String x:Key="DialogRollbackSelectedBody">Attempt to reverse the selected journal "{0}"? Existing conflicts will be skipped.</sys:String>
+    <sys:String x:Key="DialogMarkJournalAbandonedTitle">Mark recovery run abandoned</sys:String>
+    <sys:String x:Key="DialogMarkJournalAbandonedBody">Mark "{0}" as abandoned? This does not move files; it only records that you intentionally will not recover this run.</sys:String>
+    <sys:String x:Key="DialogMarkJournalAbandonedFailedTitle">Could not mark abandoned</sys:String>
+    <sys:String x:Key="DialogMarkJournalAbandonedMissingBody">The selected recovery run could not be found.</sys:String>
     <sys:String x:Key="DialogRollbackBodyWithImpact">Attempt to reverse the run "{0}"?{4}{4}Ready to restore: {1}{4}Would be skipped because the current file is missing: {2}{4}Would be skipped because the original path is occupied: {3}</sys:String>
     <sys:String x:Key="DialogRollbackImpactIntro">Attempt to reverse the run "{0}"?</sys:String>
     <sys:String x:Key="DialogRollbackFolderImpactIntro">Reverse all moves into "{0}" from the selected run?</sys:String>
