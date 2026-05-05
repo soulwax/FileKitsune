@@ -61,6 +61,8 @@
     <sys:String x:Key="WizardStepDedupReviewBody">Legen Sie pro Gruppe fest, welche Datei behalten wird. Noch wird nichts gelöscht.</sys:String>
     <sys:String x:Key="WizardStepDedupExecuteTitle">Duplikate: Ausführen</sys:String>
     <sys:String x:Key="WizardStepDedupExecuteBody">Bestätigte Kopien werden in den Windows-Papierkorb verschoben.</sys:String>
+    <sys:String x:Key="WizardStepLegalTitle">Rechtliches</sys:String>
+    <sys:String x:Key="WizardStepLegalBody">Lizenz- und Gewährleistungsinformationen zu FileKitsune.</sys:String>
     <sys:String x:Key="ModeOrganizeTitle">Dateien organisieren</sys:String>
     <sys:String x:Key="ModeOrganizeBody">Den bekannten 5-Schritt-Assistenten nutzen: Ordner wählen, Strategie und Regeln setzen, Vorschau prüfen, dann gezielt ausführen.</sys:String>
     <sys:String x:Key="ModeOrganizeAction">Organisationsmodus öffnen</sys:String>
@@ -95,6 +97,14 @@
     <sys:String x:Key="DedupExecuteErrorOutOfRoot">Übersprungen, weil außerhalb des Scan-Ordners: {0}</sys:String>
     <sys:String x:Key="DedupExecuteErrorLine">Fehler bei {0}: {1}</sys:String>
     <sys:String x:Key="DedupExecuteAuditWriteFailed">Audit konnte nach dem Verschieben von {0} nicht geschrieben werden: {1}</sys:String>
+    <sys:String x:Key="LegalFooterButton">Rechtliches</sys:String>
+    <sys:String x:Key="LegalTitle">Rechtliche Informationen</sys:String>
+    <sys:String x:Key="LegalIntro">FileKitsune ist freie Software für vorschauorientierte Datei-Organisation unter Windows.</sys:String>
+    <sys:String x:Key="LegalWarrantyTitle">Keine Gewährleistung</sys:String>
+    <sys:String x:Key="LegalWarrantyBody">FileKitsune wird ohne jede Gewährleistung bereitgestellt. Die App ist darauf ausgelegt, Operationen vorab zu zeigen, zu protokollieren und nach Möglichkeit rückgängig machbar zu halten. Sie bleiben jedoch verantwortlich für Ihre Dateien, Backups, Einstellungen und Entscheidungen vor jeder Ausführung.</sys:String>
+    <sys:String x:Key="LegalLicenseTitle">Lizenz</sys:String>
+    <sys:String x:Key="LegalLicenseBody">FileKitsune steht unter der GNU General Public License Version 3. Der vollständige Lizenztext aus der mitgelieferten Datei LICENSE wird unten angezeigt.</sys:String>
+    <sys:String x:Key="LegalBackButton">Zurück</sys:String>
     <sys:String x:Key="UiLanguageLabel">Programmsprache</sys:String>
     <sys:String x:Key="StrategySelectionTitle">Strategieauswahl</sys:String>
     <sys:String x:Key="StrategySelectionBody">Wählen Sie jetzt die primäre Organisationsstrategie oder nutzen Sie nach einer Vorschau die Empfehlungskarten in diesem Schritt.</sys:String>

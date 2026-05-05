@@ -58,6 +58,11 @@
                     <Setter Property="Text"
                             Value="{DynamicResource WizardStepDedupExecuteTitle}"/>
                 </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}"
+                        Value="{x:Static viewModels:WizardStep.Legal}">
+                    <Setter Property="Text"
+                            Value="{DynamicResource WizardStepLegalTitle}"/>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -105,6 +110,11 @@
                         Value="{x:Static viewModels:WizardStep.DedupExecute}">
                     <Setter Property="Text"
                             Value="{DynamicResource WizardStepDedupExecuteBody}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding CurrentStep}"
+                        Value="{x:Static viewModels:WizardStep.Legal}">
+                    <Setter Property="Text"
+                            Value="{DynamicResource WizardStepLegalBody}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -159,6 +169,10 @@
 
         <DataTemplate x:Key="DedupExecuteStepTemplate">
             <views:WizardDedupExecuteView/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="LegalStepTemplate">
+            <views:WizardLegalView/>
         </DataTemplate>
     </Window.Resources>
 
@@ -317,6 +331,11 @@
                                 <Setter Property="ContentTemplate"
                                         Value="{StaticResource DedupExecuteStepTemplate}"/>
                             </DataTrigger>
+                            <DataTrigger Binding="{Binding CurrentStep}"
+                                    Value="{x:Static viewModels:WizardStep.Legal}">
+                                <Setter Property="ContentTemplate"
+                                        Value="{StaticResource LegalStepTemplate}"/>
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </ContentControl.Style>
@@ -338,6 +357,10 @@
                         Command="{Binding BackCommand}"
                         Content="{DynamicResource WizardBackButton}"
                         Visibility="{Binding IsWizardShellNavigationVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <Button DockPanel.Dock="Right"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding OpenLegalCommand}"
+                        Content="{DynamicResource LegalFooterButton}"/>
                 <StackPanel>
                     <TextBlock FontSize="11"
                                FontWeight="SemiBold"

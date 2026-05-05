@@ -70,6 +70,7 @@ obj/Debug/net8.0-windows/
   WizardDedupScanView.g.cs
   WizardExecuteStepView.g.cs
   WizardFolderStepView.g.cs
+  WizardLegalView.g.cs
   WizardModeSelectorView.g.cs
   WizardPreviewStepView.g.cs
   WizardRulesStepView.g.cs
@@ -107,6 +108,7 @@ Views/
  WizardDedupScanView.xaml.cs
  WizardExecuteStepView.xaml.cs
  WizardFolderStepView.xaml.cs
+ WizardLegalView.xaml.cs
  WizardModeSelectorView.xaml.cs
  WizardPreviewStepView.xaml.cs
  WizardRulesStepView.xaml.cs

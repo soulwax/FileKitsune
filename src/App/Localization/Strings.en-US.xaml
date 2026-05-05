@@ -61,6 +61,8 @@
     <sys:String x:Key="WizardStepDedupReviewBody">Pick the keeper in each group. Nothing is removed yet.</sys:String>
     <sys:String x:Key="WizardStepDedupExecuteTitle">Duplicates: execute</sys:String>
     <sys:String x:Key="WizardStepDedupExecuteBody">Confirmed copies are moved to the Windows Recycle Bin.</sys:String>
+    <sys:String x:Key="WizardStepLegalTitle">Legal</sys:String>
+    <sys:String x:Key="WizardStepLegalBody">License and warranty information for FileKitsune.</sys:String>
     <sys:String x:Key="ModeOrganizeTitle">Organize files</sys:String>
     <sys:String x:Key="ModeOrganizeBody">Use the known 5-step wizard: choose a folder, set strategy and rules, review the preview, then execute selectively.</sys:String>
     <sys:String x:Key="ModeOrganizeAction">Open organize mode</sys:String>
@@ -95,6 +97,14 @@
     <sys:String x:Key="DedupExecuteErrorOutOfRoot">Skipped because it is outside the scan folder: {0}</sys:String>
     <sys:String x:Key="DedupExecuteErrorLine">Error for {0}: {1}</sys:String>
     <sys:String x:Key="DedupExecuteAuditWriteFailed">Audit write failed after moving {0}: {1}</sys:String>
+    <sys:String x:Key="LegalFooterButton">Legal</sys:String>
+    <sys:String x:Key="LegalTitle">Legal information</sys:String>
+    <sys:String x:Key="LegalIntro">FileKitsune is free software for preview-first file organization on Windows.</sys:String>
+    <sys:String x:Key="LegalWarrantyTitle">No warranty</sys:String>
+    <sys:String x:Key="LegalWarrantyBody">FileKitsune is provided without any warranty. It is designed to preview, audit, and keep operations reversible where possible, but you remain responsible for your files, backups, settings, and decisions before executing any operation.</sys:String>
+    <sys:String x:Key="LegalLicenseTitle">License</sys:String>
+    <sys:String x:Key="LegalLicenseBody">FileKitsune is licensed under the GNU General Public License version 3. The complete license text from the bundled LICENSE file is shown below.</sys:String>
+    <sys:String x:Key="LegalBackButton">Back</sys:String>
     <sys:String x:Key="UiLanguageLabel">App language</sys:String>
     <sys:String x:Key="StrategySelectionTitle">Strategy selection</sys:String>
     <sys:String x:Key="StrategySelectionBody">Choose the primary organization strategy now, or use recommendation cards here after you build a preview.</sys:String>
