@@ -38,6 +38,12 @@ public sealed class PlanOperation
 
     public string FileName { get; init; } = string.Empty;
 
+    public long? SourceSizeBytes { get; init; }
+
+    public DateTimeOffset? SourceModifiedUtc { get; init; }
+
+    public string SourceContentHash { get; init; } = string.Empty;
+
     public OrganizationStrategyPreset StrategyPreset { get; init; } = OrganizationStrategyPreset.ManualCustom;
 
     public List<string> ReviewReasons { get; init; } = [];

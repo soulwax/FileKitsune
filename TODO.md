@@ -152,7 +152,7 @@ Validated baseline:
 
 These are not cosmetic. They close trust gaps where a user could misunderstand scope, execute a stale plan, or lose confidence after a failure.
 
-- [ ] Add execution preflight revalidation before any mutation: source still exists, source metadata/hash still matches the preview where available, destination is still conflict-free or intentionally conflict-resolved, and every final path still resolves inside the selected root.
+- [x] Add execution preflight revalidation before any mutation: source still exists, source metadata/hash still matches the preview where available, destination is still conflict-free or intentionally conflict-resolved, and every final path still resolves inside the selected root.
 - [ ] Surface stale-preview results in the UI and require the user to rebuild or explicitly reconfirm changed items before execution.
 - [ ] Add clear scan/preview coverage reporting: total scanned, previewed/planned count, skipped count, protected count, scan limit hit, preview sample limit hit, unreadable content count, and duplicate hash failures.
 - [ ] Block or strongly warn on execution when the current plan is incomplete because `MaxFilesToScan` or `PreviewSampleSize` truncated the folder.

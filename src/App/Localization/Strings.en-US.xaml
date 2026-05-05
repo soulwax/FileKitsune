@@ -342,6 +342,7 @@
     <sys:String x:Key="StatusDedupAuditFailed">Duplicate execution stopped because the audit file could not be created.</sys:String>
     <sys:String x:Key="StatusExecuting">Executing approved operations...</sys:String>
     <sys:String x:Key="StatusExecutionOutcome">Executed {0} operation(s), skipped {1}, failed {2}.</sys:String>
+    <sys:String x:Key="StatusExecutionPreflightFailed">Execution blocked before any file was changed. Rebuild the preview and review {0} issue(s).</sys:String>
     <sys:String x:Key="StatusRollbackOutcome">Rolled back {0} operation(s), skipped {1}, failed {2}.</sys:String>
     <sys:String x:Key="StatusRollbackNoJournal">No rollback journal was found.</sys:String>
     <sys:String x:Key="StatusRollbackNoFolderOperations">No operations found for folder "{0}".</sys:String>

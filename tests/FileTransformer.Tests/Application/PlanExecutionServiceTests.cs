@@ -65,6 +65,125 @@ public sealed class PlanExecutionServiceTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_BlocksBeforeMutationWhenSourceIsMissing()
+    {
+        var fileOperations = new FakeFileOperations(
+            existingFiles:
+            [
+                @"C:\Root\ready.txt"
+            ]);
+
+        var journalStore = new InMemoryJournalStore();
+        var service = new PlanExecutionService(
+            fileOperations,
+            new FakeHashProvider(),
+            journalStore,
+            new PathSafetyService(),
+            NullLogger<PlanExecutionService>.Instance);
+        var missingOperation = CreateOperation("missing.txt", @"Invoices\2025\missing.txt");
+        var readyOperation = CreateOperation("ready.txt", @"Invoices\2025\ready.txt");
+        var plan = CreatePlan(ConflictHandlingMode.AppendCounter, missingOperation, readyOperation);
+
+        var outcome = await service.ExecuteAsync(
+            plan,
+            [missingOperation.Id, readyOperation.Id],
+            progress: null,
+            CancellationToken.None);
+
+        Assert.Equal(2, outcome.RequestedOperations);
+        Assert.Equal(0, outcome.SuccessfulOperations);
+        Assert.Equal(2, outcome.FailedOperations);
+        Assert.Equal("StatusExecutionPreflightFailed", outcome.SummaryResourceKey);
+        Assert.Empty(fileOperations.Moves);
+        Assert.Equal(0, journalStore.SaveCount);
+        Assert.Contains(outcome.Messages, message => message.Contains("missing.txt", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_BlocksWhenPreviewedSourceMetadataChanged()
+    {
+        var sourcePath = Path.GetTempFileName();
+        var rootDirectory = Path.GetDirectoryName(sourcePath)!;
+        var sourceName = Path.GetFileName(sourcePath);
+        await File.WriteAllTextAsync(sourcePath, "changed content");
+
+        try
+        {
+            var fileOperations = new FakeFileOperations(existingFiles: [sourcePath]);
+            var journalStore = new InMemoryJournalStore();
+            var service = new PlanExecutionService(
+                fileOperations,
+                new FakeHashProvider(),
+                journalStore,
+                new PathSafetyService(),
+                NullLogger<PlanExecutionService>.Instance);
+            var operation = new PlanOperation
+            {
+                OperationType = PlanOperationType.Move,
+                CurrentRelativePath = sourceName,
+                ProposedRelativePath = Path.Combine("Invoices", "2025", sourceName),
+                AllowedToExecute = true,
+                FileName = sourceName,
+                SourceSizeBytes = new FileInfo(sourcePath).Length + 1,
+                Reason = "Test move"
+            };
+            var plan = CreatePlan(rootDirectory, ConflictHandlingMode.AppendCounter, operation);
+
+            var outcome = await service.ExecuteAsync(plan, [operation.Id], progress: null, CancellationToken.None);
+
+            Assert.Equal(0, outcome.SuccessfulOperations);
+            Assert.Equal(1, outcome.FailedOperations);
+            Assert.Empty(fileOperations.Moves);
+            Assert.Equal(0, journalStore.SaveCount);
+            Assert.Contains(outcome.Messages, message => message.Contains("changed size", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            if (File.Exists(sourcePath))
+            {
+                File.Delete(sourcePath);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_BlocksWhenPreviewedSourceHashChanged()
+    {
+        var fileOperations = new FakeFileOperations(
+            existingFiles:
+            [
+                @"C:\Root\source.txt"
+            ]);
+
+        var journalStore = new InMemoryJournalStore();
+        var service = new PlanExecutionService(
+            fileOperations,
+            new FakeHashProvider(),
+            journalStore,
+            new PathSafetyService(),
+            NullLogger<PlanExecutionService>.Instance);
+        var operation = new PlanOperation
+        {
+            OperationType = PlanOperationType.Move,
+            CurrentRelativePath = "source.txt",
+            ProposedRelativePath = @"Invoices\2025\source.txt",
+            AllowedToExecute = true,
+            FileName = "source.txt",
+            SourceContentHash = "HASH::preview",
+            Reason = "Test move"
+        };
+        var plan = CreatePlan(ConflictHandlingMode.AppendCounter, operation);
+
+        var outcome = await service.ExecuteAsync(plan, [operation.Id], progress: null, CancellationToken.None);
+
+        Assert.Equal(0, outcome.SuccessfulOperations);
+        Assert.Equal(1, outcome.FailedOperations);
+        Assert.Empty(fileOperations.Moves);
+        Assert.Equal(0, journalStore.SaveCount);
+        Assert.Contains(outcome.Messages, message => message.Contains("changed content", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public async Task ExecuteAsync_PersistsJournalBeforeAndAfterSuccessfulOperations()
     {
         var sourcePath = Path.GetTempFileName();
@@ -234,7 +353,7 @@ public sealed class PlanExecutionServiceTests
             Reason = "Test move"
         };
 
-    private static OrganizationPlan CreatePlan(string rootDirectory, ConflictHandlingMode conflictHandlingMode, PlanOperation operation) =>
+    private static OrganizationPlan CreatePlan(string rootDirectory, ConflictHandlingMode conflictHandlingMode, params PlanOperation[] operations) =>
         new()
         {
             Settings = new OrganizationSettings
@@ -242,12 +361,12 @@ public sealed class PlanExecutionServiceTests
                 RootDirectory = rootDirectory,
                 ConflictHandlingMode = conflictHandlingMode
             },
-            Operations = [operation],
-            Summary = new PlanSummary { TotalItems = 1, MoveCount = 1 }
+            Operations = operations,
+            Summary = new PlanSummary { TotalItems = operations.Length, MoveCount = operations.Length }
         };
 
-    private static OrganizationPlan CreatePlan(ConflictHandlingMode conflictHandlingMode, PlanOperation operation) =>
-        CreatePlan(@"C:\Root", conflictHandlingMode, operation);
+    private static OrganizationPlan CreatePlan(ConflictHandlingMode conflictHandlingMode, params PlanOperation[] operations) =>
+        CreatePlan(@"C:\Root", conflictHandlingMode, operations);
 
     private sealed class FakeFileOperations : IFileOperations
     {

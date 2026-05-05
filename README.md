@@ -97,6 +97,7 @@ The app is usable today and currently provides:
 
 - destination paths are validated as Windows-safe relative paths
 - final destinations must resolve inside the selected root folder
+- execution revalidates selected preview items before any mutation and blocks the whole run if a selected source disappeared, changed metadata/hash where available, or can no longer resolve safely
 - Gemini is advisory only; local logic still validates categories, fragments, and final paths
 - execution currently performs moves and renames only
 - the organization wizard does not delete files

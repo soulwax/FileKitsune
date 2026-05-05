@@ -8,6 +8,8 @@ namespace FileTransformer.Application.Services;
 
 public sealed class PlanExecutionService
 {
+    private const double ModifiedTimestampToleranceSeconds = 2;
+
     // TODO: Add duplicate-detection policies before execution when the planner grows beyond v1.
     private readonly IFileOperations fileOperations;
     private readonly IFileHashProvider fileHashProvider;
@@ -41,6 +43,20 @@ public sealed class PlanExecutionService
             .Where(operation => operation.AllowedToExecute)
             .Where(operation => operation.OperationType is not PlanOperationType.Skip and not PlanOperationType.CreateFolder)
             .ToList();
+
+        var preflightFailures = await RevalidateBeforeExecutionAsync(plan, operations, cancellationToken);
+        if (preflightFailures.Count > 0)
+        {
+            return new ExecutionOutcome
+            {
+                RequestedOperations = operations.Count,
+                FailedOperations = operations.Count,
+                Summary = $"Execution blocked before any file was changed. Rebuild the preview and review {preflightFailures.Count} issue(s).",
+                SummaryResourceKey = "StatusExecutionPreflightFailed",
+                SummaryArguments = [preflightFailures.Count],
+                Messages = preflightFailures.ToList()
+            };
+        }
 
         var journal = new ExecutionJournal
         {
@@ -194,6 +210,146 @@ public sealed class PlanExecutionService
             Journal = journal.Entries.Count > 0 ? journal : null,
             Messages = messages
         };
+    }
+
+    private async Task<IReadOnlyList<string>> RevalidateBeforeExecutionAsync(
+        OrganizationPlan plan,
+        IReadOnlyList<PlanOperation> operations,
+        CancellationToken cancellationToken)
+    {
+        var failures = new List<string>();
+        var reservedDestinations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var operation in operations)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string sourceFullPath;
+            string destinationFullPath;
+            try
+            {
+                sourceFullPath = pathSafetyService.CombineWithinRoot(plan.Settings.RootDirectory, operation.CurrentRelativePath);
+                destinationFullPath = pathSafetyService.CombineWithinRoot(plan.Settings.RootDirectory, operation.ProposedRelativePath);
+            }
+            catch (Exception exception)
+            {
+                failures.Add($"'{operation.CurrentRelativePath}' is no longer safe to execute: {exception.Message}");
+                continue;
+            }
+
+            if (!fileOperations.FileExists(sourceFullPath))
+            {
+                failures.Add($"'{operation.CurrentRelativePath}' no longer exists at its previewed source path.");
+                continue;
+            }
+
+            var fileInfoFailure = await RevalidateSourceSnapshotAsync(operation, sourceFullPath, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(fileInfoFailure))
+            {
+                failures.Add(fileInfoFailure);
+                continue;
+            }
+
+            var finalDestination = await ResolvePreflightDestinationAsync(
+                plan,
+                operation,
+                destinationFullPath,
+                reservedDestinations,
+                cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(finalDestination))
+            {
+                failures.Add($"'{operation.ProposedRelativePath}' is no longer conflict-free. Rebuild the preview before executing.");
+                continue;
+            }
+
+            reservedDestinations.Add(finalDestination);
+        }
+
+        return failures;
+    }
+
+    private async Task<string> RevalidateSourceSnapshotAsync(
+        PlanOperation operation,
+        string sourceFullPath,
+        CancellationToken cancellationToken)
+    {
+        if (operation.SourceSizeBytes is not null || operation.SourceModifiedUtc is not null)
+        {
+            var fileInfo = TryReadFileInfo(sourceFullPath);
+            if (fileInfo is null)
+            {
+                return $"'{operation.CurrentRelativePath}' could not be re-read before execution.";
+            }
+
+            if (operation.SourceSizeBytes is not null && fileInfo.Length != operation.SourceSizeBytes.Value)
+            {
+                return $"'{operation.CurrentRelativePath}' changed size since the preview was built.";
+            }
+
+            if (operation.SourceModifiedUtc is not null)
+            {
+                var actualModifiedUtc = new DateTimeOffset(fileInfo.LastWriteTimeUtc);
+                var delta = (actualModifiedUtc - operation.SourceModifiedUtc.Value).Duration();
+                if (delta.TotalSeconds > ModifiedTimestampToleranceSeconds)
+                {
+                    return $"'{operation.CurrentRelativePath}' changed timestamp since the preview was built.";
+                }
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(operation.SourceContentHash))
+        {
+            var currentHash = await fileHashProvider.ComputeHashAsync(sourceFullPath, cancellationToken);
+            if (!string.Equals(currentHash, operation.SourceContentHash, StringComparison.Ordinal))
+            {
+                return $"'{operation.CurrentRelativePath}' changed content since the preview was built.";
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private async Task<string> ResolvePreflightDestinationAsync(
+        OrganizationPlan plan,
+        PlanOperation operation,
+        string destinationFullPath,
+        HashSet<string> reservedDestinations,
+        CancellationToken cancellationToken)
+    {
+        if (!fileOperations.FileExists(destinationFullPath) && !reservedDestinations.Contains(destinationFullPath))
+        {
+            return destinationFullPath;
+        }
+
+        if (plan.Settings.NamingPolicy.ConflictHandlingMode == ConflictHandlingMode.Skip)
+        {
+            return destinationFullPath;
+        }
+
+        var directory = Path.GetDirectoryName(destinationFullPath) ?? plan.Settings.RootDirectory;
+        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(destinationFullPath);
+        var extension = Path.GetExtension(destinationFullPath);
+
+        for (var counter = 2; counter < 10_000; counter++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var candidate = Path.Combine(directory, $"{fileNameWithoutExtension} ({counter}){extension}");
+            if (!pathSafetyService.IsWithinRoot(plan.Settings.RootDirectory, candidate))
+            {
+                return string.Empty;
+            }
+
+            if (!fileOperations.FileExists(candidate) && !reservedDestinations.Contains(candidate))
+            {
+                return candidate;
+            }
+
+            await Task.Yield();
+        }
+
+        return string.Empty;
     }
 
     private static FileInfo? TryReadFileInfo(string path)

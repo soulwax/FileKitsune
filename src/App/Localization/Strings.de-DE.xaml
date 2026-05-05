@@ -342,6 +342,7 @@
     <sys:String x:Key="StatusDedupAuditFailed">Duplikat-Ausführung gestoppt, weil die Auditdatei nicht erstellt werden konnte.</sys:String>
     <sys:String x:Key="StatusExecuting">Führe freigegebene Operationen aus...</sys:String>
     <sys:String x:Key="StatusExecutionOutcome">{0} Operation(en) ausgeführt, {1} übersprungen, {2} fehlgeschlagen.</sys:String>
+    <sys:String x:Key="StatusExecutionPreflightFailed">Ausführung blockiert, bevor eine Datei geändert wurde. Erstellen Sie die Vorschau neu und prüfen Sie {0} Problem(e).</sys:String>
     <sys:String x:Key="StatusRollbackOutcome">{0} Operation(en) zurückgesetzt, {1} übersprungen, {2} fehlgeschlagen.</sys:String>
     <sys:String x:Key="StatusRollbackNoJournal">Kein Rollback-Journal gefunden.</sys:String>
     <sys:String x:Key="StatusRollbackNoFolderOperations">Keine Operationen für den Ordner "{0}" gefunden.</sys:String>
