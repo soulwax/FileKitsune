@@ -263,6 +263,7 @@
     <sys:String x:Key="RollbackPreviewSelectedRunButton">Preview selected run</sys:String>
     <sys:String x:Key="RollbackPreviewFolderButton">Preview</sys:String>
     <sys:String x:Key="RollbackPreviewWhenColumn">When</sys:String>
+    <sys:String x:Key="RollbackPreviewFileColumn">File</sys:String>
     <sys:String x:Key="RollbackPreviewCurrentColumn">Current location</sys:String>
     <sys:String x:Key="RollbackPreviewRestoreToColumn">Restore to</sys:String>
     <sys:String x:Key="RollbackPreviewStatusColumn">Expected status</sys:String>

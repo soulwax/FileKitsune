@@ -20,10 +20,22 @@ Current project branding direction:
 - [x] Add WPF-ready general action/status icon dependency: `MahApps.Metro.IconPacks.Material`
 - [x] Create first FileKitsune icon mapping service from file extension to icon kind and color
 - [x] Add file-type symbols to preview grid rows, selected-operation details, and duplicate review cards
-- [ ] Add file-type symbols to rollback preview rows
+- [x] Add file-type symbols to rollback preview rows
 - [ ] Extend icon mapping from file extension only to semantic category, operation type, and localized tooltip
 - [ ] Build a small FileKitsune-native overlay set for app-specific states: duplicate, keeper, review needed, protected, Gemini-advised, moved, renamed, rollback-ready, rollback-blocked
 - [ ] Decide whether to supplement dependency icons with custom SVG/XAML document silhouettes for a more macOS-like but non-copycat FileKitsune house style
+
+## Modern Visual Direction
+
+Make FileKitsune feel beautiful, calm, and modern without weakening its safety-first character.
+
+- [ ] Define a compact visual language for trust states: ready, warning, blocked, protected, rollback-ready, rollback-blocked, duplicate, keeper, and review-needed.
+- [ ] Create a more deliberate typography scale for wizard titles, section headings, dense lists, and audit details.
+- [ ] Polish the main wizard rhythm: consistent spacing, quieter section bands, stronger focus states, and fewer visually competing panels.
+- [ ] Introduce a FileKitsune-native document silhouette style for common file families so icons feel like part of the app, not only a dependency pack.
+- [ ] Add subtle status color semantics that remain readable in both German and English, with no meaning conveyed by color alone.
+- [ ] Modernize the execute and rollback screens first, because those are the trust-critical moments where beauty should mean clarity.
+- [ ] Add visual regression screenshots or a lightweight UI smoke checklist before major visual refactors.
 
 ## Current Baseline
 
