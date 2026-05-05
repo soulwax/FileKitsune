@@ -206,7 +206,7 @@ public sealed class OrganizationWorkflowService
             Settings = settings,
             StrategyPreset = strategyDefinition.Preset,
             Operations = operations,
-            Summary = BuildSummary(operations),
+            Summary = BuildSummary(operations, scannedFiles.Count, selectedFiles.Count, settings, contexts),
             Guidance = guidance
         };
     }
@@ -262,12 +262,24 @@ public sealed class OrganizationWorkflowService
         }
     }
 
-    private static PlanSummary BuildSummary(IEnumerable<PlanOperation> operations)
+    private static PlanSummary BuildSummary(
+        IEnumerable<PlanOperation> operations,
+        int scannedItemCount,
+        int plannedItemCount,
+        OrganizationSettings settings,
+        IEnumerable<FileAnalysisContext> contexts)
     {
         var operationList = operations.ToList();
+        var skippedByPreviewSample = Math.Max(0, scannedItemCount - plannedItemCount);
         return new PlanSummary
         {
             TotalItems = operationList.Count,
+            ScannedItems = scannedItemCount,
+            PlannedItems = plannedItemCount,
+            SkippedByPreviewSample = skippedByPreviewSample,
+            ScanLimitHit = scannedItemCount >= settings.MaxFilesToScan,
+            PreviewSampleLimitHit = skippedByPreviewSample > 0,
+            UnreadableContentCount = contexts.Count(context => !context.Content.IsTextReadable),
             MoveCount = operationList.Count(operation => operation.OperationType == PlanOperationType.Move),
             RenameCount = operationList.Count(operation => operation.OperationType == PlanOperationType.Rename),
             MoveAndRenameCount = operationList.Count(operation => operation.OperationType == PlanOperationType.MoveAndRename),

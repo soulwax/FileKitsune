@@ -301,6 +301,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private int duplicateCount;
 
     [ObservableProperty]
+    private int scannedItems;
+
+    [ObservableProperty]
+    private int plannedItems;
+
+    [ObservableProperty]
+    private int skippedByPreviewSample;
+
+    [ObservableProperty]
+    private int protectedCount;
+
+    [ObservableProperty]
+    private int unreadableContentCount;
+
+    [ObservableProperty]
+    private bool hasCoverageWarning;
+
+    [ObservableProperty]
+    private string coverageWarningText = string.Empty;
+
+    [ObservableProperty]
+    private string coverageSummaryText = string.Empty;
+
+    [ObservableProperty]
     private bool hasDuplicateGroups;
 
     [ObservableProperty]
@@ -659,6 +683,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         DuplicateGroupOperations.Clear();
         HasSelectedDuplicateGroup = false;
         currentPlan = null;
+        ResetCoverageSummary();
 
         currentCancellationTokenSource = new CancellationTokenSource();
 
@@ -1063,6 +1088,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (!dialogService.Confirm(
                 GetString("DialogConfirmExecutionTitle"),
                 FormatString("DialogConfirmExecutionBody", selectedIds.Count)))
+        {
+            return;
+        }
+
+        if (currentPlan.Summary.HasIncompleteCoverage &&
+            !dialogService.Confirm(
+                GetString("DialogIncompleteCoverageExecutionTitle"),
+                FormatString(
+                    "DialogIncompleteCoverageExecutionBody",
+                    currentPlan.Summary.ScannedItems,
+                    currentPlan.Summary.PlannedItems,
+                    currentPlan.Summary.SkippedByPreviewSample)))
         {
             return;
         }
@@ -2065,11 +2102,42 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void UpdateSummary(PlanSummary summary)
     {
         TotalItems = summary.TotalItems;
+        ScannedItems = summary.ScannedItems;
+        PlannedItems = summary.PlannedItems;
+        SkippedByPreviewSample = summary.SkippedByPreviewSample;
+        ProtectedCount = summary.ProtectedCount;
+        UnreadableContentCount = summary.UnreadableContentCount;
         MoveCount = summary.MoveCount + summary.MoveAndRenameCount;
         RenameCount = summary.RenameCount + summary.MoveAndRenameCount;
         NeedsReviewCount = summary.RequiresReviewCount;
         GeminiAssistedCount = summary.GeminiAssistedCount;
         DuplicateCount = summary.DuplicateCount;
+        CoverageSummaryText = FormatString(
+            "PreviewCoverageSummary",
+            summary.ScannedItems,
+            summary.PlannedItems,
+            summary.SkippedByPreviewSample,
+            summary.ProtectedCount,
+            summary.UnreadableContentCount);
+        HasCoverageWarning = summary.HasIncompleteCoverage;
+        CoverageWarningText = summary.HasIncompleteCoverage
+            ? FormatString(
+                "PreviewCoverageWarning",
+                summary.ScanLimitHit ? GetString("PreviewCoverageScanLimitHit") : GetString("PreviewCoverageScanLimitNotHit"),
+                summary.PreviewSampleLimitHit ? GetString("PreviewCoverageSampleLimitHit") : GetString("PreviewCoverageSampleLimitNotHit"))
+            : string.Empty;
+    }
+
+    private void ResetCoverageSummary()
+    {
+        ScannedItems = 0;
+        PlannedItems = 0;
+        SkippedByPreviewSample = 0;
+        ProtectedCount = 0;
+        UnreadableContentCount = 0;
+        HasCoverageWarning = false;
+        CoverageWarningText = string.Empty;
+        CoverageSummaryText = string.Empty;
     }
 
     [RelayCommand]

@@ -7,7 +7,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="220" />
+            <RowDefinition Height="260" />
         </Grid.RowDefinitions>
 
         <StackPanel>
@@ -351,6 +351,21 @@
                         <TextBlock Text="{DynamicResource SummaryGeminiItemsLabel}" />
                         <TextBlock Margin="4,0,0,0" Text="{Binding GeminiAssistedCount}" />
                     </StackPanel>
+                    <TextBlock Margin="0,12,0,4"
+                               FontWeight="SemiBold"
+                               Text="{DynamicResource PreviewCoverageTitle}" />
+                    <TextBlock Text="{Binding CoverageSummaryText}"
+                               TextWrapping="Wrap" />
+                    <Border Margin="0,8,0,0"
+                            Padding="10"
+                            Background="#FFFFF3E4"
+                            BorderBrush="#FFDD6B20"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Visibility="{Binding HasCoverageWarning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="{Binding CoverageWarningText}"
+                                   TextWrapping="Wrap" />
+                    </Border>
                     <TextBlock Margin="0,12,0,4"
                                FontWeight="SemiBold"
                                Text="{DynamicResource DuplicateGroupsLabel}" />

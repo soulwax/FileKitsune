@@ -215,6 +215,95 @@ public sealed class OrganizationWorkflowServiceTests
         Assert.Null(plan.Guidance);
     }
 
+    [Fact]
+    public async Task BuildPlanAsync_ReportsScanAndPreviewCoverage()
+    {
+        var scanner = new FakeFileScanner(
+        [
+            new ScannedFile
+            {
+                FullPath = @"C:\Root\a.txt",
+                RelativePath = "a.txt",
+                RelativeDirectoryPath = string.Empty,
+                FileName = "a.txt",
+                Extension = ".txt",
+                ModifiedUtc = new DateTimeOffset(2025, 02, 01, 8, 0, 0, TimeSpan.Zero)
+            },
+            new ScannedFile
+            {
+                FullPath = @"C:\Root\b.bin",
+                RelativePath = "b.bin",
+                RelativeDirectoryPath = string.Empty,
+                FileName = "b.bin",
+                Extension = ".bin",
+                ModifiedUtc = new DateTimeOffset(2025, 02, 02, 8, 0, 0, TimeSpan.Zero)
+            },
+            new ScannedFile
+            {
+                FullPath = @"C:\Root\c.txt",
+                RelativePath = "c.txt",
+                RelativeDirectoryPath = string.Empty,
+                FileName = "c.txt",
+                Extension = ".txt",
+                ModifiedUtc = new DateTimeOffset(2025, 02, 03, 8, 0, 0, TimeSpan.Zero)
+            }
+        ]);
+
+        var reader = new SequencedContentReader(
+            new FileContentSnapshot
+            {
+                Text = "Readable invoice",
+                IsTextReadable = true,
+                ExtractionSource = "text"
+            },
+            new FileContentSnapshot
+            {
+                IsTextReadable = false,
+                ExtractionSource = "unsupported"
+            });
+
+        var service = new OrganizationWorkflowService(
+            scanner,
+            reader,
+            new SemanticClassifierCoordinator(
+                new HeuristicSemanticClassifier(),
+                new NullGeminiClassifier(),
+                NullLogger<SemanticClassifierCoordinator>.Instance),
+            new NullGeminiOrganizationAdvisor(),
+            new DateResolutionService(),
+            new DuplicateDetectionService(new NullFileHashProvider(), NullLogger<DuplicateDetectionService>.Instance),
+            new ProjectClusterService(),
+            new ProtectionPolicyService(),
+            new DestinationPathBuilder(new NamingPolicyService(), new ReviewDecisionService()),
+            new PathSafetyService(),
+            NullLogger<OrganizationWorkflowService>.Instance);
+
+        var plan = await service.BuildPlanAsync(
+            new AppSettings
+            {
+                Organization = new OrganizationSettings
+                {
+                    RootDirectory = @"C:\Root",
+                    PreviewSampleSize = 2,
+                    MaxFilesToScan = 10
+                },
+                Gemini = new GeminiOptions
+                {
+                    Enabled = false
+                }
+            },
+            progress: null,
+            CancellationToken.None);
+
+        Assert.Equal(3, plan.Summary.ScannedItems);
+        Assert.Equal(2, plan.Summary.PlannedItems);
+        Assert.Equal(1, plan.Summary.SkippedByPreviewSample);
+        Assert.False(plan.Summary.ScanLimitHit);
+        Assert.True(plan.Summary.PreviewSampleLimitHit);
+        Assert.True(plan.Summary.HasIncompleteCoverage);
+        Assert.Equal(1, plan.Summary.UnreadableContentCount);
+    }
+
     private sealed class FakeFileScanner : IFileScanner
     {
         private readonly IReadOnlyList<ScannedFile> files;

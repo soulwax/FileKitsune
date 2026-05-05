@@ -222,6 +222,13 @@
     <sys:String x:Key="SummaryRenameOperationsLabel">Umbenennungsbezogene Operationen:</sys:String>
     <sys:String x:Key="SummaryItemsNeedingReviewLabel">Prüfbedürftige Elemente:</sys:String>
     <sys:String x:Key="SummaryDuplicatesLabel">Duplikate:</sys:String>
+    <sys:String x:Key="PreviewCoverageTitle">Vorschauabdeckung</sys:String>
+    <sys:String x:Key="PreviewCoverageSummary">{0} Datei(en) gescannt, {1} geplant, {2} ausserhalb dieser Vorschau-Stichprobe, {3} geschuetzt, {4} Inhalte nicht lesbar.</sys:String>
+    <sys:String x:Key="PreviewCoverageWarning">{0} {1} Erhoehen Sie die Grenzen und erstellen Sie die Vorschau neu, wenn der ganze Ordner enthalten sein soll.</sys:String>
+    <sys:String x:Key="PreviewCoverageScanLimitHit">Der Scan hat die maximale Dateigrenze erreicht.</sys:String>
+    <sys:String x:Key="PreviewCoverageScanLimitNotHit">Der Scan hat die maximale Dateigrenze nicht erreicht.</sys:String>
+    <sys:String x:Key="PreviewCoverageSampleLimitHit">Die Vorschau-Stichprobe ist unvollstaendig.</sys:String>
+    <sys:String x:Key="PreviewCoverageSampleLimitNotHit">Die Vorschau-Stichprobe enthaelt alle gescannten Elemente.</sys:String>
     <sys:String x:Key="DuplicateLabel">Duplikat</sys:String>
     <sys:String x:Key="DuplicateNone">Keines</sys:String>
     <sys:String x:Key="DuplicateOfPrefix">Duplikat von: </sys:String>
@@ -369,6 +376,8 @@
     <sys:String x:Key="DialogNothingSelectedBody">Wählen Sie zuerst eine oder mehrere ausführbare Operationen aus.</sys:String>
     <sys:String x:Key="DialogConfirmExecutionTitle">Ausführung bestätigen</sys:String>
     <sys:String x:Key="DialogConfirmExecutionBody">{0} freigegebene Operation(en) ausführen? Dateien werden nicht gelöscht, aber ausgewählte Verschiebungen und Umbenennungen laufen innerhalb des gewählten Stammordners.</sys:String>
+    <sys:String x:Key="DialogIncompleteCoverageExecutionTitle">Vorschau ist unvollstaendig</sys:String>
+    <sys:String x:Key="DialogIncompleteCoverageExecutionBody">Dieser Plan hat {0} Datei(en) gescannt, aber nur {1} geplant; {2} liegen ausserhalb der Vorschau-Stichprobe. Fahren Sie nur fort, wenn Sie diese Teilvorschau bewusst ausfuehren wollen.</sys:String>
     <sys:String x:Key="DialogExecutionFinishedTitle">Ausführung abgeschlossen</sys:String>
     <sys:String x:Key="DialogExecutionFailedTitle">Ausführung fehlgeschlagen</sys:String>
     <sys:String x:Key="DialogRollbackLatestTitle">Letzten Lauf zurücksetzen</sys:String>
