@@ -194,3 +194,11 @@ The app is still evolving. Notable gaps:
 - `AGENTS.md`, `AGENT.md`, `CLAUDE.md`, and `GEMINI.md` describe the current expectations for AI coding assistants
 - current roadmap and remaining work are tracked in `TODO.md`
 - if you change planner, execution, rollback, duplicate detection, or Gemini behavior, update the tests in `tests/FileTransformer.Tests`
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request with improvements, bug fixes, or new features. For major changes, please discuss them in an issue first to align on the approach.
+
+## License
+
+This project is licensed under the GPLv3 License. See the [LICENSE](LICENSE) file for details.

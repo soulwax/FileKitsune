@@ -42,6 +42,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private bool initialized;
     private bool suppressDuplicateSelection;
     private bool suppressAnalysisProfileSelection;
+    private WizardStep stepBeforeLegal = WizardStep.ModeSelector;
     private DateTimeOffset? geminiEnvironmentPingValidatedAtUtcCache;
     private string geminiEnvironmentPingFingerprintCache = string.Empty;
 
@@ -128,6 +129,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PlanOperations = [];
         DedupGroups = [];
         DedupExecutionErrors = [];
+        LegalLicenseText = LoadLicenseText();
         PlanView = CollectionViewSource.GetDefaultView(PlanOperations);
         PlanView.Filter = ApplyPlanFilter;
         LogEntries = uiLogStore.Entries;
@@ -169,6 +171,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<DedupGroupViewModel> DedupGroups { get; }
 
     public ObservableCollection<string> DedupExecutionErrors { get; }
+
+    public string LegalLicenseText { get; }
 
     public ObservableCollection<RollbackFolderItem> RollbackFolderGroups { get; } = [];
 
@@ -528,15 +532,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
         CurrentStep switch
         {
             WizardStep.ModeSelector => 1,
+            WizardStep.Legal => 1,
             WizardStep.DedupScan => 1,
             WizardStep.DedupReview => 2,
             WizardStep.DedupExecute => 3,
             _ => CurrentStepIndex + 1
         };
 
-    public int TotalWizardSteps => IsDedupFlow(CurrentStep) ? 3 : 5;
+    public int TotalWizardSteps => CurrentStep == WizardStep.Legal ? 1 : IsDedupFlow(CurrentStep) ? 3 : 5;
 
-    public bool IsWizardShellNavigationVisible => CurrentStep is not WizardStep.ModeSelector;
+    public bool IsWizardShellNavigationVisible => CurrentStep is not WizardStep.ModeSelector and not WizardStep.Legal;
 
     public bool AllDedupGroupsReviewed =>
         DedupScanCompleted && DedupGroups.All(group => group.IsResolved || group.IsSkipped);
@@ -1361,6 +1366,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void OpenLegal()
+    {
+        if (CurrentStep != WizardStep.Legal)
+        {
+            stepBeforeLegal = CurrentStep;
+        }
+
+        CurrentStep = WizardStep.Legal;
+    }
+
+    [RelayCommand]
+    private void CloseLegal()
+    {
+        CurrentStep = stepBeforeLegal == WizardStep.Legal ? WizardStep.ModeSelector : stepBeforeLegal;
+    }
+
+    [RelayCommand]
     private void ApplyStrategyRecommendation(OrganizationStrategyPreset preset)
     {
         SelectedStrategyPreset = StrategyPresets.FirstOrDefault(option => option.Value == preset) ?? SelectedStrategyPreset;
@@ -1605,6 +1627,25 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string FormatString(string resourceKey, params object[] arguments) =>
         localizationService.Format(resourceKey, arguments);
 
+    private static string LoadLicenseText()
+    {
+        var candidatePaths = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "LICENSE"),
+            Path.Combine(Directory.GetCurrentDirectory(), "LICENSE")
+        };
+
+        foreach (var path in candidatePaths)
+        {
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+        }
+
+        return "GNU GENERAL PUBLIC LICENSE Version 3. See the LICENSE file distributed with FileKitsune.";
+    }
+
     private static void ResetOptions<T>(
         ObservableCollection<OptionItem<T>> target,
         IReadOnlyList<OptionItem<T>> items)
@@ -1666,7 +1707,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private bool CanMoveNext()
     {
-        if (IsBusy || CurrentStep is WizardStep.ModeSelector or WizardStep.ExecuteRollback or WizardStep.DedupExecute)
+        if (IsBusy || CurrentStep is WizardStep.ModeSelector or WizardStep.Legal or WizardStep.ExecuteRollback or WizardStep.DedupExecute)
         {
             return false;
         }
@@ -2773,8 +2814,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private static WizardStep ClampStep(int stepIndex) =>
         stepIndex < (int)WizardStep.ModeSelector
             ? WizardStep.ModeSelector
-            : stepIndex > (int)WizardStep.DedupExecute
-                ? WizardStep.DedupExecute
+            : stepIndex > (int)WizardStep.Legal
+                ? WizardStep.Legal
                 : (WizardStep)stepIndex;
 
     private static WizardStep GetPreviousStep(WizardStep step) =>
@@ -2788,6 +2829,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             WizardStep.DedupScan => WizardStep.ModeSelector,
             WizardStep.DedupReview => WizardStep.DedupScan,
             WizardStep.DedupExecute => WizardStep.DedupReview,
+            WizardStep.Legal => WizardStep.ModeSelector,
             _ => WizardStep.ModeSelector
         };
 

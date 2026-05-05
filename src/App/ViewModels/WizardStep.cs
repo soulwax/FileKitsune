@@ -10,5 +10,6 @@ public enum WizardStep
     ExecuteRollback = 4,
     DedupScan = 5,
     DedupReview = 6,
-    DedupExecute = 7
+    DedupExecute = 7,
+    Legal = 8
 }

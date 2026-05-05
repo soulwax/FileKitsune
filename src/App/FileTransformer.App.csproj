@@ -16,6 +16,10 @@
     <Resource Include="..\..\Assets\filekitsune.png">
       <Link>Assets\filekitsune.png</Link>
     </Resource>
+    <Content Include="..\..\LICENSE">
+      <Link>LICENSE</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

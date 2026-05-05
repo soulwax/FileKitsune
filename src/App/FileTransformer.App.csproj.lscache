@@ -61,6 +61,7 @@ obj/Debug/net8.0-windows/
  App.g.cs
  FileTransformer.App.AssemblyInfo.cs
  FileTransformer.App.GlobalUsings.g.cs
+ FileTransformer.App_Content.g.cs
  GeneratedInternalTypeHelper.g.cs
  Views/
   MainWindow.g.cs
