@@ -14,6 +14,17 @@ Current project branding direction:
 - [ ] Rename technical repo identifiers such as solution, project, assembly, and namespace names where worthwhile
 - [ ] Wire additional assets from `Assets/` as they are added
 
+## Visual Polish And File-Type Symbols
+
+- [x] Add WPF-ready file icon dependency: `MahApps.Metro.IconPacks.FileIcons`
+- [x] Add WPF-ready general action/status icon dependency: `MahApps.Metro.IconPacks.Material`
+- [x] Create first FileKitsune icon mapping service from file extension to icon kind and color
+- [x] Add file-type symbols to preview grid rows, selected-operation details, and duplicate review cards
+- [ ] Add file-type symbols to rollback preview rows
+- [ ] Extend icon mapping from file extension only to semantic category, operation type, and localized tooltip
+- [ ] Build a small FileKitsune-native overlay set for app-specific states: duplicate, keeper, review needed, protected, Gemini-advised, moved, renamed, rollback-ready, rollback-blocked
+- [ ] Decide whether to supplement dependency icons with custom SVG/XAML document silhouettes for a more macOS-like but non-copycat FileKitsune house style
+
 ## Current Baseline
 
 Completed and usable today:

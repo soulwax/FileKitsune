@@ -1,6 +1,7 @@
 <UserControl x:Class="FileTransformer.App.Views.WizardPreviewStepView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks">
     <Grid Margin="6">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -17,28 +18,72 @@
 
             <UniformGrid Columns="4" Margin="0,0,0,16">
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,12,0" Padding="14">
-                    <StackPanel>
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource SummaryItemsAnalyzed}" />
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding TotalItems}" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource SummaryItemsAnalyzed}" />
+                            <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding TotalItems}" />
+                        </StackPanel>
+                        <iconPacks:PackIconMaterial Grid.Column="1"
+                                                    Width="26"
+                                                    Height="26"
+                                                    Foreground="{StaticResource AccentStrongBrush}"
+                                                    Kind="FileDocumentOutline" />
+                    </Grid>
                 </Border>
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,12,0" Padding="14">
-                    <StackPanel>
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource SummaryMoves}" />
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding MoveCount}" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource SummaryMoves}" />
+                            <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding MoveCount}" />
+                        </StackPanel>
+                        <iconPacks:PackIconMaterial Grid.Column="1"
+                                                    Width="26"
+                                                    Height="26"
+                                                    Foreground="#31809B"
+                                                    Kind="FileMoveOutline" />
+                    </Grid>
                 </Border>
                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,12,0" Padding="14">
-                    <StackPanel>
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource SummaryRenames}" />
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding RenameCount}" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource SummaryRenames}" />
+                            <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding RenameCount}" />
+                        </StackPanel>
+                        <iconPacks:PackIconMaterial Grid.Column="1"
+                                                    Width="26"
+                                                    Height="26"
+                                                    Foreground="#8056D6"
+                                                    Kind="FileEditOutline" />
+                    </Grid>
                 </Border>
                 <Border Style="{StaticResource CardBorderStyle}" Padding="14">
-                    <StackPanel>
-                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource SummaryNeedsReview}" />
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding NeedsReviewCount}" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource SummaryNeedsReview}" />
+                            <TextBlock FontSize="26" FontWeight="SemiBold" Text="{Binding NeedsReviewCount}" />
+                        </StackPanel>
+                        <iconPacks:PackIconMaterial Grid.Column="1"
+                                                    Width="26"
+                                                    Height="26"
+                                                    Foreground="#DD6B20"
+                                                    Kind="AlertCircleOutline" />
+                    </Grid>
                 </Border>
             </UniformGrid>
         </StackPanel>
@@ -158,7 +203,19 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Header="{DynamicResource GridAction}" Binding="{Binding OperationType}" Width="105" />
-                    <DataGridTextColumn Header="{DynamicResource GridCurrentPath}" Binding="{Binding CurrentRelativePath}" Width="200" />
+                    <DataGridTemplateColumn Header="" Width="42">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <iconPacks:PackIconFileIcons Width="22"
+                                                             Height="22"
+                                                             HorizontalAlignment="Center"
+                                                             VerticalAlignment="Center"
+                                                             Foreground="{Binding FileTypeIconBrush}"
+                                                             Kind="{Binding FileTypeIconKind}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="{DynamicResource GridCurrentPath}" Binding="{Binding CurrentRelativePath}" Width="210" />
                     <DataGridTextColumn Header="{DynamicResource GridProposedPath}" Binding="{Binding ProposedRelativePath}" Width="250" />
                     <DataGridTextColumn Header="{DynamicResource GridCategory}" Binding="{Binding Category}" Width="135" />
                     <DataGridTextColumn Header="{DynamicResource GridConfidence}" Binding="{Binding Confidence}" Width="90" />
@@ -214,7 +271,18 @@
 
             <Border Style="{StaticResource CardBorderStyle}" Padding="16">
                 <StackPanel>
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="{DynamicResource SelectedOperationTitle}" />
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconFileIcons Width="28"
+                                                     Height="28"
+                                                     Margin="0,0,10,0"
+                                                     VerticalAlignment="Center"
+                                                     Foreground="{Binding SelectedOperation.FileTypeIconBrush}"
+                                                     Kind="{Binding SelectedOperation.FileTypeIconKind}" />
+                        <TextBlock VerticalAlignment="Center"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Text="{DynamicResource SelectedOperationTitle}" />
+                    </StackPanel>
                     <TextBlock Margin="0,12,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource CurrentPathLabel}" />
                     <TextBlock Text="{Binding SelectedOperation.CurrentRelativePath}" TextWrapping="Wrap" />
                     <TextBlock Margin="0,10,0,0" Foreground="{StaticResource MutedTextBrush}" Text="{DynamicResource ProposedPathLabel}" />

@@ -1,6 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using FileTransformer.App.Services;
 using FileTransformer.Domain.Enums;
 using FileTransformer.Domain.Models;
+using MahApps.Metro.IconPacks;
+using MediaBrush = System.Windows.Media.Brush;
 
 namespace FileTransformer.App.ViewModels;
 
@@ -45,6 +48,10 @@ public sealed partial class PlanOperationItemViewModel : ObservableObject
     public string Language => Operation.LanguageContext.ToString();
 
     public string Category => Operation.CategoryDisplayName;
+
+    public PackIconFileIconsKind FileTypeIconKind => FileTypeIconCatalog.Resolve(CurrentRelativePath).Kind;
+
+    public MediaBrush FileTypeIconBrush => FileTypeIconCatalog.Resolve(CurrentRelativePath).Brush;
 
     public string Project => string.IsNullOrWhiteSpace(Operation.ProjectOrTopic) ? "None" : Operation.ProjectOrTopic;
 

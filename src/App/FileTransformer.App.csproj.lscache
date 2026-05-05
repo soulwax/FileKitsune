@@ -75,6 +75,8 @@ obj/Debug/net8.0-windows/
   WizardStrategyStepView.g.cs
 Services/
  DialogService.cs
+ FileTypeIconCatalog.cs
+ FileTypeIconDescriptor.cs
  FolderPickerService.cs
  IDialogService.cs
  IFolderPickerService.cs
@@ -327,6 +329,9 @@ Views/
  communitytoolkit.mvvm/8.4.0/lib/net8.0/CommunityToolkit.Mvvm.dll
  documentformat.openxml.framework/3.0.2/lib/net8.0/DocumentFormat.OpenXml.Framework.dll
  documentformat.openxml/3.0.2/lib/net8.0/DocumentFormat.OpenXml.dll
+ mahapps.metro.iconpacks.core/6.2.1/lib/net8.0-windows7.0/MahApps.Metro.IconPacks.Core.dll
+ mahapps.metro.iconpacks.fileicons/6.2.1/lib/net8.0-windows7.0/MahApps.Metro.IconPacks.FileIcons.dll
+ mahapps.metro.iconpacks.material/6.2.1/lib/net8.0-windows7.0/MahApps.Metro.IconPacks.Material.dll
  microsoft.data.sqlite.core/8.0.8/lib/net8.0/Microsoft.Data.Sqlite.dll
  microsoft.extensions.configuration.abstractions/8.0.0/lib/net8.0/Microsoft.Extensions.Configuration.Abstractions.dll
  microsoft.extensions.configuration.binder/8.0.2/lib/net8.0/Microsoft.Extensions.Configuration.Binder.dll

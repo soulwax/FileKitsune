@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="MahApps.Metro.IconPacks.FileIcons" />
+    <PackageReference Include="MahApps.Metro.IconPacks.Material" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
