@@ -65,6 +65,7 @@ Abstractions/
  IGeminiOrganizationAdvisor.cs
  IGeminiSemanticClassifier.cs
  IPersistenceStatusService.cs
+ IRecycleBinService.cs
 Models/
  AppSettings.cs
  DuplicateMatch.cs

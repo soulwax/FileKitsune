@@ -1,0 +1,54 @@
+<UserControl x:Class="FileTransformer.App.Views.WizardModeSelectorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Button Style="{StaticResource PrimaryButtonStyle}"
+                Command="{Binding SelectOrganizeModeCommand}">
+            <Border Style="{StaticResource ActionCardBorderStyle}"
+                    MinHeight="260">
+                <StackPanel>
+                    <TextBlock FontSize="28"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"
+                               Text="{DynamicResource ModeOrganizeTitle}" />
+                    <TextBlock Margin="0,12,0,0"
+                               Foreground="{StaticResource MutedTextBrush}"
+                               Style="{StaticResource HintTextStyle}"
+                               Text="{DynamicResource ModeOrganizeBody}" />
+                    <TextBlock Margin="0,22,0,0"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource AccentStrongBrush}"
+                               Text="{DynamicResource ModeOrganizeAction}" />
+                </StackPanel>
+            </Border>
+        </Button>
+
+        <Button Grid.Column="2"
+                Style="{StaticResource PrimaryButtonStyle}"
+                Command="{Binding SelectDedupModeCommand}">
+            <Border Style="{StaticResource ActionCardBorderStyle}"
+                    MinHeight="260">
+                <StackPanel>
+                    <TextBlock FontSize="28"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextBrush}"
+                               Text="{DynamicResource ModeDedupTitle}" />
+                    <TextBlock Margin="0,12,0,0"
+                               Foreground="{StaticResource MutedTextBrush}"
+                               Style="{StaticResource HintTextStyle}"
+                               Text="{DynamicResource ModeDedupBody}" />
+                    <TextBlock Margin="0,22,0,0"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource AccentStrongBrush}"
+                               Text="{DynamicResource ModeDedupAction}" />
+                </StackPanel>
+            </Border>
+        </Button>
+    </Grid>
+</UserControl>

@@ -1,0 +1,112 @@
+<UserControl x:Class="FileTransformer.App.Views.WizardDedupReviewView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="360" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Style="{StaticResource CardBorderStyle}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                           Text="{DynamicResource DedupReviewGroupsTitle}" />
+                <TextBlock Margin="0,8,0,10"
+                           Style="{StaticResource HintTextStyle}"
+                           Text="{Binding DedupReviewTally}" />
+                <ListBox ItemsSource="{Binding DedupGroups}"
+                         SelectedItem="{Binding SelectedDedupGroup}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,6">
+                                <TextBlock FontWeight="SemiBold"
+                                           Text="{Binding DisplayLabel}" />
+                                <TextBlock Style="{StaticResource HintTextStyle}"
+                                           Text="{Binding CanonicalPath}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <Button Margin="0,12,0,0"
+                        Style="{StaticResource ProminentSecondaryButtonStyle}"
+                        Command="{Binding ResolveAllDedupAutomaticallyCommand}"
+                        Content="{DynamicResource DedupReviewResolveAllButton}" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Column="2"
+                Style="{StaticResource CardBorderStyle}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                           Text="{DynamicResource DedupReviewFilesTitle}" />
+                <TextBlock Margin="0,8,0,12"
+                           Style="{StaticResource HintTextStyle}"
+                           Text="{DynamicResource DedupReviewFilesHint}" />
+
+                <ItemsControl ItemsSource="{Binding SelectedDedupGroup.Files}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,10"
+                                    Style="{StaticResource SoftPanelBorderStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock FontWeight="SemiBold"
+                                                   Text="{Binding FileName}" />
+                                        <TextBlock Margin="0,4,0,0"
+                                                   Style="{StaticResource HintTextStyle}"
+                                                   Text="{Binding RelativePath}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding SizeMb, StringFormat={}{0:0.##} MB}" />
+                                    <TextBlock Grid.Column="2"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding ModifiedLocal, StringFormat={}{0:g}}" />
+                                    <StackPanel Grid.Column="3"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Margin="0,0,12,0"
+                                                   FontWeight="SemiBold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="{DynamicResource DedupReviewRemoveBadge}" />
+                                                    <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsKeeper}" Value="True">
+                                                            <Setter Property="Text" Value="{DynamicResource DedupReviewKeepBadge}" />
+                                                            <Setter Property="Foreground" Value="{StaticResource AccentStrongBrush}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <Button Style="{StaticResource SecondaryButtonStyle}"
+                                                Command="{Binding DataContext.SelectedDedupGroup.SetKeeperCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Content="{DynamicResource DedupReviewSetKeeperButton}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <WrapPanel Margin="0,14,0,0">
+                    <Button Style="{StaticResource HeroActionButtonStyle}"
+                            Command="{Binding ConfirmSelectedDedupGroupCommand}"
+                            Content="{DynamicResource DedupReviewConfirmButton}" />
+                    <Button Style="{StaticResource ProminentSecondaryButtonStyle}"
+                            Command="{Binding SkipSelectedDedupGroupCommand}"
+                            Content="{DynamicResource DedupReviewSkipButton}" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

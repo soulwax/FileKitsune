@@ -23,9 +23,9 @@ RunAnalyzers=
 RunAnalyzersDuringLiveAnalysis=
 SolutionPath=<PATH>../../FileTransformer.sln
 TargetFrameworkIdentifier=.NETCoreApp
-TargetPath=<PATH>bin/Debug/net8.0/FileTransformer.Tests.dll
-TargetRefPath=<PATH>obj/Debug/net8.0/ref/FileTransformer.Tests.dll
-TemporaryDependencyNodeTargetIdentifier=net8.0
+TargetPath=<PATH>bin/Debug/net8.0-windows/FileTransformer.Tests.dll
+TargetRefPath=<PATH>obj/Debug/net8.0-windows/ref/FileTransformer.Tests.dll
+TemporaryDependencyNodeTargetIdentifier=net8.0-windows
 
 [commandLineArguments]
 /noconfig
@@ -36,15 +36,15 @@ TemporaryDependencyNodeTargetIdentifier=net8.0
 /nostdlib+
 /errorreport:prompt
 /warn:8
-/define:TRACE;DEBUG;NET;NET8_0;NETCOREAPP;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER
+/define:TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 /highentropyva+
 /nullable:enable
 /debug+
 /debug:portable
 /filealign:512
 /optimize-
-/out:obj\Debug\net8.0\FileTransformer.Tests.dll
-/refout:obj\Debug\net8.0\refint\FileTransformer.Tests.dll
+/out:obj\Debug\net8.0-windows\FileTransformer.Tests.dll
+/refout:obj\Debug\net8.0-windows\refint\FileTransformer.Tests.dll
 /target:exe
 /warnaserror-
 /utf8output
@@ -54,6 +54,7 @@ TemporaryDependencyNodeTargetIdentifier=net8.0
 
 [sourceFiles]
 <NUGET>/microsoft.net.test.sdk/17.11.1/build/netcoreapp3.1/Microsoft.NET.Test.Sdk.Program.cs
+App/DedupGroupViewModelTests.cs
 Application/
  DestinationPathBuilderTests.cs
  DuplicateDetectionServiceTests.cs
@@ -76,20 +77,20 @@ Infrastructure/
  PersistenceStatusServiceTests.cs
  ResilientPersistenceTests.cs
  Sha256FileHashProviderTests.cs
-obj/Debug/net8.0/
+obj/Debug/net8.0-windows/
  .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
  FileTransformer.Tests.AssemblyInfo.cs
  FileTransformer.Tests.GlobalUsings.g.cs
 
 [metadataReferences]
 ../../src/
+ App/obj/Debug/net8.0-windows/ref/FileTransformer.App.dll
  Application/obj/Debug/net8.0/ref/FileTransformer.Application.dll
  Domain/obj/Debug/net8.0/ref/FileTransformer.Domain.dll
  Infrastructure/obj/Debug/net8.0/ref/FileTransformer.Infrastructure.dll
 <DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.26/ref/net8.0/
  Microsoft.CSharp.dll
  Microsoft.VisualBasic.Core.dll
- Microsoft.VisualBasic.dll
  Microsoft.Win32.Primitives.dll
  Microsoft.Win32.Registry.dll
  mscorlib.dll
@@ -124,7 +125,6 @@ obj/Debug/net8.0/
  System.Diagnostics.TraceSource.dll
  System.Diagnostics.Tracing.dll
  System.dll
- System.Drawing.dll
  System.Drawing.Primitives.dll
  System.Dynamic.Runtime.dll
  System.Formats.Asn1.dll
@@ -249,23 +249,84 @@ obj/Debug/net8.0/
  System.Xml.XmlSerializer.dll
  System.Xml.XPath.dll
  System.Xml.XPath.XDocument.dll
+<DOTNET>/packs/Microsoft.WindowsDesktop.App.Ref/8.0.26/ref/net8.0/
+ Accessibility.dll
+ Microsoft.VisualBasic.dll
+ Microsoft.VisualBasic.Forms.dll
+ Microsoft.Win32.Registry.AccessControl.dll
+ Microsoft.Win32.SystemEvents.dll
+ PresentationCore.dll
+ PresentationFramework.Aero.dll
+ PresentationFramework.Aero2.dll
+ PresentationFramework.AeroLite.dll
+ PresentationFramework.Classic.dll
+ PresentationFramework.dll
+ PresentationFramework.Luna.dll
+ PresentationFramework.Royale.dll
+ PresentationUI.dll
+ ReachFramework.dll
+ System.CodeDom.dll
+ System.Configuration.ConfigurationManager.dll
+ System.Design.dll
+ System.Diagnostics.EventLog.dll
+ System.Diagnostics.PerformanceCounter.dll
+ System.DirectoryServices.dll
+ System.Drawing.Common.dll
+ System.Drawing.Design.dll
+ System.Drawing.dll
+ System.IO.Packaging.dll
+ System.Printing.dll
+ System.Resources.Extensions.dll
+ System.Security.Cryptography.Pkcs.dll
+ System.Security.Cryptography.ProtectedData.dll
+ System.Security.Cryptography.Xml.dll
+ System.Security.Permissions.dll
+ System.Threading.AccessControl.dll
+ System.Windows.Controls.Ribbon.dll
+ System.Windows.Extensions.dll
+ System.Windows.Forms.Design.dll
+ System.Windows.Forms.Design.Editors.dll
+ System.Windows.Forms.dll
+ System.Windows.Forms.Primitives.dll
+ System.Windows.Input.Manipulations.dll
+ System.Windows.Presentation.dll
+ System.Xaml.dll
+ UIAutomationClient.dll
+ UIAutomationClientSideProviders.dll
+ UIAutomationProvider.dll
+ UIAutomationTypes.dll
  WindowsBase.dll
+ WindowsFormsIntegration.dll
 <NUGET>/
+ communitytoolkit.mvvm/8.4.0/lib/net8.0/CommunityToolkit.Mvvm.dll
  documentformat.openxml.framework/3.0.2/lib/net8.0/DocumentFormat.OpenXml.Framework.dll
  documentformat.openxml/3.0.2/lib/net8.0/DocumentFormat.OpenXml.dll
  microsoft.codecoverage/17.11.1/lib/netcoreapp3.1/Microsoft.VisualStudio.CodeCoverage.Shim.dll
  microsoft.data.sqlite.core/8.0.8/lib/net8.0/Microsoft.Data.Sqlite.dll
  microsoft.extensions.configuration.abstractions/8.0.0/lib/net8.0/Microsoft.Extensions.Configuration.Abstractions.dll
  microsoft.extensions.configuration.binder/8.0.2/lib/net8.0/Microsoft.Extensions.Configuration.Binder.dll
+ microsoft.extensions.configuration.commandline/8.0.0/lib/net8.0/Microsoft.Extensions.Configuration.CommandLine.dll
+ microsoft.extensions.configuration.environmentvariables/8.0.0/lib/net8.0/Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+ microsoft.extensions.configuration.fileextensions/8.0.1/lib/net8.0/Microsoft.Extensions.Configuration.FileExtensions.dll
+ microsoft.extensions.configuration.json/8.0.1/lib/net8.0/Microsoft.Extensions.Configuration.Json.dll
+ microsoft.extensions.configuration.usersecrets/8.0.1/lib/net8.0/Microsoft.Extensions.Configuration.UserSecrets.dll
  microsoft.extensions.configuration/8.0.0/lib/net8.0/Microsoft.Extensions.Configuration.dll
  microsoft.extensions.dependencyinjection.abstractions/8.0.2/lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
  microsoft.extensions.dependencyinjection/8.0.1/lib/net8.0/Microsoft.Extensions.DependencyInjection.dll
  microsoft.extensions.diagnostics.abstractions/8.0.1/lib/net8.0/Microsoft.Extensions.Diagnostics.Abstractions.dll
  microsoft.extensions.diagnostics/8.0.1/lib/net8.0/Microsoft.Extensions.Diagnostics.dll
  microsoft.extensions.fileproviders.abstractions/8.0.0/lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.dll
- microsoft.extensions.hosting.abstractions/8.0.0/lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.dll
+ microsoft.extensions.fileproviders.physical/8.0.0/lib/net8.0/Microsoft.Extensions.FileProviders.Physical.dll
+ microsoft.extensions.filesystemglobbing/8.0.0/lib/net8.0/Microsoft.Extensions.FileSystemGlobbing.dll
+ microsoft.extensions.hosting.abstractions/8.0.1/lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.dll
+ microsoft.extensions.hosting/8.0.1/lib/net8.0/Microsoft.Extensions.Hosting.dll
  microsoft.extensions.http/8.0.1/lib/net8.0/Microsoft.Extensions.Http.dll
  microsoft.extensions.logging.abstractions/8.0.2/lib/net8.0/Microsoft.Extensions.Logging.Abstractions.dll
+ microsoft.extensions.logging.configuration/8.0.1/lib/net8.0/Microsoft.Extensions.Logging.Configuration.dll
+ microsoft.extensions.logging.console/8.0.1/lib/net8.0/Microsoft.Extensions.Logging.Console.dll
+ microsoft.extensions.logging.debug/8.0.1/lib/net8.0/Microsoft.Extensions.Logging.Debug.dll
+ microsoft.extensions.logging.eventlog/8.0.1/lib/net8.0/Microsoft.Extensions.Logging.EventLog.dll
+ microsoft.extensions.logging.eventsource/8.0.1/lib/net8.0/Microsoft.Extensions.Logging.EventSource.dll
  microsoft.extensions.logging/8.0.1/lib/net8.0/Microsoft.Extensions.Logging.dll
  microsoft.extensions.options.configurationextensions/8.0.0/lib/net8.0/Microsoft.Extensions.Options.ConfigurationExtensions.dll
  microsoft.extensions.options/8.0.2/lib/net8.0/Microsoft.Extensions.Options.dll
@@ -288,9 +349,7 @@ obj/Debug/net8.0/
  serilog/3.1.1/lib/net7.0/Serilog.dll
  sqlitepclraw.bundle_e_sqlite3/2.1.6/lib/netstandard2.0/SQLitePCLRaw.batteries_v2.dll
  sqlitepclraw.core/2.1.6/lib/netstandard2.0/SQLitePCLRaw.core.dll
- sqlitepclraw.provider.e_sqlite3/2.1.6/lib/net6.0/SQLitePCLRaw.provider.e_sqlite3.dll
- system.io.packaging/8.0.0/lib/net8.0/System.IO.Packaging.dll
- system.security.cryptography.protecteddata/8.0.0/lib/net8.0/System.Security.Cryptography.ProtectedData.dll
+ sqlitepclraw.provider.e_sqlite3/2.1.6/lib/net6.0-windows7.0/SQLitePCLRaw.provider.e_sqlite3.dll
  uglytoad.pdfpig.core/1.7.0-custom-5/lib/net6.0/UglyToad.PdfPig.Core.dll
  uglytoad.pdfpig.fonts/1.7.0-custom-5/lib/net6.0/UglyToad.PdfPig.Fonts.dll
  uglytoad.pdfpig.tokenization/1.7.0-custom-5/lib/net6.0/UglyToad.PdfPig.Tokenization.dll
@@ -309,9 +368,15 @@ obj/Debug/net8.0/
  Microsoft.Interop.SourceGeneration.dll
  System.Text.Json.SourceGeneration.dll
  System.Text.RegularExpressions.Generator.dll
+<DOTNET>/packs/Microsoft.WindowsDesktop.App.Ref/8.0.26/analyzers/dotnet/
+ cs/System.Windows.Forms.Analyzers.CSharp.dll
+ System.Windows.Forms.Analyzers.dll
 <DOTNET>/sdk/10.0.203/Sdks/Microsoft.NET.Sdk/analyzers/
  Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
  Microsoft.CodeAnalysis.NetAnalyzers.dll
+<NUGET>/communitytoolkit.mvvm/8.4.0/analyzers/dotnet/roslyn4.12/cs/
+ CommunityToolkit.Mvvm.CodeFixers.dll
+ CommunityToolkit.Mvvm.SourceGenerators.dll
 <NUGET>/
  microsoft.extensions.logging.abstractions/8.0.2/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Logging.Generators.dll
  microsoft.extensions.options/8.0.2/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Options.SourceGeneration.dll
@@ -321,4 +386,4 @@ obj/Debug/net8.0/
 
 [analyzerConfigFiles]
 <DOTNET>/sdk/10.0.203/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_8_default.globalconfig
-obj/Debug/net8.0/FileTransformer.Tests.GeneratedMSBuildEditorConfig.editorconfig
+obj/Debug/net8.0-windows/FileTransformer.Tests.GeneratedMSBuildEditorConfig.editorconfig

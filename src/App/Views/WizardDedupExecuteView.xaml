@@ -1,0 +1,50 @@
+<UserControl x:Class="FileTransformer.App.Views.WizardDedupExecuteView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="2">
+        <Border Style="{StaticResource CardBorderStyle}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource SectionTitleTextStyle}"
+                           Text="{DynamicResource DedupExecuteTitle}" />
+                <TextBlock Margin="0,8,0,14"
+                           Style="{StaticResource HintTextStyle}"
+                           Text="{DynamicResource DedupExecuteHint}" />
+
+                <WrapPanel>
+                    <Button Style="{StaticResource HeroActionButtonStyle}"
+                            Command="{Binding DedupExecuteCommand}"
+                            Content="{DynamicResource DedupExecuteButton}" />
+                    <Button Style="{StaticResource ProminentSecondaryButtonStyle}"
+                            Command="{Binding ScanAnotherFolderCommand}"
+                            Content="{DynamicResource DedupExecuteScanAnotherButton}" />
+                    <Button Style="{StaticResource ProminentSecondaryButtonStyle}"
+                            Command="{Binding OpenRecycleBinCommand}"
+                            Content="{DynamicResource DedupExecuteOpenRecycleBinButton}" />
+                </WrapPanel>
+
+                <Border Margin="0,18,0,0"
+                        Style="{StaticResource SoftPanelBorderStyle}"
+                        Visibility="{Binding HasDedupExecutionResults, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock FontSize="22"
+                                   FontWeight="SemiBold"
+                                   Text="{Binding DedupExecutionSummary}" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Style="{StaticResource HintTextStyle}"
+                                   Text="{DynamicResource DedupExecuteResultsHint}" />
+                        <ItemsControl Margin="0,12,0,0"
+                                      ItemsSource="{Binding DedupExecutionErrors}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Margin="0,0,0,6"
+                                               Style="{StaticResource HintTextStyle}"
+                                               Text="{Binding}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

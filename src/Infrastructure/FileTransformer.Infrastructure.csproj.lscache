@@ -83,6 +83,7 @@ FileSystem/
  LocalFileContentReader.cs
  LocalFileOperations.cs
  LocalFileScanner.cs
+ RecycleBinService.cs
  Sha256FileHashProvider.cs
 Logging/LoggingConfiguration.cs
 obj/Debug/net8.0/

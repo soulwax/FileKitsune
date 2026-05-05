@@ -64,8 +64,12 @@ obj/Debug/net8.0-windows/
  GeneratedInternalTypeHelper.g.cs
  Views/
   MainWindow.g.cs
+  WizardDedupExecuteView.g.cs
+  WizardDedupReviewView.g.cs
+  WizardDedupScanView.g.cs
   WizardExecuteStepView.g.cs
   WizardFolderStepView.g.cs
+  WizardModeSelectorView.g.cs
   WizardPreviewStepView.g.cs
   WizardRulesStepView.g.cs
   WizardStrategyStepView.g.cs
@@ -80,6 +84,8 @@ Services/
  UiLoggerProvider.cs
  UiLogStore.cs
 ViewModels/
+ DedupFileItemViewModel.cs
+ DedupGroupViewModel.cs
  DuplicateGroupItem.cs
  EnvironmentSanityItemViewModel.cs
  MainWindowViewModel.cs
@@ -93,8 +99,12 @@ ViewModels/
  WizardStep.cs
 Views/
  MainWindow.xaml.cs
+ WizardDedupExecuteView.xaml.cs
+ WizardDedupReviewView.xaml.cs
+ WizardDedupScanView.xaml.cs
  WizardExecuteStepView.xaml.cs
  WizardFolderStepView.xaml.cs
+ WizardModeSelectorView.xaml.cs
  WizardPreviewStepView.xaml.cs
  WizardRulesStepView.xaml.cs
  WizardStrategyStepView.xaml.cs

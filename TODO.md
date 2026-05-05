@@ -156,59 +156,59 @@ Why this is next:
 Spec: `docs/superpowers/specs/2026-04-29-dedup-mode-design.md`
 
 ### WizardStep Enum & Navigation
-- [ ] Add `ModeSelector = -1`, `DedupScan = 5`, `DedupReview = 6`, `DedupExecute = 7` to `WizardStep`
-- [ ] Change initial step in `MainWindowViewModel` from `Folder` to `ModeSelector`
-- [ ] Extend Back/Next visibility logic to handle dedup sub-flow
-- [ ] Add `DataTrigger` blocks in `MainWindow.xaml` for all new steps (title, body, template)
+- [x] Add `ModeSelector = -1`, `DedupScan = 5`, `DedupReview = 6`, `DedupExecute = 7` to `WizardStep`
+- [x] Change initial step in `MainWindowViewModel` from `Folder` to `ModeSelector`
+- [x] Extend Back/Next visibility logic to handle dedup sub-flow
+- [x] Add `DataTrigger` blocks in `MainWindow.xaml` for all new steps (title, body, template)
 
 ### ModeSelector Step
-- [ ] Create `WizardModeSelectorView.xaml` + code-behind
-- [ ] Add two mode cards: "Organize Files" → `Folder`, "Find Duplicates" → `DedupScan`
-- [ ] Hide Back and Next buttons at `ModeSelector`
+- [x] Create `WizardModeSelectorView.xaml` + code-behind
+- [x] Add two mode cards: "Organize Files" → `Folder`, "Find Duplicates" → `DedupScan`
+- [x] Hide Back and Next buttons at `ModeSelector`
 
 ### DedupScan Step
-- [ ] Create `WizardDedupScanView.xaml` + code-behind
-- [ ] Add `DedupRootFolder` property and folder-browse command to `MainWindowViewModel`
-- [ ] Add `DedupScanCommand` — walks directory, calls `DuplicateDetectionService.DetectAsync`
-- [ ] Wire progress reporting through existing `WorkflowProgress` / status message
-- [ ] Populate `ObservableCollection<DedupGroupViewModel>` from scan results
-- [ ] Enable Next only after scan completes
+- [x] Create `WizardDedupScanView.xaml` + code-behind
+- [x] Add `DedupRootFolder` property and folder-browse command to `MainWindowViewModel`
+- [x] Add `DedupScanCommand` — walks directory, calls `DuplicateDetectionService.DetectAsync`
+- [x] Wire progress reporting through existing `WorkflowProgress` / status message
+- [x] Populate `ObservableCollection<DedupGroupViewModel>` from scan results
+- [x] Enable Next only after scan completes
 
 ### DedupGroupViewModel & DedupFileItemViewModel
-- [ ] Create `DedupGroupViewModel` (canonical path, copies, resolved/skipped state, wasted bytes, display label)
-- [ ] Create `DedupFileItemViewModel` (full path, relative path, size, modified date, `IsKeeper`)
-- [ ] Implement "Set as keeper" toggle — flips `IsKeeper` on selected file and clears others in group
+- [x] Create `DedupGroupViewModel` (canonical path, copies, resolved/skipped state, wasted bytes, display label)
+- [x] Create `DedupFileItemViewModel` (full path, relative path, size, modified date, `IsKeeper`)
+- [x] Implement "Set as keeper" toggle — flips `IsKeeper` on selected file and clears others in group
 
 ### DedupReview Step
-- [ ] Create `WizardDedupReviewView.xaml` + code-behind
-- [ ] Left panel: `ListBox` of groups with keeper filename + copy count + MB wasted
-- [ ] Right panel: per-file cards with Keep/Remove pill badges and "Set as keeper" button
-- [ ] "Confirm" button — marks group as resolved (decision only, no files touched)
-- [ ] "Skip this group" button — marks group skipped, advances selection
-- [ ] "Resolve all automatically" bottom-bar button
-- [ ] Enable shell Next only when all groups are resolved or skipped
-- [ ] Badge tally: N groups · N resolved · N skipped
+- [x] Create `WizardDedupReviewView.xaml` + code-behind
+- [x] Left panel: `ListBox` of groups with keeper filename + copy count + MB wasted
+- [x] Right panel: per-file cards with Keep/Remove pill badges and "Set as keeper" button
+- [x] "Confirm" button — marks group as resolved (decision only, no files touched)
+- [x] "Skip this group" button — marks group skipped, advances selection
+- [x] "Resolve all automatically" bottom-bar button
+- [x] Enable shell Next only when all groups are resolved or skipped
+- [x] Badge tally: N groups · N resolved · N skipped
 
 ### IRecycleBinService
-- [ ] Define `IRecycleBinService` interface in Application layer
-- [ ] Implement `RecycleBinService` in Infrastructure using `Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile` with `RecycleOption.SendToRecycleBin`
-- [ ] Register in `ServiceCollectionExtensions.cs`
+- [x] Define `IRecycleBinService` interface in Application layer
+- [x] Implement `RecycleBinService` in Infrastructure using `Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile` with `RecycleOption.SendToRecycleBin`
+- [x] Register in `ServiceCollectionExtensions.cs`
 
 ### DedupExecute Step
-- [ ] Create `WizardDedupExecuteView.xaml` + code-behind
-- [ ] Add `DedupExecuteCommand` — flushes any remaining confirmed groups, reports progress
-- [ ] Results summary: files recycled, groups skipped, MB freed, per-file errors
-- [ ] "Scan another folder" button → `ModeSelector`
-- [ ] "Open Recycle Bin" button → `Process.Start("shell:RecycleBinFolder")`
+- [x] Create `WizardDedupExecuteView.xaml` + code-behind
+- [x] Add `DedupExecuteCommand` — flushes any remaining confirmed groups, reports progress
+- [x] Results summary: files recycled, groups skipped, MB freed, per-file errors
+- [x] "Scan another folder" button → `ModeSelector`
+- [x] "Open Recycle Bin" button → `Process.Start("shell:RecycleBinFolder")`
 
 ### Localization
-- [ ] Add all `WizardStepModeSelectorTitle`, `ModeOrganize*`, `ModeDedup*`, `DedupScan*`, `DedupReview*`, `DedupExecute*` keys to `Strings.de-DE.xaml`
-- [ ] Mirror all keys in `Strings.en-US.xaml`
+- [x] Add all `WizardStepModeSelectorTitle`, `ModeOrganize*`, `ModeDedup*`, `DedupScan*`, `DedupReview*`, `DedupExecute*` keys to `Strings.de-DE.xaml`
+- [x] Mirror all keys in `Strings.en-US.xaml`
 
 ### Tests
-- [ ] Unit test `DedupGroupViewModel` keeper-toggle logic
+- [x] Unit test `DedupGroupViewModel` keeper-toggle logic
 - [ ] Unit test `RecycleBinService` (mock or integration, Windows-only)
-- [ ] Verify existing organization flow tests still pass (no regressions)
+- [x] Verify existing organization flow tests still pass (no regressions)
 
 ## Non-Negotiables
 

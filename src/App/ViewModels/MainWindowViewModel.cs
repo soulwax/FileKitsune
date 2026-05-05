@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows.Data;
@@ -27,6 +28,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly PlanExecutionService planExecutionService;
     private readonly RollbackService rollbackService;
     private readonly StrategyRecommendationService strategyRecommendationService;
+    private readonly IFileScanner fileScanner;
+    private readonly DuplicateDetectionService duplicateDetectionService;
+    private readonly IRecycleBinService recycleBinService;
     private readonly IFolderPickerService folderPickerService;
     private readonly IDialogService dialogService;
     private readonly ILocalizationService localizationService;
@@ -49,6 +53,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PlanExecutionService planExecutionService,
         RollbackService rollbackService,
         StrategyRecommendationService strategyRecommendationService,
+        IFileScanner fileScanner,
+        DuplicateDetectionService duplicateDetectionService,
+        IRecycleBinService recycleBinService,
         IFolderPickerService folderPickerService,
         IDialogService dialogService,
         ILocalizationService localizationService,
@@ -63,6 +70,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         this.planExecutionService = planExecutionService;
         this.rollbackService = rollbackService;
         this.strategyRecommendationService = strategyRecommendationService;
+        this.fileScanner = fileScanner;
+        this.duplicateDetectionService = duplicateDetectionService;
+        this.recycleBinService = recycleBinService;
         this.folderPickerService = folderPickerService;
         this.dialogService = dialogService;
         this.localizationService = localizationService;
@@ -113,6 +123,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         selectedAppLanguage = AppLanguages[0];
 
         PlanOperations = [];
+        DedupGroups = [];
+        DedupExecutionErrors = [];
         PlanView = CollectionViewSource.GetDefaultView(PlanOperations);
         PlanView.Filter = ApplyPlanFilter;
         LogEntries = uiLogStore.Entries;
@@ -151,6 +163,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<PlanOperationItemViewModel> DuplicateGroupOperations { get; } = [];
 
+    public ObservableCollection<DedupGroupViewModel> DedupGroups { get; }
+
+    public ObservableCollection<string> DedupExecutionErrors { get; }
+
     public ObservableCollection<RollbackFolderItem> RollbackFolderGroups { get; } = [];
 
     public ObservableCollection<RollbackJournalItem> RollbackHistory { get; } = [];
@@ -167,6 +183,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private string rootDirectory = string.Empty;
+
+    [ObservableProperty]
+    private string dedupRootFolder = string.Empty;
 
     [ObservableProperty]
     private string includePatternsText = "*";
@@ -278,10 +297,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private bool hasDuplicateGroups;
 
     [ObservableProperty]
+    private bool hasDedupGroups;
+
+    [ObservableProperty]
+    private bool dedupScanCompleted;
+
+    [ObservableProperty]
     private DuplicateGroupItem? selectedDuplicateGroup;
 
     [ObservableProperty]
+    private DedupGroupViewModel? selectedDedupGroup;
+
+    [ObservableProperty]
     private bool hasSelectedDuplicateGroup;
+
+    [ObservableProperty]
+    private bool hasSelectedDedupGroup;
 
     [ObservableProperty]
     private OptionItem<OrganizationStrategyPreset>? selectedStrategyPreset;
@@ -458,7 +489,28 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private OptionItem<string>? selectedAppLanguage;
 
     [ObservableProperty]
-    private WizardStep currentStep = WizardStep.Folder;
+    private int dedupResolvedCount;
+
+    [ObservableProperty]
+    private int dedupSkippedCount;
+
+    [ObservableProperty]
+    private int dedupFilesRecycledCount;
+
+    [ObservableProperty]
+    private int dedupRecycleErrorCount;
+
+    [ObservableProperty]
+    private long dedupBytesFreed;
+
+    [ObservableProperty]
+    private string dedupExecutionSummary = string.Empty;
+
+    [ObservableProperty]
+    private bool hasDedupExecutionResults;
+
+    [ObservableProperty]
+    private WizardStep currentStep = WizardStep.ModeSelector;
 
     public int CurrentStepIndex
     {
@@ -466,9 +518,27 @@ public sealed partial class MainWindowViewModel : ObservableObject
         set => CurrentStep = ClampStep(value);
     }
 
-    public int CurrentStepNumber => CurrentStepIndex + 1;
+    public int CurrentStepNumber =>
+        CurrentStep switch
+        {
+            WizardStep.ModeSelector => 1,
+            WizardStep.DedupScan => 1,
+            WizardStep.DedupReview => 2,
+            WizardStep.DedupExecute => 3,
+            _ => CurrentStepIndex + 1
+        };
 
-    public int TotalWizardSteps => 5;
+    public int TotalWizardSteps => IsDedupFlow(CurrentStep) ? 3 : 5;
+
+    public bool IsWizardShellNavigationVisible => CurrentStep is not WizardStep.ModeSelector;
+
+    public bool AllDedupGroupsReviewed =>
+        DedupScanCompleted && DedupGroups.All(group => group.IsResolved || group.IsSkipped);
+
+    public string DedupReviewTally =>
+        FormatString("DedupReviewTally", DedupGroups.Count, DedupResolvedCount, DedupSkippedCount);
+
+    public double DedupBytesFreedMb => DedupBytesFreed / 1024d / 1024d;
 
     public async Task InitializeAsync()
     {
@@ -504,6 +574,40 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             RootDirectory = selectedFolder;
         }
+    }
+
+    [RelayCommand]
+    private void BrowseDedupRoot()
+    {
+        var selectedFolder = folderPickerService.PickFolder(DedupRootFolder);
+        if (!string.IsNullOrWhiteSpace(selectedFolder))
+        {
+            DedupRootFolder = selectedFolder;
+        }
+    }
+
+    [RelayCommand]
+    private void SelectOrganizeMode()
+    {
+        CurrentStep = WizardStep.Folder;
+    }
+
+    [RelayCommand]
+    private void SelectDedupMode()
+    {
+        if (string.IsNullOrWhiteSpace(DedupRootFolder))
+        {
+            DedupRootFolder = RootDirectory;
+        }
+
+        CurrentStep = WizardStep.DedupScan;
+    }
+
+    [RelayCommand]
+    private void ScanAnotherFolder()
+    {
+        ResetDedupState(clearRoot: false);
+        CurrentStep = WizardStep.ModeSelector;
     }
 
     [RelayCommand]
@@ -589,6 +693,203 @@ public sealed partial class MainWindowViewModel : ObservableObject
             currentCancellationTokenSource = null;
             NotifyWizardNavigationChanged();
         }
+    }
+
+    [RelayCommand]
+    private async Task DedupScanAsync()
+    {
+        if (!ValidateDedupRootFolder())
+        {
+            return;
+        }
+
+        ResetProgress();
+        ResetDedupState(clearRoot: false);
+        currentCancellationTokenSource = new CancellationTokenSource();
+
+        try
+        {
+            IsBusy = true;
+            StatusMessage = GetString("StatusDedupScanning");
+
+            var settings = BuildSettings().Organization;
+            settings.RootDirectory = DedupRootFolder;
+            settings.IncludePatterns = ["*"];
+            settings.DuplicatePolicy = new DuplicatePolicy
+            {
+                EnableExactDuplicateDetection = true,
+                HandlingMode = DuplicateHandlingMode.RequireReview,
+                DuplicatesFolderName = DuplicatesFolderName
+            };
+
+            var progress = new Progress<WorkflowProgress>(UpdateProgress);
+            var files = await fileScanner.ScanAsync(settings, progress, currentCancellationTokenSource.Token);
+            var matches = await duplicateDetectionService.DetectAsync(
+                files,
+                settings.DuplicatePolicy,
+                progress,
+                currentCancellationTokenSource.Token);
+
+            PopulateDedupGroups(files, matches);
+            DedupScanCompleted = true;
+            StatusMessage = FormatString("StatusDedupScanComplete", DedupGroups.Count);
+            logger.LogInformation("Standalone dedup scan found {Count} duplicate groups.", DedupGroups.Count);
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = GetString("StatusCanceled");
+            logger.LogInformation("Standalone dedup scan canceled.");
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Standalone dedup scan failed.");
+            dialogService.ShowError(GetString("DialogDedupScanFailedTitle"), exception.Message);
+            StatusMessage = GetString("StatusDedupScanFailed");
+        }
+        finally
+        {
+            IsBusy = false;
+            currentCancellationTokenSource?.Dispose();
+            currentCancellationTokenSource = null;
+            NotifyWizardNavigationChanged();
+        }
+    }
+
+    [RelayCommand]
+    private void ConfirmSelectedDedupGroup()
+    {
+        if (SelectedDedupGroup is null)
+        {
+            return;
+        }
+
+        SelectedDedupGroup.MarkResolved();
+        AdvanceDedupSelection();
+        RefreshDedupReviewState();
+    }
+
+    [RelayCommand]
+    private void SkipSelectedDedupGroup()
+    {
+        if (SelectedDedupGroup is null)
+        {
+            return;
+        }
+
+        SelectedDedupGroup.MarkSkipped();
+        AdvanceDedupSelection();
+        RefreshDedupReviewState();
+    }
+
+    [RelayCommand]
+    private void ResolveAllDedupAutomatically()
+    {
+        foreach (var group in DedupGroups.Where(group => !group.IsResolved && !group.IsSkipped))
+        {
+            group.MarkResolved();
+        }
+
+        SelectedDedupGroup = DedupGroups.FirstOrDefault();
+        RefreshDedupReviewState();
+    }
+
+    [RelayCommand]
+    private async Task DedupExecuteAsync()
+    {
+        if (!AllDedupGroupsReviewed)
+        {
+            dialogService.ShowInformation(GetString("DialogDedupReviewRequiredTitle"), GetString("DialogDedupReviewRequiredBody"));
+            return;
+        }
+
+        var resolvedGroups = DedupGroups.Where(group => group.IsResolved && !group.IsSkipped).ToList();
+        if (resolvedGroups.Count == 0)
+        {
+            DedupExecutionSummary = FormatString("DedupExecuteSummary", 0, DedupGroups.Count(group => group.IsSkipped), 0d, 0);
+            HasDedupExecutionResults = true;
+            return;
+        }
+
+        currentCancellationTokenSource = new CancellationTokenSource();
+        var recycledCount = 0;
+        var errorCount = 0;
+        long bytesFreed = 0;
+        var filesToRecycle = resolvedGroups.SelectMany(group => group.Files.Where(file => !file.IsKeeper)).ToList();
+        var processed = 0;
+        DedupExecutionErrors.Clear();
+
+        try
+        {
+            IsBusy = true;
+            StatusMessage = GetString("StatusDedupExecuting");
+            ProgressMaximum = Math.Max(1, filesToRecycle.Count);
+            ProgressValue = 0;
+            IsProgressIndeterminate = false;
+
+            foreach (var group in resolvedGroups)
+            {
+                foreach (var file in group.Files.Where(file => !file.IsKeeper))
+                {
+                    currentCancellationTokenSource.Token.ThrowIfCancellationRequested();
+                    if (!IsPathInsideDedupRoot(file.FullPath))
+                    {
+                        errorCount++;
+                        DedupExecutionErrors.Add(FormatString("DedupExecuteErrorOutOfRoot", file.RelativePath));
+                        logger.LogWarning("Dedup recycle skipped for out-of-root path {Path}", file.FullPath);
+                        continue;
+                    }
+
+                    try
+                    {
+                        await recycleBinService.RecycleFileAsync(file.FullPath, currentCancellationTokenSource.Token);
+                        recycledCount++;
+                        bytesFreed += file.SizeBytes;
+                    }
+                    catch (Exception exception)
+                    {
+                        errorCount++;
+                        DedupExecutionErrors.Add(FormatString("DedupExecuteErrorLine", file.RelativePath, exception.Message));
+                        logger.LogWarning(exception, "Dedup recycle failed for {Path}", file.FullPath);
+                    }
+                    finally
+                    {
+                        processed++;
+                        ProgressValue = processed;
+                        StatusMessage = FormatString("StatusDedupExecuteProgress", processed, filesToRecycle.Count);
+                    }
+                }
+            }
+
+            DedupFilesRecycledCount = recycledCount;
+            DedupRecycleErrorCount = errorCount;
+            DedupBytesFreed = bytesFreed;
+            OnPropertyChanged(nameof(DedupBytesFreedMb));
+            DedupExecutionSummary = FormatString(
+                "DedupExecuteSummary",
+                recycledCount,
+                DedupGroups.Count(group => group.IsSkipped),
+                DedupBytesFreedMb,
+                errorCount);
+            HasDedupExecutionResults = true;
+            StatusMessage = DedupExecutionSummary;
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = GetString("StatusCanceled");
+        }
+        finally
+        {
+            IsBusy = false;
+            currentCancellationTokenSource?.Dispose();
+            currentCancellationTokenSource = null;
+            NotifyWizardNavigationChanged();
+        }
+    }
+
+    [RelayCommand]
+    private void OpenRecycleBin()
+    {
+        Process.Start(new ProcessStartInfo("shell:RecycleBinFolder") { UseShellExecute = true });
     }
 
     [RelayCommand]
@@ -968,13 +1269,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanMoveBack))]
     private void Back()
     {
-        CurrentStep = ClampStep(CurrentStepIndex - 1);
+        CurrentStep = GetPreviousStep(CurrentStep);
     }
 
     [RelayCommand(CanExecute = nameof(CanMoveNext))]
     private void Next()
     {
-        CurrentStep = ClampStep(CurrentStepIndex + 1);
+        CurrentStep = GetNextStep(CurrentStep);
     }
 
     [RelayCommand]
@@ -1038,6 +1339,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     partial void OnRootDirectoryChanged(string value) => NotifyWizardNavigationChanged();
+
+    partial void OnDedupRootFolderChanged(string value) => NotifyWizardNavigationChanged();
+
+    partial void OnSelectedDedupGroupChanged(DedupGroupViewModel? value)
+    {
+        HasSelectedDedupGroup = value is not null;
+    }
+
+    partial void OnDedupBytesFreedChanged(long value) => OnPropertyChanged(nameof(DedupBytesFreedMb));
 
     partial void OnIsBusyChanged(bool value) => NotifyWizardNavigationChanged();
 
@@ -1270,11 +1580,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    private bool CanMoveBack() => !IsBusy && CurrentStep is not WizardStep.Folder;
+    private bool CanMoveBack() => !IsBusy && CurrentStep is not WizardStep.ModeSelector;
 
     private bool CanMoveNext()
     {
-        if (IsBusy || CurrentStep == WizardStep.ExecuteRollback)
+        if (IsBusy || CurrentStep is WizardStep.ModeSelector or WizardStep.ExecuteRollback or WizardStep.DedupExecute)
         {
             return false;
         }
@@ -1283,6 +1593,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             WizardStep.Folder => !string.IsNullOrWhiteSpace(RootDirectory) && Directory.Exists(RootDirectory),
             WizardStep.Preview => currentPlan is not null,
+            WizardStep.DedupScan => DedupScanCompleted,
+            WizardStep.DedupReview => AllDedupGroupsReviewed,
             _ => true
         };
     }
@@ -1800,6 +2112,129 @@ public sealed partial class MainWindowViewModel : ObservableObject
         HasSelectedDuplicateGroup = DuplicateGroupOperations.Count > 0;
     }
 
+    private void PopulateDedupGroups(
+        IReadOnlyList<ScannedFile> files,
+        IReadOnlyDictionary<string, DuplicateMatch> matches)
+    {
+        DedupGroups.Clear();
+        var filesByRelativePath = files.ToDictionary(file => file.RelativePath, StringComparer.OrdinalIgnoreCase);
+
+        var groups = matches
+            .GroupBy(match => match.Value.CanonicalRelativePath, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var group in groups)
+        {
+            if (!filesByRelativePath.TryGetValue(group.Key, out var canonical))
+            {
+                continue;
+            }
+
+            var groupFiles = new List<DedupFileItemViewModel>
+            {
+                CreateDedupFileItem(canonical, isKeeper: true)
+            };
+
+            groupFiles.AddRange(group
+                .Select(match => filesByRelativePath.TryGetValue(match.Key, out var file) ? file : null)
+                .OfType<ScannedFile>()
+                .OrderBy(file => file.RelativePath, StringComparer.OrdinalIgnoreCase)
+                .Select(file => CreateDedupFileItem(file, isKeeper: false)));
+
+            if (groupFiles.Count <= 1)
+            {
+                continue;
+            }
+
+            var viewModel = new DedupGroupViewModel(groupFiles);
+            viewModel.PropertyChanged += (_, _) => RefreshDedupReviewState();
+            DedupGroups.Add(viewModel);
+        }
+
+        HasDedupGroups = DedupGroups.Count > 0;
+        SelectedDedupGroup = DedupGroups.FirstOrDefault();
+        RefreshDedupReviewState();
+    }
+
+    private static DedupFileItemViewModel CreateDedupFileItem(ScannedFile file, bool isKeeper) =>
+        new()
+        {
+            FullPath = file.FullPath,
+            RelativePath = file.RelativePath,
+            SizeBytes = file.SizeBytes,
+            ModifiedUtc = file.ModifiedUtc,
+            IsKeeper = isKeeper
+        };
+
+    private void ResetDedupState(bool clearRoot)
+    {
+        DedupGroups.Clear();
+        HasDedupGroups = false;
+        DedupScanCompleted = false;
+        SelectedDedupGroup = null;
+        HasSelectedDedupGroup = false;
+        DedupResolvedCount = 0;
+        DedupSkippedCount = 0;
+        DedupFilesRecycledCount = 0;
+        DedupRecycleErrorCount = 0;
+        DedupBytesFreed = 0;
+        DedupExecutionSummary = string.Empty;
+        DedupExecutionErrors.Clear();
+        HasDedupExecutionResults = false;
+        if (clearRoot)
+        {
+            DedupRootFolder = string.Empty;
+        }
+
+        OnPropertyChanged(nameof(AllDedupGroupsReviewed));
+        OnPropertyChanged(nameof(DedupReviewTally));
+        OnPropertyChanged(nameof(DedupBytesFreedMb));
+        NotifyWizardNavigationChanged();
+    }
+
+    private void RefreshDedupReviewState()
+    {
+        DedupResolvedCount = DedupGroups.Count(group => group.IsResolved);
+        DedupSkippedCount = DedupGroups.Count(group => group.IsSkipped);
+        HasDedupGroups = DedupGroups.Count > 0;
+        HasSelectedDedupGroup = SelectedDedupGroup is not null;
+        OnPropertyChanged(nameof(AllDedupGroupsReviewed));
+        OnPropertyChanged(nameof(DedupReviewTally));
+        NotifyWizardNavigationChanged();
+    }
+
+    private void AdvanceDedupSelection()
+    {
+        SelectedDedupGroup = DedupGroups.FirstOrDefault(group => !group.IsResolved && !group.IsSkipped)
+                             ?? SelectedDedupGroup;
+    }
+
+    private bool ValidateDedupRootFolder()
+    {
+        if (string.IsNullOrWhiteSpace(DedupRootFolder) || !Directory.Exists(DedupRootFolder))
+        {
+            dialogService.ShowError(GetString("DialogRootRequiredTitle"), GetString("DialogRootRequiredBody"));
+            return false;
+        }
+
+        DedupRootFolder = Path.GetFullPath(DedupRootFolder);
+        return true;
+    }
+
+    private bool IsPathInsideDedupRoot(string fullPath)
+    {
+        if (string.IsNullOrWhiteSpace(DedupRootFolder))
+        {
+            return false;
+        }
+
+        var root = Path.GetFullPath(DedupRootFolder)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var candidate = Path.GetFullPath(fullPath);
+        return candidate.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(candidate, root, StringComparison.OrdinalIgnoreCase);
+    }
+
     private void ResetProgress()
     {
         ProgressMaximum = 1;
@@ -2206,14 +2641,44 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(CurrentStepIndex));
         OnPropertyChanged(nameof(CurrentStepNumber));
         OnPropertyChanged(nameof(TotalWizardSteps));
+        OnPropertyChanged(nameof(IsWizardShellNavigationVisible));
     }
 
     private static WizardStep ClampStep(int stepIndex) =>
-        stepIndex < (int)WizardStep.Folder
-            ? WizardStep.Folder
-            : stepIndex > (int)WizardStep.ExecuteRollback
-                ? WizardStep.ExecuteRollback
+        stepIndex < (int)WizardStep.ModeSelector
+            ? WizardStep.ModeSelector
+            : stepIndex > (int)WizardStep.DedupExecute
+                ? WizardStep.DedupExecute
                 : (WizardStep)stepIndex;
+
+    private static WizardStep GetPreviousStep(WizardStep step) =>
+        step switch
+        {
+            WizardStep.Folder => WizardStep.ModeSelector,
+            WizardStep.Strategy => WizardStep.Folder,
+            WizardStep.Rules => WizardStep.Strategy,
+            WizardStep.Preview => WizardStep.Rules,
+            WizardStep.ExecuteRollback => WizardStep.Preview,
+            WizardStep.DedupScan => WizardStep.ModeSelector,
+            WizardStep.DedupReview => WizardStep.DedupScan,
+            WizardStep.DedupExecute => WizardStep.DedupReview,
+            _ => WizardStep.ModeSelector
+        };
+
+    private static WizardStep GetNextStep(WizardStep step) =>
+        step switch
+        {
+            WizardStep.Folder => WizardStep.Strategy,
+            WizardStep.Strategy => WizardStep.Rules,
+            WizardStep.Rules => WizardStep.Preview,
+            WizardStep.Preview => WizardStep.ExecuteRollback,
+            WizardStep.DedupScan => WizardStep.DedupReview,
+            WizardStep.DedupReview => WizardStep.DedupExecute,
+            _ => step
+        };
+
+    private static bool IsDedupFlow(WizardStep step) =>
+        step is WizardStep.DedupScan or WizardStep.DedupReview or WizardStep.DedupExecute;
 
     private static string GetTopLevelRelativeFolder(string rootDirectory, string destinationFullPath)
     {

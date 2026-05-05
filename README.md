@@ -7,6 +7,7 @@ FileKitsune is a Windows-only .NET 8 WPF desktop app for safe, preview-first fil
 The app is usable today and currently provides:
 
 - a 5-step wizard: folder, strategy, rules, preview, execute/undo
+- a startup mode selector for either organizing files or running the standalone duplicate remover
 - German-first defaults for UI, folder labels, and filename language policy
 - switchable German/English UI with localized wizard text, option labels, dialogs, and status updates
 - strategy presets plus recommendation cards after preview
@@ -17,6 +18,7 @@ The app is usable today and currently provides:
 - duplicate canonical selection now prefers cleaner paths, then older files, then richer metadata
 - duplicate hashing now has explicit large-file test coverage
 - duplicate review in the preview step and duplicate-routing options in the rules step
+- standalone duplicate-remover flow with scan, keeper review, skip/confirm decisions, and Windows Recycle Bin execution
 - preview-first planning with reasons, warnings, confidence, and review indicators
 - saved-run selection in the execute step for both full-run rollback and folder-scoped undo
 - rollback preview tab for the selected saved run
@@ -49,6 +51,11 @@ The app is usable today and currently provides:
 - can cache settings and journals locally in SQLite while best-effort syncing shared persistence to Postgres
 
 ## Wizard Usage
+
+### Mode selector
+
+- choose `Organize files` for the existing preview-first organization wizard
+- choose `Find duplicates` to scan for exact copies, select one keeper per group, and move confirmed copies to the Windows Recycle Bin
 
 ### 1. Folder
 
@@ -91,7 +98,8 @@ The app is usable today and currently provides:
 - final destinations must resolve inside the selected root folder
 - Gemini is advisory only; local logic still validates categories, fragments, and final paths
 - execution currently performs moves and renames only
-- there is no delete flow
+- the organization wizard does not delete files
+- standalone duplicate removal moves confirmed copies to the Windows Recycle Bin after review
 - hidden/system files and reparse points are skipped by default unless policy settings are changed in code
 
 ## Duplicate Detection
@@ -102,6 +110,7 @@ Exact duplicate detection already exists in the current app:
 - only same-size candidates are hashed
 - SHA-256 is used for exact duplicate identity
 - duplicate handling can require review, route to a duplicates folder, or skip duplicate items
+- standalone duplicate mode uses the same size/hash identity checks, then lets you set the keeper before any file is moved
 
 Current limitation:
 
