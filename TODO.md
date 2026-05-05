@@ -137,21 +137,39 @@ Validated baseline:
 - [x] Add PDF extraction tests
 - [x] Add Gemini fallback/unavailable tests
 
-## 10. Current Best Next Slice
+## 10. Fundamental Missing Pieces
+
+These are not cosmetic. They close trust gaps where a user could misunderstand scope, execute a stale plan, or lose confidence after a failure.
+
+- [ ] Add execution preflight revalidation before any mutation: source still exists, source metadata/hash still matches the preview where available, destination is still conflict-free or intentionally conflict-resolved, and every final path still resolves inside the selected root.
+- [ ] Surface stale-preview results in the UI and require the user to rebuild or explicitly reconfirm changed items before execution.
+- [ ] Add clear scan/preview coverage reporting: total scanned, previewed/planned count, skipped count, protected count, scan limit hit, preview sample limit hit, unreadable content count, and duplicate hash failures.
+- [ ] Block or strongly warn on execution when the current plan is incomplete because `MaxFilesToScan` or `PreviewSampleSize` truncated the folder.
+- [ ] Add full OCR text extraction for scanned PDFs and image files, preferably local/offline-first, with extraction source and confidence visible in the preview.
+- [ ] Add an audit trail for standalone dedup runs: root folder, duplicate groups, selected keepers, files sent to Recycle Bin, skipped groups, failures, and timestamp.
+- [ ] Add recovery UI for incomplete/canceled/crashed execution journals so users can see pending operations and choose resume, rollback completed moves, or mark abandoned.
+- [ ] Add checkpoint-level rollback hardening for partial failures across process restarts, including tests for pending journal entries and interrupted rollback attempts.
+- [ ] Add a final execution review screen that summarizes exactly how many selected operations will move, rename, route duplicates, skip, or require review before the execute button is enabled.
+
+## 11. Current Best Next Slice
 
 Highest-value next work:
 
 - [x] improve rollback preview/confirmation from impact summary into a clearer diff-style confirmation experience
-- [ ] add OCR/image-first handling for scanned PDFs and image-led folders
+- [x] add image-first metadata handling and scanned-PDF detection for image-led folders
+- [ ] add full OCR text extraction for scanned PDFs and images
+- [ ] add execution preflight revalidation and stale-preview handling
+- [ ] make partial scan/preview coverage impossible to miss before execution
+- [ ] add dedup run audit history beyond relying on the Windows Recycle Bin
 - [ ] consider any last domain-specific duplicate canonical heuristics after manual testing
 
 Why this is next:
 
 - the wizard, rules, localization, and recommendations are already useful
 - duplicate detection already exists in a usable form
-- OCR, localization cleanup, and duplicate trust details are now the largest gaps still visible to users
+- stale-preview handling, partial-coverage clarity, OCR, and dedup audit history are now the largest gaps still visible to users
 
-## 11. Dedup Mode (Standalone Duplicate Remover)
+## 12. Dedup Mode (Standalone Duplicate Remover)
 
 Spec: `docs/superpowers/specs/2026-04-29-dedup-mode-design.md`
 
@@ -207,7 +225,7 @@ Spec: `docs/superpowers/specs/2026-04-29-dedup-mode-design.md`
 
 ### Tests
 - [x] Unit test `DedupGroupViewModel` keeper-toggle logic
-- [ ] Unit test `RecycleBinService` (mock or integration, Windows-only)
+- [x] Unit test `RecycleBinService` (mock or integration, Windows-only)
 - [x] Verify existing organization flow tests still pass (no regressions)
 
 ## Non-Negotiables

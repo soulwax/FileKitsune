@@ -75,6 +75,7 @@ Infrastructure/
  LocalFileContentReaderTests.cs
  PersistenceOptionsResolverTests.cs
  PersistenceStatusServiceTests.cs
+ RecycleBinServiceTests.cs
  ResilientPersistenceTests.cs
  Sha256FileHashProviderTests.cs
 obj/Debug/net8.0-windows/

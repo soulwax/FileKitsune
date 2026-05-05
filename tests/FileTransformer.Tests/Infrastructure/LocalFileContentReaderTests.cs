@@ -76,6 +76,77 @@ public sealed class LocalFileContentReaderTests
     }
 
     [Fact]
+    public async Task ReadAsync_ReturnsPdfImageOnlyWhenPdfContainsImagesWithoutText()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.pdf");
+        try
+        {
+            await File.WriteAllBytesAsync(path, CreateImageOnlyPdf());
+
+            var reader = new LocalFileContentReader(NullLogger<LocalFileContentReader>.Instance);
+            var snapshot = await reader.ReadAsync(
+                new ScannedFile
+                {
+                    FullPath = path,
+                    RelativePath = "scan.pdf",
+                    FileName = "scan.pdf",
+                    Extension = ".pdf",
+                    SizeBytes = new FileInfo(path).Length
+                },
+                new OrganizationSettings(),
+                CancellationToken.None);
+
+            Assert.False(snapshot.IsTextReadable);
+            Assert.Equal("pdf-image-only", snapshot.ExtractionSource);
+            Assert.Contains("scanned PDF", snapshot.Text, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Embedded images: 1", snapshot.Text);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task ReadAsync_ReturnsImageMetadataForPng()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.png");
+        try
+        {
+            await File.WriteAllBytesAsync(path, CreatePngHeader(width: 24, height: 12));
+
+            var reader = new LocalFileContentReader(NullLogger<LocalFileContentReader>.Instance);
+            var snapshot = await reader.ReadAsync(
+                new ScannedFile
+                {
+                    FullPath = path,
+                    RelativePath = "photo.png",
+                    FileName = "photo.png",
+                    Extension = ".png",
+                    SizeBytes = new FileInfo(path).Length
+                },
+                new OrganizationSettings(),
+                CancellationToken.None);
+
+            Assert.False(snapshot.IsTextReadable);
+            Assert.Equal("image-metadata", snapshot.ExtractionSource);
+            Assert.Contains("Format: PNG", snapshot.Text);
+            Assert.Contains("Dimensions: 24 x 12 pixels", snapshot.Text);
+            Assert.Contains("Orientation: landscape", snapshot.Text);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [Fact]
     public async Task ReadAsync_ReturnsReadFailedWhenPdfIsInvalid()
     {
         var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.pdf");
@@ -153,6 +224,17 @@ public sealed class LocalFileContentReaderTests
             ? "BT\n/F1 24 Tf\n72 100 Td\nET\n"
             : $"BT\n/F1 24 Tf\n72 100 Td\n({EscapePdfText(text)}) Tj\nET\n";
 
+        return CreatePdfWithContent(content);
+    }
+
+    private static byte[] CreateImageOnlyPdf()
+    {
+        const string content = "q\n10 0 0 10 72 72 cm\nBI\n/W 1\n/H 1\n/CS /RGB\n/BPC 8\nID\nabc\nEI\nQ\n";
+        return CreatePdfWithContent(content);
+    }
+
+    private static byte[] CreatePdfWithContent(string content)
+    {
         var objects = new[]
         {
             "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
@@ -186,6 +268,41 @@ public sealed class LocalFileContentReaderTests
         builder.Append($"{xrefOffset}\n");
         builder.Append("%%EOF");
         return Encoding.ASCII.GetBytes(builder.ToString());
+    }
+
+    private static byte[] CreatePngHeader(int width, int height)
+    {
+        var bytes = new byte[33];
+        bytes[0] = 0x89;
+        bytes[1] = 0x50;
+        bytes[2] = 0x4E;
+        bytes[3] = 0x47;
+        bytes[4] = 0x0D;
+        bytes[5] = 0x0A;
+        bytes[6] = 0x1A;
+        bytes[7] = 0x0A;
+        bytes[11] = 0x0D;
+        bytes[12] = 0x49;
+        bytes[13] = 0x48;
+        bytes[14] = 0x44;
+        bytes[15] = 0x52;
+        WriteBigEndian(bytes, 16, width);
+        WriteBigEndian(bytes, 20, height);
+        bytes[24] = 0x08;
+        bytes[25] = 0x02;
+        bytes[29] = 0x49;
+        bytes[30] = 0x45;
+        bytes[31] = 0x4E;
+        bytes[32] = 0x44;
+        return bytes;
+    }
+
+    private static void WriteBigEndian(byte[] bytes, int startIndex, int value)
+    {
+        bytes[startIndex] = (byte)(value >> 24);
+        bytes[startIndex + 1] = (byte)(value >> 16);
+        bytes[startIndex + 2] = (byte)(value >> 8);
+        bytes[startIndex + 3] = (byte)value;
     }
 
     private static string EscapePdfText(string text) =>
