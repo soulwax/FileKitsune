@@ -19,6 +19,7 @@ The app is usable today and currently provides:
 - duplicate hashing now has explicit large-file test coverage
 - duplicate review in the preview step and duplicate-routing options in the rules step
 - standalone duplicate-remover flow with scan, keeper review, skip/confirm decisions, and Windows Recycle Bin execution
+- standalone duplicate-remover execution writes a local JSONL audit run before any file is moved to the Recycle Bin
 - preview-first planning with reasons, warnings, confidence, and review indicators
 - saved-run selection in the execute step for both full-run rollback and folder-scoped undo
 - rollback preview tab for the selected saved run
@@ -100,6 +101,7 @@ The app is usable today and currently provides:
 - execution currently performs moves and renames only
 - the organization wizard does not delete files
 - standalone duplicate removal moves confirmed copies to the Windows Recycle Bin after review
+- duplicate removal refuses to move files if it cannot create a local audit trail first
 - hidden/system files and reparse points are skipped by default unless policy settings are changed in code
 
 ## Duplicate Detection
@@ -111,6 +113,7 @@ Exact duplicate detection already exists in the current app:
 - SHA-256 is used for exact duplicate identity
 - duplicate handling can require review, route to a duplicates folder, or skip duplicate items
 - standalone duplicate mode uses the same size/hash identity checks, then lets you set the keeper before any file is moved
+- standalone duplicate mode writes a per-run audit file with root folder, keeper decisions, skipped groups, move attempts, failures, and completion status
 
 Current limitation:
 
@@ -183,6 +186,7 @@ The app is still evolving. Notable gaps:
 - settings: `%LocalAppData%\FileKitsune\settings.json`
 - sqlite cache: `%LocalAppData%\FileKitsune\persistence.db`
 - journals: `%LocalAppData%\FileKitsune\journals`
+- dedup audit runs: `%LocalAppData%\FileKitsune\dedup-runs`
 - logs: `%LocalAppData%\FileKitsune\logs`
 
 ## Developer Notes

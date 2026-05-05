@@ -68,6 +68,7 @@ Configuration/
  DotEnv.cs
  EnvironmentConfigService.cs
  EnvironmentSanityService.cs
+ JsonDedupAuditStore.cs
  JsonExecutionJournalStore.cs
  PersistenceOptions.cs
  PersistenceOptionsResolver.cs

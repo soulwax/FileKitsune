@@ -55,6 +55,7 @@ TemporaryDependencyNodeTargetIdentifier=net8.0
 [sourceFiles]
 Abstractions/
  IAppSettingsStore.cs
+ IDedupAuditStore.cs
  IEnvironmentConfigService.cs
  IEnvironmentSanityService.cs
  IExecutionJournalStore.cs
@@ -68,6 +69,11 @@ Abstractions/
  IRecycleBinService.cs
 Models/
  AppSettings.cs
+ DedupAuditEntry.cs
+ DedupAuditGroup.cs
+ DedupAuditRunCompleted.cs
+ DedupAuditRunHandle.cs
+ DedupAuditRunStarted.cs
  DuplicateMatch.cs
  EnvironmentFileSettings.cs
  EnvironmentPingAvailability.cs

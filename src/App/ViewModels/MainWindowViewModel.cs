@@ -31,6 +31,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly IFileScanner fileScanner;
     private readonly DuplicateDetectionService duplicateDetectionService;
     private readonly IRecycleBinService recycleBinService;
+    private readonly IDedupAuditStore dedupAuditStore;
     private readonly IFolderPickerService folderPickerService;
     private readonly IDialogService dialogService;
     private readonly ILocalizationService localizationService;
@@ -56,6 +57,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IFileScanner fileScanner,
         DuplicateDetectionService duplicateDetectionService,
         IRecycleBinService recycleBinService,
+        IDedupAuditStore dedupAuditStore,
         IFolderPickerService folderPickerService,
         IDialogService dialogService,
         ILocalizationService localizationService,
@@ -73,6 +75,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         this.fileScanner = fileScanner;
         this.duplicateDetectionService = duplicateDetectionService;
         this.recycleBinService = recycleBinService;
+        this.dedupAuditStore = dedupAuditStore;
         this.folderPickerService = folderPickerService;
         this.dialogService = dialogService;
         this.localizationService = localizationService;
@@ -507,6 +510,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string dedupExecutionSummary = string.Empty;
 
     [ObservableProperty]
+    private string dedupLastAuditPath = string.Empty;
+
+    [ObservableProperty]
     private bool hasDedupExecutionResults;
 
     [ObservableProperty]
@@ -817,6 +823,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var filesToRecycle = resolvedGroups.SelectMany(group => group.Files.Where(file => !file.IsKeeper)).ToList();
         var processed = 0;
         DedupExecutionErrors.Clear();
+        DedupLastAuditPath = string.Empty;
+
+        DedupAuditRunHandle auditRun;
+        try
+        {
+            auditRun = await dedupAuditStore.StartRunAsync(
+                BuildDedupAuditRunStarted(filesToRecycle),
+                CancellationToken.None);
+            DedupLastAuditPath = auditRun.AuditFilePath;
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Dedup execution audit could not be started. No files will be recycled.");
+            dialogService.ShowError(GetString("DialogDedupAuditFailedTitle"), GetString("DialogDedupAuditFailedBody"));
+            StatusMessage = GetString("StatusDedupAuditFailed");
+            return;
+        }
 
         try
         {
@@ -836,20 +859,55 @@ public sealed partial class MainWindowViewModel : ObservableObject
                         errorCount++;
                         DedupExecutionErrors.Add(FormatString("DedupExecuteErrorOutOfRoot", file.RelativePath));
                         logger.LogWarning("Dedup recycle skipped for out-of-root path {Path}", file.FullPath);
+                        await dedupAuditStore.AppendEntryAsync(
+                            auditRun.RunId,
+                            CreateDedupAuditEntry(file, "recycle-result", "SkippedOutOfRoot", "File was outside the selected dedup root and was not moved."),
+                            CancellationToken.None);
                         continue;
                     }
 
                     try
                     {
+                        await dedupAuditStore.AppendEntryAsync(
+                            auditRun.RunId,
+                            CreateDedupAuditEntry(file, "recycle-attempt", "Pending", "Recycle Bin move is about to start."),
+                            currentCancellationTokenSource.Token);
+
                         await recycleBinService.RecycleFileAsync(file.FullPath, currentCancellationTokenSource.Token);
                         recycledCount++;
                         bytesFreed += file.SizeBytes;
+
+                        try
+                        {
+                            await dedupAuditStore.AppendEntryAsync(
+                                auditRun.RunId,
+                                CreateDedupAuditEntry(file, "recycle-result", "MovedToRecycleBin", "File was handed to the Windows Recycle Bin."),
+                                CancellationToken.None);
+                        }
+                        catch (Exception auditException)
+                        {
+                            errorCount++;
+                            DedupExecutionErrors.Add(FormatString("DedupExecuteAuditWriteFailed", file.RelativePath, auditException.Message));
+                            logger.LogError(auditException, "Dedup audit append failed after recycling {Path}", file.FullPath);
+                        }
                     }
                     catch (Exception exception)
                     {
                         errorCount++;
                         DedupExecutionErrors.Add(FormatString("DedupExecuteErrorLine", file.RelativePath, exception.Message));
                         logger.LogWarning(exception, "Dedup recycle failed for {Path}", file.FullPath);
+
+                        try
+                        {
+                            await dedupAuditStore.AppendEntryAsync(
+                                auditRun.RunId,
+                                CreateDedupAuditEntry(file, "recycle-result", "Failed", exception.Message),
+                                CancellationToken.None);
+                        }
+                        catch (Exception auditException)
+                        {
+                            logger.LogError(auditException, "Dedup audit append failed after recycle failure for {Path}", file.FullPath);
+                        }
                     }
                     finally
                     {
@@ -870,11 +928,35 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 DedupGroups.Count(group => group.IsSkipped),
                 DedupBytesFreedMb,
                 errorCount);
+
+            await dedupAuditStore.CompleteRunAsync(
+                auditRun.RunId,
+                new DedupAuditRunCompleted
+                {
+                    Status = errorCount == 0 ? "Completed" : "CompletedWithErrors",
+                    FilesRecycled = recycledCount,
+                    FilesSkipped = DedupGroups.Count(group => group.IsSkipped),
+                    Errors = errorCount,
+                    BytesFreed = bytesFreed
+                },
+                CancellationToken.None);
+
             HasDedupExecutionResults = true;
             StatusMessage = DedupExecutionSummary;
         }
         catch (OperationCanceledException)
         {
+            await dedupAuditStore.CompleteRunAsync(
+                auditRun.RunId,
+                new DedupAuditRunCompleted
+                {
+                    Status = "Canceled",
+                    FilesRecycled = recycledCount,
+                    FilesSkipped = DedupGroups.Count(group => group.IsSkipped),
+                    Errors = errorCount,
+                    BytesFreed = bytesFreed
+                },
+                CancellationToken.None);
             StatusMessage = GetString("StatusCanceled");
         }
         finally
@@ -2166,6 +2248,49 @@ public sealed partial class MainWindowViewModel : ObservableObject
             IsKeeper = isKeeper
         };
 
+    private DedupAuditRunStarted BuildDedupAuditRunStarted(IReadOnlyList<DedupFileItemViewModel> filesToRecycle) =>
+        new()
+        {
+            RunId = Guid.NewGuid(),
+            RootDirectory = DedupRootFolder,
+            TotalGroups = DedupGroups.Count,
+            ResolvedGroups = DedupGroups.Count(group => group.IsResolved && !group.IsSkipped),
+            SkippedGroups = DedupGroups.Count(group => group.IsSkipped),
+            FilesPlannedForRecycle = filesToRecycle.Count,
+            BytesPlannedForRecycle = filesToRecycle.Sum(file => file.SizeBytes),
+            Groups = DedupGroups.Select(CreateDedupAuditGroup).ToList()
+        };
+
+    private static DedupAuditGroup CreateDedupAuditGroup(DedupGroupViewModel group)
+    {
+        var keeper = group.Keeper ?? group.Files.First();
+        var duplicates = group.Files.Where(file => !file.IsKeeper).ToList();
+
+        return new DedupAuditGroup
+        {
+            KeeperFullPath = keeper.FullPath,
+            KeeperRelativePath = keeper.RelativePath,
+            IsSkipped = group.IsSkipped,
+            DuplicateFullPaths = duplicates.Select(file => file.FullPath).ToList(),
+            DuplicateRelativePaths = duplicates.Select(file => file.RelativePath).ToList()
+        };
+    }
+
+    private static DedupAuditEntry CreateDedupAuditEntry(
+        DedupFileItemViewModel file,
+        string action,
+        string status,
+        string message) =>
+        new()
+        {
+            Action = action,
+            FullPath = file.FullPath,
+            RelativePath = file.RelativePath,
+            SizeBytes = file.SizeBytes,
+            Status = status,
+            Message = message
+        };
+
     private void ResetDedupState(bool clearRoot)
     {
         DedupGroups.Clear();
@@ -2179,6 +2304,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         DedupRecycleErrorCount = 0;
         DedupBytesFreed = 0;
         DedupExecutionSummary = string.Empty;
+        DedupLastAuditPath = string.Empty;
         DedupExecutionErrors.Clear();
         HasDedupExecutionResults = false;
         if (clearRoot)

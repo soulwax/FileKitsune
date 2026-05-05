@@ -157,7 +157,8 @@ These are not cosmetic. They close trust gaps where a user could misunderstand s
 - [ ] Add clear scan/preview coverage reporting: total scanned, previewed/planned count, skipped count, protected count, scan limit hit, preview sample limit hit, unreadable content count, and duplicate hash failures.
 - [ ] Block or strongly warn on execution when the current plan is incomplete because `MaxFilesToScan` or `PreviewSampleSize` truncated the folder.
 - [ ] Add full OCR text extraction for scanned PDFs and image files, preferably local/offline-first, with extraction source and confidence visible in the preview.
-- [ ] Add an audit trail for standalone dedup runs: root folder, duplicate groups, selected keepers, files sent to Recycle Bin, skipped groups, failures, and timestamp.
+- [x] Add an audit trail for standalone dedup runs: root folder, duplicate groups, selected keepers, files sent to Recycle Bin, skipped groups, failures, and timestamp.
+- [ ] Replace Recycle Bin-only dedup execution with a FileKitsune-managed quarantine/restore flow so duplicate removal remains recoverable even if the OS Recycle Bin is unavailable, disabled, or later emptied.
 - [ ] Add recovery UI for incomplete/canceled/crashed execution journals so users can see pending operations and choose resume, rollback completed moves, or mark abandoned.
 - [ ] Add checkpoint-level rollback hardening for partial failures across process restarts, including tests for pending journal entries and interrupted rollback attempts.
 - [ ] Add a final execution review screen that summarizes exactly how many selected operations will move, rename, route duplicates, skip, or require review before the execute button is enabled.
@@ -171,7 +172,8 @@ Highest-value next work:
 - [ ] add full OCR text extraction for scanned PDFs and images
 - [ ] add execution preflight revalidation and stale-preview handling
 - [ ] make partial scan/preview coverage impossible to miss before execution
-- [ ] add dedup run audit history beyond relying on the Windows Recycle Bin
+- [x] add dedup run audit history beyond relying on the Windows Recycle Bin
+- [ ] add FileKitsune-managed dedup quarantine with explicit restore
 - [ ] consider any last domain-specific duplicate canonical heuristics after manual testing
 
 Why this is next:
@@ -229,6 +231,8 @@ Spec: `docs/superpowers/specs/2026-04-29-dedup-mode-design.md`
 - [x] Results summary: files recycled, groups skipped, MB freed, per-file errors
 - [x] "Scan another folder" button → `ModeSelector`
 - [x] "Open Recycle Bin" button → `Process.Start("shell:RecycleBinFolder")`
+- [x] Write a local JSONL audit run before moving any duplicate to the Recycle Bin
+- [x] Show the dedup audit file path after execution
 
 ### Localization
 - [x] Add all `WizardStepModeSelectorTitle`, `ModeOrganize*`, `ModeDedup*`, `DedupScan*`, `DedupReview*`, `DedupExecute*` keys to `Strings.de-DE.xaml`
@@ -237,6 +241,7 @@ Spec: `docs/superpowers/specs/2026-04-29-dedup-mode-design.md`
 ### Tests
 - [x] Unit test `DedupGroupViewModel` keeper-toggle logic
 - [x] Unit test `RecycleBinService` (mock or integration, Windows-only)
+- [x] Unit test dedup audit JSONL persistence
 - [x] Verify existing organization flow tests still pass (no regressions)
 
 ## Non-Negotiables
@@ -246,6 +251,8 @@ Spec: `docs/superpowers/specs/2026-04-29-dedup-mode-design.md`
 - [x] Gemini remains advisory only
 - [x] Duplicate identity is hash-based, not filename-based
 - [x] Core rollback scenarios and preview states covered by dedicated tests
+- [x] No file-removal flow runs without a local audit trail first
+- [ ] No file-removal flow should rely solely on the OS Recycle Bin for recoverability
 
 ## Guiding Principle
 

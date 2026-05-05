@@ -72,6 +72,7 @@ Infrastructure/
  GeminiOrganizationGuidanceParserTests.cs
  GeminiPromptBuilderTests.cs
  GeminiResponseParserTests.cs
+ JsonDedupAuditStoreTests.cs
  LocalFileContentReaderTests.cs
  PersistenceOptionsResolverTests.cs
  PersistenceStatusServiceTests.cs

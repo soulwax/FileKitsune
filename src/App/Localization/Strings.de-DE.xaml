@@ -90,9 +90,11 @@
     <sys:String x:Key="DedupExecuteScanAnotherButton">Anderen Ordner scannen</sys:String>
     <sys:String x:Key="DedupExecuteOpenRecycleBinButton">Papierkorb öffnen</sys:String>
     <sys:String x:Key="DedupExecuteResultsHint">Fehler werden im Protokoll festgehalten; nicht erfolgreiche Dateien bleiben an ihrem bisherigen Ort.</sys:String>
+    <sys:String x:Key="DedupExecuteAuditLabel">Auditdatei</sys:String>
     <sys:String x:Key="DedupExecuteSummary">{0} Dateien verschoben · {1} Gruppen übersprungen · {2:0.##} MB frei · {3} Fehler</sys:String>
     <sys:String x:Key="DedupExecuteErrorOutOfRoot">Übersprungen, weil außerhalb des Scan-Ordners: {0}</sys:String>
     <sys:String x:Key="DedupExecuteErrorLine">Fehler bei {0}: {1}</sys:String>
+    <sys:String x:Key="DedupExecuteAuditWriteFailed">Audit konnte nach dem Verschieben von {0} nicht geschrieben werden: {1}</sys:String>
     <sys:String x:Key="UiLanguageLabel">Programmsprache</sys:String>
     <sys:String x:Key="StrategySelectionTitle">Strategieauswahl</sys:String>
     <sys:String x:Key="StrategySelectionBody">Wählen Sie jetzt die primäre Organisationsstrategie oder nutzen Sie nach einer Vorschau die Empfehlungskarten in diesem Schritt.</sys:String>
@@ -327,6 +329,7 @@
     <sys:String x:Key="StatusDedupScanFailed">Duplikat-Scan fehlgeschlagen.</sys:String>
     <sys:String x:Key="StatusDedupExecuting">Verschiebe bestätigte Duplikate in den Papierkorb...</sys:String>
     <sys:String x:Key="StatusDedupExecuteProgress">Verschiebe {0} von {1} bestätigten Kopien in den Papierkorb.</sys:String>
+    <sys:String x:Key="StatusDedupAuditFailed">Duplikat-Ausführung gestoppt, weil die Auditdatei nicht erstellt werden konnte.</sys:String>
     <sys:String x:Key="StatusExecuting">Führe freigegebene Operationen aus...</sys:String>
     <sys:String x:Key="StatusExecutionOutcome">{0} Operation(en) ausgeführt, {1} übersprungen, {2} fehlgeschlagen.</sys:String>
     <sys:String x:Key="StatusRollbackOutcome">{0} Operation(en) zurückgesetzt, {1} übersprungen, {2} fehlgeschlagen.</sys:String>
@@ -344,6 +347,8 @@
     <sys:String x:Key="DialogSaveFailedBody">Die Einstellungen konnten nicht gespeichert werden: {0}</sys:String>
     <sys:String x:Key="DialogScanFailedTitle">Scan fehlgeschlagen</sys:String>
     <sys:String x:Key="DialogDedupScanFailedTitle">Duplikat-Scan fehlgeschlagen</sys:String>
+    <sys:String x:Key="DialogDedupAuditFailedTitle">Audit konnte nicht erstellt werden</sys:String>
+    <sys:String x:Key="DialogDedupAuditFailedBody">FileKitsune hat keine Dateien verschoben. Zuerst muss ein Audit-Protokoll erstellt werden, damit bestätigte Duplikate nicht ohne lokalen Nachweis verschwinden können.</sys:String>
     <sys:String x:Key="DialogDedupReviewRequiredTitle">Prüfung erforderlich</sys:String>
     <sys:String x:Key="DialogDedupReviewRequiredBody">Bestätigen oder überspringen Sie jede Duplikatgruppe, bevor Dateien in den Papierkorb verschoben werden.</sys:String>
     <sys:String x:Key="DialogNothingToExecuteTitle">Nichts auszuführen</sys:String>

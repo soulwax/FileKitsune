@@ -17,5 +17,7 @@ public sealed class AppStoragePaths
 
     public string JournalDirectory => Path.Combine(RootDirectory, "journals");
 
+    public string DedupAuditDirectory => Path.Combine(RootDirectory, "dedup-runs");
+
     public string LogsDirectory => Path.Combine(RootDirectory, "logs");
 }
