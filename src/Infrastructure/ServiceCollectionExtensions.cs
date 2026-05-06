@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<PostgresExecutionJournalStore>();
         services.AddSingleton<IExecutionJournalStore, ResilientExecutionJournalStore>();
         services.AddSingleton<IFileScanner, LocalFileScanner>();
+        services.AddSingleton<IOcrTextExtractor, TesseractOcrTextExtractor>();
         services.AddSingleton<IFileContentReader, LocalFileContentReader>();
         services.AddSingleton<IFileOperations, LocalFileOperations>();
         services.AddSingleton<IFileHashProvider, Sha256FileHashProvider>();

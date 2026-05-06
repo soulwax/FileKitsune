@@ -44,6 +44,12 @@ public sealed class PlanOperation
 
     public string SourceContentHash { get; init; } = string.Empty;
 
+    public string ContentExtractionSource { get; init; } = string.Empty;
+
+    public double? ContentExtractionConfidence { get; init; }
+
+    public string ContentExtractionMessage { get; init; } = string.Empty;
+
     public OrganizationStrategyPreset StrategyPreset { get; init; } = OrganizationStrategyPreset.ManualCustom;
 
     public List<string> ReviewReasons { get; init; } = [];

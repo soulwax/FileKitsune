@@ -235,6 +235,8 @@
     <sys:String x:Key="CurrentPathLabel">Aktueller Pfad</sys:String>
     <sys:String x:Key="ProposedPathLabel">Vorgeschlagener Pfad</sys:String>
     <sys:String x:Key="ReasonLabel">Begründung</sys:String>
+    <sys:String x:Key="ContentExtractionSourceLabel">Extraktion:</sys:String>
+    <sys:String x:Key="ContentExtractionConfidenceLabel">OCR-Sicherheit:</sys:String>
     <sys:String x:Key="SummaryAnalyzedItemsLabel">Analysierte Elemente:</sys:String>
     <sys:String x:Key="SummaryMoveOperationsLabel">Verschiebungsbezogene Operationen:</sys:String>
     <sys:String x:Key="SummaryRenameOperationsLabel">Umbenennungsbezogene Operationen:</sys:String>

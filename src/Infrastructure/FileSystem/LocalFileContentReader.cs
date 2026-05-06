@@ -28,10 +28,14 @@ public sealed class LocalFileContentReader : IFileContentReader
     ];
 
     private readonly ILogger<LocalFileContentReader> logger;
+    private readonly IOcrTextExtractor? ocrTextExtractor;
 
-    public LocalFileContentReader(ILogger<LocalFileContentReader> logger)
+    public LocalFileContentReader(
+        ILogger<LocalFileContentReader> logger,
+        IOcrTextExtractor? ocrTextExtractor = null)
     {
         this.logger = logger;
+        this.ocrTextExtractor = ocrTextExtractor;
     }
 
     public async Task<FileContentSnapshot> ReadAsync(
@@ -94,7 +98,18 @@ public sealed class LocalFileContentReader : IFileContentReader
         };
     }
 
-    private static Task<FileContentSnapshot> ReadPdfAsync(string fullPath, CancellationToken cancellationToken)
+    private async Task<FileContentSnapshot> ReadPdfAsync(string fullPath, CancellationToken cancellationToken)
+    {
+        var snapshot = await ReadPdfWithoutOcrAsync(fullPath, cancellationToken);
+        if (snapshot.IsTextReadable)
+        {
+            return snapshot;
+        }
+
+        return await TryApplyOcrAsync(fullPath, snapshot, cancellationToken);
+    }
+
+    private static Task<FileContentSnapshot> ReadPdfWithoutOcrAsync(string fullPath, CancellationToken cancellationToken)
     {
         return Task.Run(() =>
         {
@@ -161,7 +176,7 @@ public sealed class LocalFileContentReader : IFileContentReader
         }, cancellationToken);
     }
 
-    private static async Task<FileContentSnapshot> ReadImageAsync(
+    private async Task<FileContentSnapshot> ReadImageAsync(
         string fullPath,
         string extension,
         CancellationToken cancellationToken)
@@ -192,12 +207,14 @@ public sealed class LocalFileContentReader : IFileContentReader
             ? BuildImageSignal(extension, null, null, null)
             : BuildImageSignal(metadata.Format, metadata.Width, metadata.Height, metadata.Orientation);
 
-        return new FileContentSnapshot
+        var snapshot = new FileContentSnapshot
         {
             Text = text,
             ExtractionSource = metadata is null ? "image-metadata-unknown" : "image-metadata",
             IsTextReadable = false
         };
+
+        return await TryApplyOcrAsync(fullPath, snapshot, cancellationToken);
     }
 
     private static Task<FileContentSnapshot> ReadDocxAsync(string fullPath, CancellationToken cancellationToken)
@@ -254,6 +271,46 @@ public sealed class LocalFileContentReader : IFileContentReader
     }
 
     private static bool IsImageExtension(string extension) => ImageExtensions.Contains(extension);
+
+    private async Task<FileContentSnapshot> TryApplyOcrAsync(
+        string fullPath,
+        FileContentSnapshot fallback,
+        CancellationToken cancellationToken)
+    {
+        if (ocrTextExtractor is null)
+        {
+            return fallback;
+        }
+
+        var ocr = await ocrTextExtractor.TryExtractAsync(fullPath, cancellationToken);
+        if (!ocr.Succeeded || string.IsNullOrWhiteSpace(ocr.Text))
+        {
+            return new FileContentSnapshot
+            {
+                Text = fallback.Text,
+                IsTextReadable = fallback.IsTextReadable,
+                IsTruncated = fallback.IsTruncated,
+                ExtractionSource = fallback.ExtractionSource,
+                ExtractionConfidence = ocr.Confidence,
+                ExtractionMessage = ocr.Message
+            };
+        }
+
+        var combinedText = string.IsNullOrWhiteSpace(fallback.Text)
+            ? ocr.Text
+            : $"{fallback.Text}{Environment.NewLine}{Environment.NewLine}OCR text:{Environment.NewLine}{ocr.Text}";
+        var (sampledText, truncated) = SampleText(combinedText);
+
+        return new FileContentSnapshot
+        {
+            Text = sampledText,
+            IsTextReadable = true,
+            IsTruncated = fallback.IsTruncated || truncated,
+            ExtractionSource = ocr.Source,
+            ExtractionConfidence = ocr.Confidence,
+            ExtractionMessage = ocr.Message
+        };
+    }
 
     private static string BuildPdfImageOnlySignal(int pageCount, int imageCount) =>
         $"Image-only or scanned PDF metadata. Pages: {pageCount}. Embedded images: {imageCount}. OCR may be needed if the pages contain document text.";

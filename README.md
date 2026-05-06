@@ -30,6 +30,7 @@ The app is usable today and currently provides:
 - rollback confirmation dialogs now include preview-aware counts and concrete example path restores/skips
 - local content extraction for text-like files, `.docx`, and `.pdf`
 - large readable files are sampled from both the beginning and end instead of only taking a leading slice
+- optional local OCR via Tesseract for image-led documents when `tesseract` is installed or `FILEKITSUNE_TESSERACT_PATH` is configured
 - optional remote persistence via Postgres-compatible databases, including self-hosted Neon, when `NILEDB_URL`, `POSTGRES_URL`, or `DATABASE_URL` is configured
 - automatic local SQLite fallback/cache for settings and journals when remote persistence is unavailable or offline mode is enabled
 - visible persistence status in the execute step so users can see whether shared storage or local fallback is active
@@ -41,6 +42,7 @@ The app is usable today and currently provides:
 - scans a chosen root folder without modifying anything
 - reads lightweight content from readable text-like files, `.docx`, and `.pdf`
 - samples large readable documents so late-file context is not lost entirely
+- attempts OCR for scanned PDFs and image files through a local Tesseract executable, then falls back to metadata-only signals when OCR is unavailable or returns no text
 - classifies files using deterministic heuristics with optional Gemini enrichment
 - harmonizes project/workstream context across related files when shared signals are strong enough
 - falls back cleanly to deterministic local planning when Gemini is unavailable, unusable, or throws
@@ -137,6 +139,15 @@ Gemini support is optional.
 - the app can read environment variables or `.env` as fallback when no DPAPI value is present
 - Gemini can enrich semantic understanding, but it does not decide executable paths
 
+## OCR Usage
+
+OCR support is optional and local-first.
+
+- install Tesseract OCR and make `tesseract.exe` available on `PATH`, or set `FILEKITSUNE_TESSERACT_PATH` to the executable path
+- FileKitsune defaults OCR languages to `deu+eng`; set `FILEKITSUNE_OCR_LANGUAGES` to another Tesseract language expression if needed
+- OCR text is used as an advisory content signal for planning; local path validation and preview/execute safety checks remain authoritative
+- when OCR is unavailable, times out, or returns no text, the app keeps using the existing scanned-PDF and image metadata fallback
+
 ## Persistence
 
 The app now supports a layered persistence model:
@@ -186,8 +197,7 @@ The app is still evolving. Notable gaps:
 - append-safer journaling exists on the backend, rollback status is recorded per entry, and execution journals now include content hashes
 - richer journal metadata is better now, but a future checkpoint model could still improve partial-failure recovery further
 - PDF extraction is implemented for text-based PDFs with safe fallback on invalid/unreadable files
-- scanned/image-only PDFs still fall back without OCR
-- OCR and image-first analysis are not implemented yet
+- OCR depends on a local Tesseract installation and may fall back to metadata-only signals when the executable, language packs, or input format are unavailable
 - duplicate canonical selection still needs strengthening
 
 ## Storage Locations

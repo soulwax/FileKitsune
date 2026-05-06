@@ -66,6 +66,7 @@ Abstractions/
  IFileScanner.cs
  IGeminiOrganizationAdvisor.cs
  IGeminiSemanticClassifier.cs
+ IOcrTextExtractor.cs
  IPersistenceStatusService.cs
  IRecycleBinService.cs
 Models/
@@ -87,6 +88,7 @@ Models/
  ExecutionOutcome.cs
  FileAnalysisContext.cs
  GeminiOptions.cs
+ OcrTextExtractionResult.cs
  PersistenceStatusMode.cs
  PersistenceStatusSnapshot.cs
  RollbackPreview.cs

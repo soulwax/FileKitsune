@@ -45,6 +45,18 @@ public sealed partial class PlanOperationItemViewModel : ObservableObject
 
     public string Gemini => Operation.GeminiUsed ? "Gemini + heuristics" : "Heuristics";
 
+    public string ContentExtractionSource => string.IsNullOrWhiteSpace(Operation.ContentExtractionSource)
+        ? "None"
+        : Operation.ContentExtractionSource;
+
+    public string ContentExtractionConfidence => Operation.ContentExtractionConfidence is null
+        ? "n/a"
+        : $"{Operation.ContentExtractionConfidence.Value:P0}";
+
+    public bool HasContentExtractionConfidence => Operation.ContentExtractionConfidence is not null;
+
+    public string ContentExtractionMessage => Operation.ContentExtractionMessage;
+
     public string Language => Operation.LanguageContext.ToString();
 
     public string Category => Operation.CategoryDisplayName;

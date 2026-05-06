@@ -169,7 +169,7 @@ These are not cosmetic. They close trust gaps where a user could misunderstand s
 - [x] Add clear scan/preview coverage reporting: total scanned, previewed/planned count, skipped count, protected count, scan limit hit, preview sample limit hit, and unreadable content count.
 - [x] Add duplicate hash failure counts to scan/preview coverage reporting once duplicate detection exposes failure statistics.
 - [x] Block or strongly warn on execution when the current plan is incomplete because `MaxFilesToScan` or `PreviewSampleSize` truncated the folder.
-- [ ] Add full OCR text extraction for scanned PDFs and image files, preferably local/offline-first, with extraction source and confidence visible in the preview.
+- [x] Add local/offline-first OCR text extraction hook for scanned PDFs and image files, with extraction source and confidence visible in the preview when OCR is available.
 - [x] Add an audit trail for standalone dedup runs: root folder, duplicate groups, selected keepers, quarantined files, skipped groups, failures, and timestamp.
 - [x] Replace Recycle Bin-only dedup execution with a FileKitsune-managed quarantine/restore flow so duplicate removal remains recoverable even if the OS Recycle Bin is unavailable, disabled, or later emptied.
 - [x] Add recovery UI for incomplete/canceled/crashed execution journals so users can see pending operations, roll back completed moves, or mark abandoned.
@@ -182,7 +182,7 @@ Highest-value next work:
 
 - [x] improve rollback preview/confirmation from impact summary into a clearer diff-style confirmation experience
 - [x] add image-first metadata handling and scanned-PDF detection for image-led folders
-- [ ] add full OCR text extraction for scanned PDFs and images
+- [x] add local/offline-first OCR text extraction hook for scanned PDFs and images
 - [x] add execution preflight revalidation and stale-preview handling
 - [x] make partial scan/preview coverage impossible to miss before execution
 - [x] add dedup run audit history beyond relying on the Windows Recycle Bin
@@ -193,7 +193,7 @@ Why this is next:
 
 - the wizard, rules, localization, and recommendations are already useful
 - duplicate detection already exists in a usable form
-- stale-preview handling, partial-coverage clarity, OCR, and dedup audit history are now the largest gaps still visible to users
+- stale-preview handling, partial-coverage clarity, OCR hooks, dedup audit history, and checkpoint-level rollback hardening are now in place; remaining work should focus on visual polish and any duplicate canonical heuristics found during manual testing
 
 ## 12. Dedup Mode (Standalone Duplicate Remover)
 

@@ -10,5 +10,9 @@ public sealed class FileContentSnapshot
 
     public string ExtractionSource { get; init; } = string.Empty;
 
+    public double? ExtractionConfidence { get; init; }
+
+    public string ExtractionMessage { get; init; } = string.Empty;
+
     public int CharacterCount => Text.Length;
 }

@@ -1,4 +1,6 @@
 using System.Text;
+using FileTransformer.Application.Abstractions;
+using FileTransformer.Application.Models;
 using FileTransformer.Domain.Models;
 using FileTransformer.Infrastructure.FileSystem;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -111,6 +113,44 @@ public sealed class LocalFileContentReaderTests
     }
 
     [Fact]
+    public async Task ReadAsync_UsesOcrForImageOnlyPdfWhenAvailable()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.pdf");
+        try
+        {
+            await File.WriteAllBytesAsync(path, CreateImageOnlyPdf());
+
+            var reader = new LocalFileContentReader(
+                NullLogger<LocalFileContentReader>.Instance,
+                new FakeOcrTextExtractor("gescannte rechnung april", 0.91d));
+            var snapshot = await reader.ReadAsync(
+                new ScannedFile
+                {
+                    FullPath = path,
+                    RelativePath = "scan.pdf",
+                    FileName = "scan.pdf",
+                    Extension = ".pdf",
+                    SizeBytes = new FileInfo(path).Length
+                },
+                new OrganizationSettings(),
+                CancellationToken.None);
+
+            Assert.True(snapshot.IsTextReadable);
+            Assert.Equal("ocr-test", snapshot.ExtractionSource);
+            Assert.Equal(0.91d, snapshot.ExtractionConfidence);
+            Assert.Contains("gescannte rechnung april", snapshot.Text);
+            Assert.Contains("scanned PDF", snapshot.Text, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [Fact]
     public async Task ReadAsync_ReturnsImageMetadataForPng()
     {
         var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.png");
@@ -136,6 +176,81 @@ public sealed class LocalFileContentReaderTests
             Assert.Contains("Format: PNG", snapshot.Text);
             Assert.Contains("Dimensions: 24 x 12 pixels", snapshot.Text);
             Assert.Contains("Orientation: landscape", snapshot.Text);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task ReadAsync_UsesOcrForImageWhenAvailable()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.png");
+        try
+        {
+            await File.WriteAllBytesAsync(path, CreatePngHeader(width: 24, height: 12));
+
+            var reader = new LocalFileContentReader(
+                NullLogger<LocalFileContentReader>.Instance,
+                new FakeOcrTextExtractor("projekt atlas notizen", 0.84d));
+            var snapshot = await reader.ReadAsync(
+                new ScannedFile
+                {
+                    FullPath = path,
+                    RelativePath = "photo.png",
+                    FileName = "photo.png",
+                    Extension = ".png",
+                    SizeBytes = new FileInfo(path).Length
+                },
+                new OrganizationSettings(),
+                CancellationToken.None);
+
+            Assert.True(snapshot.IsTextReadable);
+            Assert.Equal("ocr-test", snapshot.ExtractionSource);
+            Assert.Equal(0.84d, snapshot.ExtractionConfidence);
+            Assert.Contains("projekt atlas notizen", snapshot.Text);
+            Assert.Contains("Format: PNG", snapshot.Text);
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task ReadAsync_KeepsImageMetadataWhenOcrReturnsNoText()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.png");
+        try
+        {
+            await File.WriteAllBytesAsync(path, CreatePngHeader(width: 24, height: 12));
+
+            var reader = new LocalFileContentReader(
+                NullLogger<LocalFileContentReader>.Instance,
+                new FakeOcrTextExtractor(string.Empty, null, succeeded: false));
+            var snapshot = await reader.ReadAsync(
+                new ScannedFile
+                {
+                    FullPath = path,
+                    RelativePath = "photo.png",
+                    FileName = "photo.png",
+                    Extension = ".png",
+                    SizeBytes = new FileInfo(path).Length
+                },
+                new OrganizationSettings(),
+                CancellationToken.None);
+
+            Assert.False(snapshot.IsTextReadable);
+            Assert.Equal("image-metadata", snapshot.ExtractionSource);
+            Assert.Equal("OCR unavailable in test.", snapshot.ExtractionMessage);
+            Assert.Contains("Format: PNG", snapshot.Text);
         }
         finally
         {
@@ -307,4 +422,32 @@ public sealed class LocalFileContentReaderTests
 
     private static string EscapePdfText(string text) =>
         text.Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)");
+
+    private sealed class FakeOcrTextExtractor : IOcrTextExtractor
+    {
+        private readonly string text;
+        private readonly double? confidence;
+        private readonly bool succeeded;
+
+        public FakeOcrTextExtractor(string text, double? confidence, bool succeeded = true)
+        {
+            this.text = text;
+            this.confidence = confidence;
+            this.succeeded = succeeded;
+        }
+
+        public Task<OcrTextExtractionResult> TryExtractAsync(
+            string fullPath,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new OcrTextExtractionResult
+            {
+                Succeeded = succeeded,
+                Text = text,
+                Confidence = confidence,
+                Source = "ocr-test",
+                Message = succeeded ? "OCR extracted in test." : "OCR unavailable in test."
+            });
+        }
+    }
 }

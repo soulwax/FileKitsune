@@ -235,6 +235,8 @@
     <sys:String x:Key="CurrentPathLabel">Current path</sys:String>
     <sys:String x:Key="ProposedPathLabel">Proposed path</sys:String>
     <sys:String x:Key="ReasonLabel">Reason</sys:String>
+    <sys:String x:Key="ContentExtractionSourceLabel">Extraction:</sys:String>
+    <sys:String x:Key="ContentExtractionConfidenceLabel">OCR confidence:</sys:String>
     <sys:String x:Key="SummaryAnalyzedItemsLabel">Analyzed items:</sys:String>
     <sys:String x:Key="SummaryMoveOperationsLabel">Move-related operations:</sys:String>
     <sys:String x:Key="SummaryRenameOperationsLabel">Rename-related operations:</sys:String>
