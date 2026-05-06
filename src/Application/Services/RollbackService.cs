@@ -165,6 +165,17 @@ public sealed class RollbackService
 
             try
             {
+                if (IsPendingCheckpoint(entry) &&
+                    fileOperations.FileExists(entry.SourceFullPath) &&
+                    !fileOperations.FileExists(entry.DestinationFullPath))
+                {
+                    skippedCount++;
+                    entry.RollbackStatus = RollbackEntryStatus.SkippedNoMutation;
+                    entry.RollbackMessage = $"Skipped pending checkpoint for '{entry.SourceFullPath}': source is still at the original path and no rollback move is needed.";
+                    messages.Add(entry.RollbackMessage);
+                    continue;
+                }
+
                 if (!fileOperations.FileExists(entry.DestinationFullPath))
                 {
                     skippedCount++;
@@ -263,13 +274,28 @@ public sealed class RollbackService
                 .Select(CreatePreviewEntry)
                 .ToList(),
             ReadyCount = entries.Count(entry => !fileOperations.FileExists(entry.SourceFullPath) && fileOperations.FileExists(entry.DestinationFullPath)),
-            MissingDestinationCount = entries.Count(entry => !fileOperations.FileExists(entry.DestinationFullPath)),
-            OriginalPathOccupiedCount = entries.Count(entry => fileOperations.FileExists(entry.SourceFullPath))
+            MissingDestinationCount = entries.Count(entry => !IsPendingCheckpointWithoutMutation(entry) && !fileOperations.FileExists(entry.DestinationFullPath)),
+            OriginalPathOccupiedCount = entries.Count(entry => !IsPendingCheckpointWithoutMutation(entry) && fileOperations.FileExists(entry.SourceFullPath)),
+            PendingNoMutationCount = entries.Count(IsPendingCheckpointWithoutMutation)
         };
     }
 
     private RollbackPreviewEntry CreatePreviewEntry(ExecutionJournalEntry entry)
     {
+        if (IsPendingCheckpointWithoutMutation(entry))
+        {
+            return new RollbackPreviewEntry
+            {
+                ExecutedAtUtc = entry.ExecutedAtUtc,
+                SourceFullPath = entry.SourceFullPath,
+                DestinationFullPath = entry.DestinationFullPath,
+                Outcome = entry.Outcome,
+                Notes = entry.Notes,
+                PreviewStatus = RollbackPreviewStatus.PendingNoMutation,
+                PreviewMessage = "Pending checkpoint did not move the file; no rollback move is needed."
+            };
+        }
+
         if (!fileOperations.FileExists(entry.DestinationFullPath))
         {
             return new RollbackPreviewEntry
@@ -309,4 +335,12 @@ public sealed class RollbackService
             PreviewMessage = "Ready to restore."
         };
     }
+
+    private static bool IsPendingCheckpoint(ExecutionJournalEntry entry) =>
+        string.Equals(entry.Outcome, "Pending", StringComparison.OrdinalIgnoreCase);
+
+    private bool IsPendingCheckpointWithoutMutation(ExecutionJournalEntry entry) =>
+        IsPendingCheckpoint(entry) &&
+        fileOperations.FileExists(entry.SourceFullPath) &&
+        !fileOperations.FileExists(entry.DestinationFullPath);
 }

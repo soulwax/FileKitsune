@@ -91,6 +91,7 @@ The app is usable today and currently provides:
 - review final selected-operation counts for moves, renames, duplicate routes, review-required items, and blocked/skipped items before execution is enabled
 - select a saved run and preview rollback readiness before undoing
 - see started or canceled execution journals that may need recovery, preview their rollback impact, roll back completed moves, or mark them abandoned
+- rollback preview distinguishes pending crash checkpoints where no file moved from pending checkpoints where the move already happened and can be restored
 - review the rollback impact summary to see what would restore cleanly versus be skipped
 - confirm undo actions with preview-aware counts instead of a generic warning only
 - roll back a full saved run or undo a top-level folder group from that run

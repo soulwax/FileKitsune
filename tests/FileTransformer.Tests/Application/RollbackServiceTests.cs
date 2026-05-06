@@ -161,6 +161,29 @@ public sealed class RollbackServiceTests
     }
 
     [Fact]
+    public async Task PreviewRollbackAsync_ReportsPendingCheckpointWithoutMutation()
+    {
+        var journal = CreateJournal(
+            rootDirectory: @"C:\Root",
+            entries:
+            [
+                CreateEntry(@"C:\Root\source.txt", @"C:\Root\Invoices\source.txt", outcome: "Pending")
+            ],
+            status: ExecutionJournalStatus.Started);
+
+        var fileOperations = new FakeFileOperations(existingFiles: [@"C:\Root\source.txt"]);
+        var journalStore = new InMemoryJournalStore([journal]);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
+
+        var preview = await service.PreviewRollbackAsync(journal.JournalId, CancellationToken.None);
+
+        Assert.Equal(1, preview.PendingNoMutationCount);
+        Assert.Equal(0, preview.MissingDestinationCount);
+        Assert.Equal(0, preview.OriginalPathOccupiedCount);
+        Assert.Contains(preview.Entries, entry => entry.PreviewStatus == RollbackPreviewStatus.PendingNoMutation);
+    }
+
+    [Fact]
     public async Task PreviewRollbackFolderAsync_FiltersCountsToSelectedFolder()
     {
         var journal = CreateJournal(
@@ -213,6 +236,51 @@ public sealed class RollbackServiceTests
         Assert.Equal(RollbackEntryStatus.Restored, savedJournal.Entries[0].RollbackStatus);
         Assert.False(string.IsNullOrWhiteSpace(savedJournal.Entries[0].RollbackMessage));
         Assert.NotNull(savedJournal.Entries[0].LastRollbackAttemptedAtUtc);
+    }
+
+    [Fact]
+    public async Task RollbackAsync_SkipsPendingCheckpointWhenSourceNeverMoved()
+    {
+        var journal = CreateJournal(
+            rootDirectory: @"C:\Root",
+            entries:
+            [
+                CreateEntry(@"C:\Root\source.txt", @"C:\Root\Invoices\source.txt", outcome: "Pending")
+            ],
+            status: ExecutionJournalStatus.Started);
+
+        var fileOperations = new FakeFileOperations(existingFiles: [@"C:\Root\source.txt"]);
+        var journalStore = new InMemoryJournalStore([journal]);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
+
+        var outcome = await service.RollbackAsync(journal.JournalId, CancellationToken.None);
+
+        Assert.Equal(1, outcome.SkippedOperations);
+        Assert.Empty(fileOperations.Moves);
+        Assert.Equal(RollbackEntryStatus.SkippedNoMutation, journal.Entries[0].RollbackStatus);
+        Assert.Contains("no rollback move is needed", journal.Entries[0].RollbackMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task RollbackAsync_RestoresPendingCheckpointWhenMoveAlreadyHappened()
+    {
+        var journal = CreateJournal(
+            rootDirectory: @"C:\Root",
+            entries:
+            [
+                CreateEntry(@"C:\Root\source.txt", @"C:\Root\Invoices\source.txt", outcome: "Pending")
+            ],
+            status: ExecutionJournalStatus.Started);
+
+        var fileOperations = new FakeFileOperations(existingFiles: [@"C:\Root\Invoices\source.txt"]);
+        var journalStore = new InMemoryJournalStore([journal]);
+        var service = new RollbackService(journalStore, fileOperations, new NoOpHashProvider(), NullLogger<RollbackService>.Instance);
+
+        var outcome = await service.RollbackAsync(journal.JournalId, CancellationToken.None);
+
+        Assert.Equal(1, outcome.SuccessfulOperations);
+        Assert.Single(fileOperations.Moves);
+        Assert.Equal(RollbackEntryStatus.Restored, journal.Entries[0].RollbackStatus);
     }
 
     [Fact]
@@ -282,13 +350,13 @@ public sealed class RollbackServiceTests
             Entries = entries.ToList()
         };
 
-    private static ExecutionJournalEntry CreateEntry(string sourceFullPath, string destinationFullPath) =>
+    private static ExecutionJournalEntry CreateEntry(string sourceFullPath, string destinationFullPath, string outcome = "Moved") =>
         new()
         {
             SourceFullPath = sourceFullPath,
             DestinationFullPath = destinationFullPath,
             ExecutedAtUtc = DateTimeOffset.UtcNow,
-            Outcome = "Moved"
+            Outcome = outcome
         };
 
     private sealed class NoOpHashProvider : IFileHashProvider

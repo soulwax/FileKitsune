@@ -493,6 +493,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private int rollbackPreviewOriginalPathOccupiedCount;
 
     [ObservableProperty]
+    private int rollbackPreviewPendingNoMutationCount;
+
+    [ObservableProperty]
     private string rollbackPreviewScopeLabel = string.Empty;
 
     [ObservableProperty]
@@ -2998,6 +3001,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RollbackPreviewReadyCount = preview.ReadyCount;
         RollbackPreviewMissingDestinationCount = preview.MissingDestinationCount;
         RollbackPreviewOriginalPathOccupiedCount = preview.OriginalPathOccupiedCount;
+        RollbackPreviewPendingNoMutationCount = preview.PendingNoMutationCount;
     }
 
     private void PopulateRollbackPreviewSections(IReadOnlyList<RollbackPreviewItem> items)
@@ -3018,6 +3022,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
             RollbackPreviewStatus.OriginalPathOccupied,
             "RollbackPreviewSectionBlockedTitle",
             "RollbackPreviewSectionBlockedBody");
+        AddRollbackPreviewSection(
+            items,
+            RollbackPreviewStatus.PendingNoMutation,
+            "RollbackPreviewSectionPendingNoMutationTitle",
+            "RollbackPreviewSectionPendingNoMutationBody");
     }
 
     private void AddRollbackPreviewSection(
@@ -3055,7 +3064,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             string.Empty,
             FormatString("DialogRollbackImpactReadyLine", preview.ReadyCount),
             FormatString("DialogRollbackImpactMissingLine", preview.MissingDestinationCount),
-            FormatString("DialogRollbackImpactBlockedLine", preview.OriginalPathOccupiedCount)
+            FormatString("DialogRollbackImpactBlockedLine", preview.OriginalPathOccupiedCount),
+            FormatString("DialogRollbackImpactPendingLine", preview.PendingNoMutationCount)
         };
 
         var exampleSections = BuildRollbackImpactExampleSections(preview);
@@ -3101,6 +3111,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
             rootDirectory,
             RollbackPreviewStatus.OriginalPathOccupied,
             "DialogRollbackImpactBlockedExamplesTitle");
+        AppendRollbackImpactExampleSection(
+            sections,
+            orderedEntries,
+            rootDirectory,
+            RollbackPreviewStatus.PendingNoMutation,
+            "DialogRollbackImpactPendingExamplesTitle");
 
         return sections;
     }
@@ -3154,6 +3170,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RollbackPreviewReadyCount = 0;
         RollbackPreviewMissingDestinationCount = 0;
         RollbackPreviewOriginalPathOccupiedCount = 0;
+        RollbackPreviewPendingNoMutationCount = 0;
     }
 
     private string GetJournalStatusLabel(ExecutionJournalStatus status) =>
@@ -3172,6 +3189,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             RollbackPreviewStatus.Ready => GetString("RollbackPreviewStatusReady"),
             RollbackPreviewStatus.MissingDestination => GetString("RollbackPreviewStatusMissingDestination"),
             RollbackPreviewStatus.OriginalPathOccupied => GetString("RollbackPreviewStatusOriginalPathOccupied"),
+            RollbackPreviewStatus.PendingNoMutation => GetString("RollbackPreviewStatusPendingNoMutation"),
             _ => status.ToString()
         };
 
@@ -3181,6 +3199,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             RollbackPreviewStatus.Ready => GetString("RollbackPreviewMessageReady"),
             RollbackPreviewStatus.MissingDestination => GetString("RollbackPreviewMessageMissingDestination"),
             RollbackPreviewStatus.OriginalPathOccupied => GetString("RollbackPreviewMessageOriginalPathOccupied"),
+            RollbackPreviewStatus.PendingNoMutation => GetString("RollbackPreviewMessagePendingNoMutation"),
             _ => string.Empty
         };
 

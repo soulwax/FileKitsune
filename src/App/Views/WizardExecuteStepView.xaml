@@ -344,6 +344,10 @@
                                     <TextBlock Text="{DynamicResource RollbackPreviewSummaryBlockedLabel}" />
                                     <TextBlock Margin="4,0,0,0" Text="{Binding RollbackPreviewOriginalPathOccupiedCount}" />
                                 </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{DynamicResource RollbackPreviewSummaryPendingLabel}" />
+                                    <TextBlock Margin="4,0,0,0" Text="{Binding RollbackPreviewPendingNoMutationCount}" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 

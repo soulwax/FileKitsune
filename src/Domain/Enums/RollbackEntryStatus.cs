@@ -7,5 +7,6 @@ public enum RollbackEntryStatus
     SkippedMissingDestination = 2,
     SkippedOriginalPathOccupied = 3,
     Failed = 4,
-    SkippedContentMismatch = 5
+    SkippedContentMismatch = 5,
+    SkippedNoMutation = 6
 }

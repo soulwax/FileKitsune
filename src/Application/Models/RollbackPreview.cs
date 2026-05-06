@@ -13,4 +13,6 @@ public sealed class RollbackPreview
     public int MissingDestinationCount { get; init; }
 
     public int OriginalPathOccupiedCount { get; init; }
+
+    public int PendingNoMutationCount { get; init; }
 }
